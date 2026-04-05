@@ -31,15 +31,16 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                 // 📥 Flow 2: Download unlocked sample
                 const response = await getDownloadUrl(sampleId)
                 if (response.url) {
-                    const link = document.createElement('a')
-                    link.href = response.url
-                    link.download = response.fileName || 'sample.wav'
-                    document.body.appendChild(link)
-                    link.click()
-                    document.body.removeChild(link)
+                    // Because the API sets 'Content-Disposition: attachment', 
+                    // this will trigger a native browser download instantly.
+                    window.location.assign(response.url)
                 }
             }
         } catch (err: any) {
+            if (err.message === 'Authentication required') {
+                window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`
+                return
+            }
             alert(err.message || "Failed to process request. Please check your credit balance.")
         } finally {
             setIsProcessing(false)

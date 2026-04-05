@@ -40,7 +40,13 @@ export default async function PackPage({ params }: { params: { slug: string } })
         <div className="lg:col-span-1">
           <div className="aspect-square relative overflow-hidden rounded-[2.5rem] bg-white/5 border border-white/10 shadow-2xl group">
             {pack.cover_url ? (
-               <Image src={pack.cover_url} alt={pack.name} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
+               <Image 
+                 src={pack.cover_url} 
+                 alt={pack.name} 
+                 fill 
+                 sizes="(max-width: 1024px) 100vw, 33vw"
+                 className="object-cover group-hover:scale-105 transition-transform duration-1000" 
+               />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-white/5 font-black italic text-5xl uppercase tracking-tighter mix-blend-overlay">WALA</div>
             )}
@@ -137,7 +143,15 @@ export default async function PackPage({ params }: { params: { slug: string } })
             {relatedPacks?.map((rp) => (
                 <Link key={rp.id} href={/packs/} className="group p-4 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.05] transition-all active:scale-[0.98]">
                     <div className="aspect-square relative overflow-hidden rounded-2xl mb-4 bg-white/5 shadow-2xl">
-                        {rp.cover_url && <Image src={rp.cover_url} alt={rp.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
+                        {rp.cover_url && (
+                          <Image 
+                            src={rp.cover_url} 
+                            alt={rp.name} 
+                            fill 
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                             <span className="text-[10px] font-black uppercase tracking-widest bg-white text-black px-4 py-2 rounded-full">Examine</span>
                         </div>

@@ -1,9 +1,14 @@
+import { createClient } from '@/lib/supabase/server'
+import { signOut } from '@/app/auth/actions'
 import Link from 'next/link'
-import { Music, Search, ShoppingCart, User } from 'lucide-react'
+import { Music, Search, User } from 'lucide-react'
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
 
-export function Header() {
+export async function Header() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/60 backdrop-blur-xl">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -20,7 +25,7 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <CreditCounter />
+          {user && <CreditCounter />}
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 transition-colors group-focus-within:text-white/60" />
@@ -34,15 +39,22 @@ export function Header() {
           
           <nav className="flex items-center gap-3 border-l border-white/10 pl-4 ml-4">
             <CurrencyToggle />
-            <Link href="/cart" className="p-2 hover:bg-white/5 rounded-full transition-all text-white/40 hover:text-white">
-              <ShoppingCart className="h-4 w-4" />
-            </Link>
-            <Link href="/login" className="p-2 hover:bg-white/5 rounded-full transition-all text-white/40 hover:text-white">
-              <User className="h-4 w-4" />
-            </Link>
+            
+            {user ? (
+                <form action={signOut}>
+                    <button className="p-2 hover:bg-white/5 rounded-full transition-all text-white/40 hover:text-white">
+                        <User className="h-4 w-4" />
+                    </button>
+                </form>
+            ) : (
+                <Link href="/auth/login" className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                    Login / Join
+                </Link>
+            )}
           </nav>
         </div>
       </div>
     </header>
   )
 }
+

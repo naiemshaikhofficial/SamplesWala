@@ -7,13 +7,24 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
   const isActive = activeId === id
   const progress = isActive ? (currentTime / duration) * 100 : 0
   
-  // Pro Audio Shape: Higher in the middle, lower at the ends
+  // 🧬 Deterministic Seed for Hydration Safety:
+  // We use the ID to generate the SAME random bars on server & client
   const [staticBars] = useState<number[]>(() => {
+    // Basic hash from ID string
+    let seed = 0;
+    for (let j = 0; j < id.length; j++) seed += id.charCodeAt(j);
+    
+    // Seeded random helper
+    const seededRandom = () => {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+    }
+
     return Array.from({ length: 50 }).map((_, i) => {
         const mid = 25;
         const dist = Math.abs(i - mid);
         const base = Math.max(10, 60 - dist * 2); 
-        return base + Math.random() * 20;
+        return base + seededRandom() * 20;
     })
   })
 

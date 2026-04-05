@@ -72,9 +72,10 @@ export async function GET(req: NextRequest) {
 
   try {
     // 🛡️ SECURITY LAYER 1: Verify JWT
+    let decoded: any;
     try {
-        const decoded: any = jwt.verify(token, JWT_SECRET);
-        if (decoded.sampleId !== id || decoded.purpose !== 'preview') {
+        decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.sampleId !== id || !['preview', 'download'].includes(decoded.purpose)) {
             console.error("[AUDIO PROXY] Token Mismatch:", { decoded, id });
             return new NextResponse('Invalid Security Token', { status: 401 });
         }
@@ -93,13 +94,15 @@ export async function GET(req: NextRequest) {
         return new NextResponse('Direct Access Blocked (Security Code 102)', { status: 403 });
     }
 
-    const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url').eq('id', id).single();
+    const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url, download_url, name').eq('id', id).single();
     if (dbError || !sample) {
         console.error("[AUDIO PROXY] DB Error:", dbError);
         return new NextResponse('Not found', { status: 404 });
     }
 
-    const dbUrl = sample.audio_url;
+    const isDownload = decoded.purpose === 'download';
+    const dbUrl = isDownload ? sample.download_url : sample.audio_url;
+    
     let finalUrl = dbUrl, cookie = '', fileId = '';
     const extractedId = getDriveFileId(dbUrl);
 
@@ -115,7 +118,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    console.log(`[AUDIO PROXY] Fetching binary from: ${finalUrl.substring(0, 50)}...`);
+    console.log(`[AUDIO PROXY] ${isDownload ? "DOWNLOAD" : "PREVIEW"} from: ${finalUrl.substring(0, 50)}...`);
 
     const range = req.headers.get('range');
     const requestHeaders: HeadersInit = { 'User-Agent': USER_AGENT };
@@ -133,7 +136,14 @@ export async function GET(req: NextRequest) {
         const val = upstreamResponse.headers.get(h);
         if (val) responseHeaders.set(h, val);
     });
+    
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    
+    if (isDownload) {
+        responseHeaders.set('Content-Disposition', `attachment; filename="${sample.name}.wav"`);
+        // For downloads, we might want to override the preview content type to force binary
+        responseHeaders.set('Content-Type', 'audio/wav');
+    }
 
     return new NextResponse(upstreamResponse.body, { status: upstreamResponse.status, headers: responseHeaders });
   } catch (error: any) {

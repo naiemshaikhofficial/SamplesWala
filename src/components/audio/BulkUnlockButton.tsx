@@ -12,6 +12,10 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
       const res = await unlockFullPack(packId)
       if (res.success) alert('Full Pack Unlocked! All sounds are now in your library.')
     } catch (err: any) {
+      if (err.message === 'Authentication required') {
+          window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`
+          return
+      }
       alert(err.message || 'Error unlocking bundle.')
     } finally {
       setLoading(false)

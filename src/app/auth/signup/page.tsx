@@ -1,8 +1,49 @@
+'use client'
+
+import React, { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, UserPlus, Mail, Lock } from 'lucide-react'
+import { ArrowLeft, Sparkles, UserPlus, Mail, Lock, Loader2, AlertCircle } from 'lucide-react'
 import { signup } from '../actions'
 
+import { useSearchParams } from 'next/navigation'
+
 export default function SignupPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#020202] flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-white/20" />
+            </div>
+        }>
+            <SignupForm />
+        </Suspense>
+    )
+}
+
+function SignupForm() {
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get('redirect') || '/browse'
+  
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setError(null)
+    
+    const formData = new FormData(e.currentTarget)
+    try {
+        const result = await signup(formData)
+        if (result?.error) {
+            setError(result.error)
+        }
+    } catch (err: any) {
+        setError("Registration failed. Please try again.")
+    } finally {
+        setIsPending(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#020202] text-white flex flex-col relative overflow-hidden">
       {/* Premium Gold/Yellow Flows */}
@@ -25,7 +66,15 @@ export default function SignupPage() {
           </div>
 
           {/* Registration Form */}
-          <form action={signup} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <input type="hidden" name="redirect" value={redirectPath} />
+            {error && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {error}
+                </div>
+            )}
+
             <div className="relative group">
                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-yellow-500 transition-colors" />
                <input 
@@ -55,12 +104,23 @@ export default function SignupPage() {
                </p>
             </div>
 
-            <button className="relative w-full py-5 bg-white text-black font-black uppercase tracking-widest text-sm rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 overflow-hidden group">
-               <span>Join The Club</span>
-               <Sparkles className="h-4 w-4 text-yellow-600 group-hover:scale-125 transition-transform" />
+            <button disabled={isPending} className="relative w-full py-5 bg-white text-black font-black uppercase tracking-widest text-sm rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 overflow-hidden group disabled:opacity-50 disabled:cursor-wait">
+               {isPending ? (
+                   <>
+                     <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Creating Account...</span>
+                   </>
+               ) : (
+                   <>
+                     <span>Join The Club</span>
+                     <Sparkles className="h-4 w-4 text-yellow-600 group-hover:scale-125 transition-transform" />
+                   </>
+               )}
                
                {/* Shine Effect */}
-               <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
+               {!isPending && (
+                  <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
+               )}
             </button>
           </form>
 

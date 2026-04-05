@@ -7,38 +7,35 @@ import { redirect } from 'next/navigation'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const redirectTo = (formData.get('redirect') as string) || '/browse'
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
     return { error: error.message }
   }
 
   revalidatePath('/', 'layout')
-  redirect('/browse')
+  redirect(redirectTo)
 }
 
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  }
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const redirectTo = (formData.get('redirect') as string) || '/browse'
 
-  const { error } = await supabase.auth.signUp(data)
+  const { error } = await supabase.auth.signUp({ email, password })
 
   if (error) {
     return { error: error.message }
   }
 
-  // Auto login if possible or redirect to verification notice
   revalidatePath('/', 'layout')
-  redirect('/browse?status=registered')
+  redirect(redirectTo)
 }
 
 export async function signOut() {

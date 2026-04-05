@@ -1,8 +1,32 @@
+'use client'
+
+import React, { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, ShieldCheck, Lock } from 'lucide-react'
+import { ArrowLeft, Sparkles, ShieldCheck, Lock, Loader2, AlertCircle } from 'lucide-react'
 import { updatePassword } from '../actions'
 
 export default function ResetPasswordPage() {
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsPending(true)
+    setError(null)
+    
+    const formData = new FormData(e.currentTarget)
+    try {
+        const result = await updatePassword(formData)
+        if (result?.error) {
+            setError(result.error)
+        }
+    } catch (err: any) {
+        setError("Failed to update password. Please try again.")
+    } finally {
+        setIsPending(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#020202] text-white flex flex-col relative overflow-hidden">
       {/* Dynamic Background Glows */}
@@ -25,7 +49,13 @@ export default function ResetPasswordPage() {
           </div>
 
           {/* New Password Form */}
-          <form action={updatePassword} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {error}
+                </div>
+            )}
             <div className="relative group">
                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
                <input 
@@ -37,9 +67,18 @@ export default function ResetPasswordPage() {
                />
             </div>
 
-            <button className="w-full py-5 bg-white text-black font-black uppercase tracking-widest text-sm rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 overflow-hidden group">
-               <span>Update Password</span>
-               <Sparkles className="h-4 w-4 text-emerald-600 transition-transform group-hover:scale-125" />
+            <button disabled={isPending} className="w-full py-5 bg-white text-black font-black uppercase tracking-widest text-sm rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3 overflow-hidden group">
+               {isPending ? (
+                   <>
+                     <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Setting New Key...</span>
+                   </>
+               ) : (
+                   <>
+                    <span>Update Password</span>
+                    <Sparkles className="h-4 w-4 text-emerald-600 transition-transform group-hover:scale-125" />
+                   </>
+               )}
             </button>
           </form>
 

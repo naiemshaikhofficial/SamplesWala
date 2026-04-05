@@ -16,6 +16,16 @@ export async function generatePreviewToken(sampleId: string) {
     return jwt.sign(payload, JWT_SECRET)
 }
 
+export async function generateDownloadToken(sampleId: string) {
+    const payload = {
+        sampleId,
+        purpose: 'download',
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 300 // 5 minutes (tight security)
+    }
+    return jwt.sign(payload, JWT_SECRET)
+}
+
 /**
  * 💳 Splice Flow: Unlock a sample using 1 credit
  */
@@ -25,7 +35,16 @@ export async function unlockSample(sampleId: string) {
 
     if (!user) throw new Error('Authentication required')
 
-    // 1. Fetch user credits in user_subscriptions - Pick the one with the most credits first
+    // 1. Fetch Sample Details to get its actual Credit Cost
+    const { data: sample, error: sampleError } = await supabase
+        .from('samples')
+        .select('id, pack_id, credit_cost')
+        .eq('id', sampleId)
+        .single()
+
+    if (sampleError || !sample) throw new Error('Target sample not found in database.')
+
+    // 2. Fetch user credits in user_subscriptions - Pick the one with the most credits first
     const { data: subscriptions, error: subError } = await supabase
         .from('user_subscriptions')
         .select('current_credits, id')
@@ -37,8 +56,8 @@ export async function unlockSample(sampleId: string) {
     }
 
     const primarySub = subscriptions[0]
-    if (primarySub.current_credits < 1) {
-        throw new Error('Insufficient credits. Please top up your plan.')
+    if (primarySub.current_credits < (sample.credit_cost || 1)) {
+        throw new Error(`Insufficient credits. You need ${sample.credit_cost} credits to unlock this sound.`)
     }
 
     // 2. Start Unlock Transaction
@@ -53,18 +72,24 @@ export async function unlockSample(sampleId: string) {
     if (unlockError) {
         // If already unlocked, this might fail on UNIQUE constraint - we catch that
         if (unlockError.code === '23505') return { success: true, message: 'Already unlocked' }
-        throw new Error('Failed to unlock sample')
+        console.error("[UNLOCK ERROR]", unlockError)
+        throw new Error(`Failed to unlock sample: ${unlockError.message}`)
     }
 
-    // B: Deduct 1 Credit
-    const { error: deductError } = await supabase
-        .from('user_subscriptions')
-        .update({ current_credits: primarySub.current_credits - 1 })
-        .eq('id', primarySub.id)
+    // B: Deduct the actual credit cost using our secure server-side function
+    const { data: rpcRes, error: deductError } = await supabase.rpc('deduct_credits_pro', {
+        user_id_input: user.id,
+        amount_to_deduct: sample.credit_cost || 1
+    })
 
-    if (deductError) throw new Error('Failed to deduct credits')
+    if (deductError) {
+        console.error("[CRITICAL] DEDUCTION FAILED:", deductError.message);
+        console.error("💡 TIP: Make sure you ran the SQL from fix_credit_system.sql in your Supabase Editor!");
+        throw new Error('Failed to deduct credits: ' + deductError.message)
+    }
 
-    revalidatePath('/packs/[slug]', 'page')
+    console.log("✅ Credits Deducted Successfully for User:", user.email);
+    revalidatePath('/', 'layout')
     return { success: true }
 }
 
@@ -92,16 +117,18 @@ export async function getDownloadUrl(sampleId: string) {
     // 2. Fetch High Quality URL
     const { data: sample, error: sampleError } = await supabase
         .from('samples')
-        .select('audio_url, name')
+        .select('name')
         .eq('id', sampleId)
         .single()
 
     if (sampleError || !sample) throw new Error('Sample not found')
 
-    // In a real prod environment, you would generate a signed Google Drive link or S3 link here.
-    // For now, we return the proxy URL which is already secure via our API route
+    // 3. Generate a secure, temporary download token
+    const token = await generateDownloadToken(sampleId)
+
+    // Return the proxy URL which handles everything internally
     return { 
-        url: sample.audio_url,
+        url: `/api/audio?id=${sampleId}&token=${token}`,
         fileName: `${sample.name}.wav`
     }
 }

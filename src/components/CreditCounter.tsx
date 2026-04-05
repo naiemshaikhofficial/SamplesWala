@@ -33,15 +33,20 @@ export function CreditCounter() {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'user_subscriptions' },
-        (payload) => {
-           if (payload.new.current_credits !== undefined) {
-             setCredits(payload.new.current_credits)
-           }
+        () => {
+           fetchCredits()
         }
       )
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    // 🏆 Manual Trigger for instant UI updates!
+    const onManualRefresh = () => fetchCredits();
+    window.addEventListener('refresh-credits', onManualRefresh);
+
+    return () => { 
+        supabase.removeChannel(channel) 
+        window.removeEventListener('refresh-credits', onManualRefresh);
+    }
   }, [supabase, fetchCredits])
 
   if (credits === null) return null
