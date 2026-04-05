@@ -7,6 +7,7 @@ import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
 import { PriceDisplay } from '@/components/PriceDisplay'
 import { BulkUnlockButton } from '@/components/audio/BulkUnlockButton'
+import { SubscribeButton } from '@/components/SubscribeButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { getRelatedPacks } from '@/app/browse/actions'
 
@@ -78,13 +79,27 @@ export default async function PackPage({ params }: { params: { slug: string } })
           </p>
           
           <div className="flex flex-wrap items-center gap-6">
-            <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-            <div className="flex items-center gap-3 px-8 text-white/40">
-               <span className="h-[1px] w-8 bg-white/10"></span>
-               <span className="text-[10px] font-black uppercase tracking-widest">Or</span>
-               <span className="h-[1px] w-8 bg-white/10"></span>
-            </div>
-            <button className="text-sm font-black uppercase tracking-widest border-b border-white/20 pb-1 hover:border-white transition-all">Buy for <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} /></button>
+            {unlockedSampleIds.size === samples?.length ? (
+                <div className="px-8 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-widest text-[10px] flex items-center gap-3">
+                    <ShieldCheck className="h-4 w-4" /> You own this collection
+                </div>
+            ) : (
+                <>
+                    <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
+                    <div className="flex items-center gap-3 px-8 text-white/40">
+                    <span className="h-[1px] w-8 bg-white/10"></span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Or</span>
+                    <span className="h-[1px] w-8 bg-white/10"></span>
+                    </div>
+                    <div className="w-64">
+                         <SubscribeButton 
+                            planId={pack.id} 
+                            planName={pack.name} 
+                            mode="sample_pack"
+                        />
+                    </div>
+                </>
+            )}
           </div>
         </div>
       </div>

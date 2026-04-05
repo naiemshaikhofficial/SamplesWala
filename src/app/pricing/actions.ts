@@ -86,17 +86,50 @@ export async function purchaseCreditPack(packId: string) {
 }
 
 /**
+ * 💿 Razorpay Order Action (Full Sample Pack)
+ */
+export async function purchaseSamplePack(packId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+  
+    if (!user) redirect('/auth/login?redirect=/packs/' + packId)
+    if (!razorpay) throw new Error('Razorpay is not configured on the server')
+  
+    // 1. Fetch Pack Details
+    const { data: pack, error: packError } = await supabase.from('sample_packs').select('*').eq('id', packId).single()
+    if (packError || !pack) throw new Error('Invalid sample pack')
+  
+    // 2. CREATE RAZORPAY ORDER
+    try {
+      const order = await razorpay.orders.create({
+        amount: pack.price_inr * 100,
+        currency: 'INR',
+        receipt: `pack_full_${Date.now()}`,
+        notes: { user_id: user.id, pack_id: packId, type: 'sample_pack' }
+      })
+  
+      return { 
+          success: true, 
+          orderId: order.id, 
+          amount: order.amount, 
+          key: process.env.RAZORPAY_KEY_ID,
+          user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' }
+      }
+    } catch (err: any) {
+      console.error("Razorpay Pack Error:", err)
+      throw new Error('Failed to start checkout. Check your API keys.')
+    }
+}
+
+/**
  * ✅ Razorpay Payment Verification
  * This is called from the client after a successful Razorpay modal payment
  */
-export async function verifyPayment(paymentRes: any, orderId: string, itemType: 'subscription' | 'pack', itemId: string) {
+export async function verifyPayment(paymentRes: any, orderId: string, itemType: 'subscription' | 'pack' | 'sample_pack', itemId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    // 🛡️ IN REAL PROD: Verify signature using crypto.createHmac
-    // For now, let's assume verification passed if we got the response
-    
     if (itemType === 'subscription') {
         const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
         if (!plan) throw new Error('Plan not found')
@@ -117,7 +150,7 @@ export async function verifyPayment(paymentRes: any, orderId: string, itemType: 
             item_name: `${plan.name} Plan`,
             payment_id: paymentRes.razorpay_payment_id
         })
-    } else {
+    } else if (itemType === 'pack') {
         const { data: pack } = await supabase.from('credit_packs').select('*').eq('id', itemId).single()
         if (!pack) throw new Error('Pack not found')
 
@@ -142,10 +175,34 @@ export async function verifyPayment(paymentRes: any, orderId: string, itemType: 
             item_name: `${pack.name} Pack`,
             payment_id: paymentRes.razorpay_payment_id
         })
+    } else if (itemType === 'sample_pack') {
+        // 🔥 FULL PACK UNLOCK LOGIC
+        const { data: pack } = await supabase.from('sample_packs').select('*, samples(*)').eq('id', itemId).single()
+        if (!pack) throw new Error('Pack not found')
+
+        const samples = pack.samples || []
+        if (samples.length > 0) {
+            const unlockEntries = samples.map((s: any) => ({
+                user_id: user.id,
+                sample_id: s.id
+            }))
+            
+            // Insert into unlocked_samples (upsert to avoid duplicates)
+            await supabase.from('unlocked_samples').upsert(unlockEntries, { onConflict: 'user_id,sample_id' })
+        }
+
+        await supabase.from('purchases').insert({
+            user_id: user.id,
+            amount: pack.price_inr || 0,
+            item_type: 'sample_pack',
+            item_name: `Full Pack: ${pack.name}`,
+            payment_id: paymentRes.razorpay_payment_id
+        })
     }
 
     revalidatePath('/pricing')
     revalidatePath('/')
+    revalidatePath('/packs/[slug]', 'page')
 
     return { success: true }
 }

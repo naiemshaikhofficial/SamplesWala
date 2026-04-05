@@ -2,15 +2,15 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSubscription, purchaseCreditPack, verifyPayment } from '@/app/pricing/actions'
-import { Loader2, Sparkles } from 'lucide-react'
+import { createSubscription, purchaseCreditPack, purchaseSamplePack, verifyPayment } from '@/app/pricing/actions'
+import { Loader2, Sparkles, CreditCard } from 'lucide-react'
 import Script from 'next/script'
 
 type SubscribeButtonProps = {
   planId: string
   planName: string
   isFeatured?: boolean
-  mode?: 'subscription' | 'pack'
+  mode?: 'subscription' | 'pack' | 'sample_pack'
 }
 
 declare global {
@@ -27,7 +27,11 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
     setIsPending(true)
     try {
       // 1. Create Server-Side Order
-      const action = mode === 'pack' ? purchaseCreditPack : createSubscription
+      let action;
+      if (mode === 'subscription') action = createSubscription;
+      else if (mode === 'pack') action = purchaseCreditPack;
+      else action = purchaseSamplePack;
+
       const orderData = await action(planId)
       
       if (!orderData.success) throw new Error('Order creation failed')
