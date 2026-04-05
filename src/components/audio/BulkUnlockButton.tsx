@@ -3,18 +3,24 @@ import { Zap } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { unlockFullPack } from '@/app/packs/[slug]/actions'
+import { useNotify } from '@/components/ui/NotificationProvider'
 
 export function BulkUnlockButton({ packId, cost }: { packId: string, cost: number }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { showToast, showConfirm } = useNotify()
 
   const handleBulkUnlock = async () => {
+    // 🛡️ PREMIUM CONFIRMATION SYSTEM
+    const confirmed = await showConfirm(`Are you sure you want to consume ${cost} credits to unlock this entire collection permanently?`)
+    if (!confirmed) return;
+
     try {
       setLoading(true)
       const res = await unlockFullPack(packId)
       if (res.success) {
-          alert('Full Pack Unlocked! All sounds are now in your library.')
-          router.refresh() // 🔥 Force UI to update
+          showToast('ACCESS GRANTED: Full Pack Unlocked!', 'success')
+          setTimeout(() => router.refresh(), 1000)
       }
     } catch (err: any) {
       if (err.message === 'Authentication required') {

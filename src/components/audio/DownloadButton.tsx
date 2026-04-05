@@ -5,6 +5,8 @@ import { Download, Lock, Loader2, Sparkles } from 'lucide-react'
 import { useAudio } from './AudioProvider'
 import { unlockSample, getDownloadUrl } from '@/app/packs/[slug]/actions'
 
+import { useNotify } from '@/components/ui/NotificationProvider'
+
 type DownloadButtonProps = {
   sampleId: string
   isUnlockedInitial: boolean
@@ -15,6 +17,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
     const [isUnlocked, setIsUnlocked] = useState(isUnlockedInitial)
     const [isProcessing, setIsProcessing] = useState(false)
     const { isPlaying } = useAudio()
+    const { showToast, showConfirm } = useNotify()
 
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -23,9 +26,16 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
         try {
             if (!isUnlocked) {
                 // 💳 Flow 1: Unlock using 1 credit
+                const confirmed = await showConfirm(`Spend ${creditCost} credits to unlock this sound permanently?`)
+                if (!confirmed) {
+                    setIsProcessing(false) // Reset loading state
+                    return
+                }
+
                 const result = await unlockSample(sampleId)
                 if (result.success) {
                     setIsUnlocked(true)
+                    showToast('SAMPLE UNLOCKED', 'success')
                 }
             } else {
                 // 📥 Flow 2: Download unlocked sample
@@ -41,7 +51,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                 window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`
                 return
             }
-            alert(err.message || "Failed to process request. Please check your credit balance.")
+            showToast(err.message || "TRANSACTION FAILED", "error")
         } finally {
             setIsProcessing(false)
         }

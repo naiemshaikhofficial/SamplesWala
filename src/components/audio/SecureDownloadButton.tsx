@@ -1,5 +1,5 @@
 'use client'
-import { Music4, Loader2, AlertTriangle } from 'lucide-react'
+import { Download, ShieldCheck, Loader2, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 import { getSecureDownloadUrl } from '@/app/packs/actions'
 
@@ -16,7 +16,6 @@ export function SecureDownloadButton({ packId }: { packId: string }) {
             const secureUrl = await getSecureDownloadUrl(packId)
             
             // 🚀 TRIGGER SECURE DOWNLOAD VIA AUTHORIZED BINARY STREAM
-            // No more popups! The browser stays on the current pack page and starts the stream.
             window.location.href = secureUrl
             
             // Give the browser time to initiate the handshake
@@ -44,12 +43,15 @@ export function SecureDownloadButton({ packId }: { packId: string }) {
         <button 
             disabled={loading}
             onClick={handleDownload}
-            className="bg-black text-white px-16 py-6 font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-4 group disabled:opacity-50"
+            className="bg-black text-white px-16 py-6 font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-4 group disabled:opacity-50 border border-white/10"
         >
             {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-                <Music4 className="h-5 w-5 fill-white group-hover:animate-bounce" />
+                <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-[#00FF00] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Download className="h-5 w-5 fill-white group-hover:animate-bounce" />
+                </div>
             )}
             {loading ? 'SECURING...' : 'DOWNLOAD'}
         </button>

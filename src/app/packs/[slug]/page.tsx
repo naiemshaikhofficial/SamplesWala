@@ -106,14 +106,14 @@ export default async function PackPage({ params }: { params: { slug: string } })
                 <div className="flex-1 border border-white/5 p-10 flex flex-col justify-between group hover:border-white/20 transition-all bg-[#050505]">
                     <div>
                         <div className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-10 italic">[ Selective_Mode ]</div>
-                        <h3 className="text-3xl font-black uppercase tracking-tighter mb-4 italic leading-none">Individual Credits</h3>
-                        <p className="text-[11px] font-black uppercase tracking-widest text-white/30 leading-relaxed">
-                            Pick only the specific artifacts you need for your current signal.
+                        <h3 className="text-3xl font-black uppercase tracking-tighter mb-4 italic leading-none text-white/80">Individual Sounds</h3>
+                        <p className="text-[11px] font-black uppercase tracking-widest text-white/40 leading-relaxed">
+                            Only need a few loops? Pick exactly what you need for your project without unlocking the entire pack.
                         </p>
                     </div>
                     <div className="mt-12 pt-8 border-t border-white/5">
-                        <div className="text-3xl font-black italic mb-2">7 Credits / File</div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-white/20">Manual HQ WAV Download</div>
+                        <div className="text-3xl font-black italic mb-2 tracking-tighter">7 Credits / Sound</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-[#00FF00]">Instant HQ WAV Access</div>
                     </div>
                 </div>
               )}

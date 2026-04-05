@@ -3,10 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { AudioProvider } from '@/components/audio/AudioProvider'
-import { CurrencyProvider } from '@/components/CurrencyProvider'
 import { GlobalPlayer } from '@/components/audio/GlobalPlayer'
-import { CustomCursor } from '@/components/layout/CustomCursor'
+import { ClientProviders } from '@/components/ClientProviders'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,18 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden`}>
-        <CurrencyProvider>
-          <AudioProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <Footer />
-              <GlobalPlayer />
-            </div>
-          </AudioProvider>
-        </CurrencyProvider>
+        <ClientProviders>
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+            <GlobalPlayer />
+          </div>
+        </ClientProviders>
       </body>
     </html>
   )
