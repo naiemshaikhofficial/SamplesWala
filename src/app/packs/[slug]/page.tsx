@@ -23,10 +23,30 @@ export default async function PackPage({ params }: { params: { slug: string } })
   const relatedPacks = await getRelatedPacks(pack.id, pack.category_id)
   
   let unlockedSampleIds: Set<string> = new Set()
+  let isFullPackUnlocked = false;
+
   if (user) {
+    // 1. Check individual unlocks
     const { data: unlocks } = await supabase.from('unlocked_samples').select('sample_id').eq('user_id', user.id)
-    if (unlocks) {
-      unlockedSampleIds = new Set(unlocks.map(u => u.sample_id))
+    if (unlocks) unlockedSampleIds = new Set(unlocks.map(u => u.sample_id))
+
+    // 2. Check if FULL pack was purchased (100% Reliable ID Match)
+    const { data: directUnlock } = await supabase.from('unlocked_packs')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('pack_id', pack.id)
+      .maybeSingle()
+    
+    // 3. Fallback to Purchase History (String Match)
+    const { data: fullPurchase } = !directUnlock ? await supabase.from('purchases')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('item_type', 'sample_pack')
+      .ilike('item_name', `%${pack.name}%`)
+      .maybeSingle() : { data: null }
+    
+    if (directUnlock || fullPurchase || (samples && unlockedSampleIds.size > 0 && unlockedSampleIds.size === samples.length)) {
+        isFullPackUnlocked = true;
     }
   }
 
@@ -75,32 +95,66 @@ export default async function PackPage({ params }: { params: { slug: string } })
           </div>
           <h1 className="text-4xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-[0.9] italic">{pack.name}</h1>
           <p className="text-xl text-white/40 mb-12 max-w-2xl leading-relaxed whitespace-pre-line">
-            {pack.description || "Experimental textures and precision-engineered loops designed specifically for high-performance modern music production."}
+            {pack.description || "Experimental textures and precision-engineered loops."}
           </p>
+
+          {/* 💎 FULL PACK VALUE PROPOSITION (Hidden Contents) */}
+          <div className="mb-12 flex flex-wrap gap-6 max-w-2xl">
+              <div className="p-6 rounded-[2rem] bg-white/[0.03] border border-white/10 flex items-start gap-4">
+                  <div className="h-10 w-10 flex items-center justify-center rounded-2xl bg-yellow-500/20 text-yellow-500">
+                      <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Included in Full Pack</div>
+                      <div className="text-sm font-black italic">{pack.total_contents_summary || '50+ Hidden Samples, MIDI & Project Files'}</div>
+                  </div>
+              </div>
+          </div>
           
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            {unlockedSampleIds.size === samples?.length ? (
-                <div className="w-full md:w-auto px-8 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center md:justify-start gap-3">
-                    <ShieldCheck className="h-4 w-4" /> You own this collection
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6">
+            {isFullPackUnlocked ? (
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div className="px-10 py-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3">
+                        <ShieldCheck className="h-5 w-5" /> FULL COLLECTION UNLOCKED
+                    </div>
+                    {pack.full_pack_download_url && (
+                        <a 
+                            href={pack.full_pack_download_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-white text-black px-16 py-6 rounded-full font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] transition-transform shadow-[0_0_80px_rgba(255,255,255,0.3)] flex items-center gap-4 group"
+                        >
+                            <Music4 className="h-5 w-5 fill-black group-hover:animate-bounce" /> DOWNLOAD FULL COLLECTION
+                        </a>
+                    )}
                 </div>
             ) : (
-                <>
-                    <div className="w-full md:w-auto">
-                        <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-                    </div>
-                    <div className="flex items-center justify-center gap-3 px-8 text-white/40">
-                        <span className="h-[1px] w-8 bg-white/10"></span>
-                        <span className="text-[10px] font-black uppercase tracking-widest">Or</span>
-                        <span className="h-[1px] w-8 bg-white/10"></span>
-                    </div>
-                    <div className="w-full md:w-64">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 w-full">
+                    {/* 💠 OPTION 1: CREDITS */}
+                    {!pack.is_bundle_only && (
+                        <div className="flex-1 sm:flex-none min-w-[320px]">
+                            <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
+                        </div>
+                    )}
+                    
+                    {!pack.is_bundle_only && (
+                        <div className="flex items-center justify-center gap-4 text-white/10 italic font-black uppercase tracking-widest text-[10px]">
+                            <div className="h-[1px] w-12 bg-white/10" />
+                            OR
+                            <div className="h-[1px] w-12 bg-white/10" />
+                        </div>
+                    )}
+
+                    {/* 💳 OPTION 2: CASH */}
+                    <div className="flex-1 sm:flex-none min-w-[320px]">
                          <SubscribeButton 
                             planId={pack.id} 
-                            planName={pack.name} 
+                            planName={`BUY FULL PACK: ₹${pack.price_inr} / $${pack.price_usd}`} 
                             mode="sample_pack"
+                            isFeatured
                         />
                     </div>
-                </>
+                </div>
             )}
           </div>
         </div>
@@ -125,24 +179,43 @@ export default async function PackPage({ params }: { params: { slug: string } })
                 <div key={sample.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 px-4 md:px-8 py-6 md:py-10 items-center transition-all hover:bg-white/[0.03] group border-b border-white/5 md:border-none">
                     <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start mb-4 md:mb-0">
                         <div className="flex items-center gap-4">
-                            <PlayButton 
-                                id={sample.id} 
-                                url={sample.audio_url} 
-                                name={sample.name}
-                                packName={pack.name}
-                                coverUrl={pack.cover_url}
-                            />
+                            {(!isFullPackUnlocked && !unlockedSampleIds.has(sample.id)) ? (
+                                <PlayButton 
+                                    id={sample.id} 
+                                    url={sample.audio_url} 
+                                    name={sample.name}
+                                    packName={pack.name}
+                                    coverUrl={pack.cover_url}
+                                />
+                            ) : (
+                                <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/20">
+                                    <Disc className="h-5 w-5 animate-spin-slow" />
+                                </div>
+                            )}
                             <div className="md:hidden">
                                 <div className="font-black text-lg tracking-tight">{sample.name}</div>
                                 <div className="text-[9px] uppercase font-black tracking-widest text-white/20">{sample.bpm}BPM | {sample.key}</div>
                             </div>
                         </div>
+                        
                         <div className="md:hidden">
-                            <DownloadButton 
-                                sampleId={sample.id} 
-                                isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
-                                creditCost={sample.credit_cost}
-                            />
+                            {isFullPackUnlocked ? (
+                                <DownloadButton 
+                                    sampleId={sample.id} 
+                                    isUnlockedInitial={true} 
+                                    creditCost={0}
+                                />
+                            ) : (!pack.is_bundle_only && !sample.is_preview_only) ? (
+                                <DownloadButton 
+                                    sampleId={sample.id} 
+                                    isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
+                                    creditCost={sample.credit_cost}
+                                />
+                            ) : (
+                                <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
+                                    {sample.is_preview_only ? 'Preview Only' : 'Bundle Exclusive'}
+                                </span>
+                            )}
                         </div>
                     </div>
                     
@@ -162,11 +235,24 @@ export default async function PackPage({ params }: { params: { slug: string } })
                     </div>
                     
                     <div className="hidden md:block col-span-2 text-right">
-                        <DownloadButton 
-                            sampleId={sample.id} 
-                            isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
-                            creditCost={sample.credit_cost}
-                        />
+                        {isFullPackUnlocked ? (
+                            /* 🔥 Pack Owners get direct HQ download access */
+                            <DownloadButton 
+                                sampleId={sample.id} 
+                                isUnlockedInitial={true} 
+                                creditCost={0}
+                            />
+                        ) : sample.is_preview_only || pack.is_bundle_only ? (
+                           <span className="text-[9px] font-black uppercase tracking-widest text-white/20 italic">
+                                {sample.is_preview_only ? 'Preview Only' : 'Bundle Exclusive'}
+                           </span>
+                        ) : (
+                           <DownloadButton 
+                               sampleId={sample.id} 
+                               isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
+                               creditCost={sample.credit_cost}
+                           />
+                        )}
                     </div>
                 </div>
             ))}

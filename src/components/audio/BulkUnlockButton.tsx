@@ -1,16 +1,21 @@
 'use client'
 import { Zap } from 'lucide-react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { unlockFullPack } from '@/app/packs/[slug]/actions'
 
 export function BulkUnlockButton({ packId, cost }: { packId: string, cost: number }) {
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleBulkUnlock = async () => {
     try {
       setLoading(true)
       const res = await unlockFullPack(packId)
-      if (res.success) alert('Full Pack Unlocked! All sounds are now in your library.')
+      if (res.success) {
+          alert('Full Pack Unlocked! All sounds are now in your library.')
+          router.refresh() // 🔥 Force UI to update
+      }
     } catch (err: any) {
       if (err.message === 'Authentication required') {
           window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`

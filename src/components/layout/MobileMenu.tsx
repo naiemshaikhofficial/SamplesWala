@@ -35,6 +35,7 @@ export function MobileMenu({ user }: { user: any }) {
                   alt="SAMPLES WALA Logo" 
                   width={140} 
                   height={35} 
+                  style={{ width: 'auto' }}
                   className="h-8 w-auto object-contain"
                 />
               </Link>

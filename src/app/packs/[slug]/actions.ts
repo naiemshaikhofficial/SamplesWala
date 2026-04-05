@@ -102,26 +102,33 @@ export async function getDownloadUrl(sampleId: string) {
 
     if (!user) throw new Error('Authentication required')
 
-    // 1. Verify ownership
-    const { data: unlock, error: verifyError } = await supabase
-        .from('unlocked_samples')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('sample_id', sampleId)
-        .single()
-
-    if (verifyError || !unlock) {
-        throw new Error('You do not own this sample. Please unlock it first.')
-    }
-
-    // 2. Fetch High Quality URL
+    // 1. Fetch Sample Details to verify parent pack
     const { data: sample, error: sampleError } = await supabase
         .from('samples')
-        .select('name')
+        .select('name, pack_id')
         .eq('id', sampleId)
         .single()
 
     if (sampleError || !sample) throw new Error('Sample not found')
+
+    // 2. Check Ownership (Smart Check)
+    // A: Check if they own the PARENT PACK (Efficient)
+    const { data: packUnlock } = await supabase.from('unlocked_packs')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('pack_id', sample.pack_id)
+        .maybeSingle()
+
+    // B: Check if they unlocked this specific sample individually
+    const { data: individualUnlock } = !packUnlock ? await supabase.from('unlocked_samples')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('sample_id', sampleId)
+        .maybeSingle() : { data: null }
+
+    if (!packUnlock && !individualUnlock) {
+        throw new Error('You do not own this sample. Please unlock it first.')
+    }
 
     // 3. Generate a secure, temporary download token
     const token = await generateDownloadToken(sampleId)
@@ -158,21 +165,41 @@ export async function unlockFullPack(packId: string) {
 
     const primarySub = subscriptions[0]
 
-    // 2. Fetch all samples in this pack
+    // 2. Fetch all samples actually listed in this pack for auditioning
     const { data: samples } = await supabase.from('samples').select('id').eq('pack_id', packId)
-    if (!samples) return { success: true }
+    const unlocks = (samples && samples.length > 0) ? samples.map(s => ({ user_id: user.id, sample_id: s.id })) : []
 
-    // 3. Unlock all samples (Upsert to avoid duplicates)
-    const unlocks = samples.map(s => ({ user_id: user.id, sample_id: s.id }))
-    const { error: unlockError } = await supabase.from('unlocked_samples').upsert(unlocks, { onConflict: 'user_id,sample_id' })
+    // 3. SECURE TRANSACTION: Deduct Credits FIRST via RPC
+    const { error: deductError } = await supabase.rpc('deduct_credits_pro', {
+        user_id_input: user.id,
+        amount_to_deduct: cost
+    })
 
-    if (unlockError) throw new Error('Failed to unlock pack items')
+    if (deductError) {
+        throw new Error('Transaction Failed: ' + deductError.message)
+    }
 
-    // 4. Deduct Bulk Credits
-    await supabase.from('user_subscriptions')
-        .update({ current_credits: primarySub.current_credits - cost })
-        .eq('id', primarySub.id)
+    // 4. Record the full pack purchase (THE SMART SOURCE OF TRUTH)
+    const { error: unlockPackError } = await supabase.from('unlocked_packs').upsert({
+        user_id: user.id,
+        pack_id: packId
+    }, { onConflict: 'user_id,pack_id' })
 
+    if (unlockPackError) {
+        throw new Error("Ownership Registration Failed: " + unlockPackError.message)
+    }
+
+    // 5. Record History in Purchases
+    await supabase.from('purchases').insert({
+        user_id: user.id,
+        amount: 0, 
+        item_type: 'sample_pack',
+        item_name: `Full Pack: ${pack.name}`,
+        payment_id: `CREDIT_UNLOCK_${Date.now()}`
+    })
+
+    // (Note: No longer need to loop or upsert all individual samples into unlocked_samples - Smart Check handles it)
+    
     revalidatePath(`/packs/${pack.slug}`)
     return { success: true }
 }

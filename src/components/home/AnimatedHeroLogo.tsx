@@ -24,6 +24,7 @@ export function AnimatedHeroLogo() {
           alt="SAMPLES WALA Logo" 
           width={800} 
           height={200} 
+          style={{ height: 'auto' }}
           className="w-full max-w-3xl h-auto object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]"
           priority
         />

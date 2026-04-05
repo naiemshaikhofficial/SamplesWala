@@ -17,6 +17,7 @@ export function Footer() {
                       alt="SAMPLES WALA Logo" 
                       width={160} 
                       height={40} 
+                      style={{ width: 'auto' }}
                       className="h-8 md:h-10 w-auto object-contain grayscale brightness-200"
                     />
                 </Link>

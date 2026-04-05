@@ -21,6 +21,7 @@ export async function Header() {
               alt="SAMPLES WALA Logo" 
               width={300} 
               height={80} 
+              style={{ width: 'auto' }}
               className="h-12 md:h-20 w-auto object-contain"
               priority
             />

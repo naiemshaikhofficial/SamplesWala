@@ -3,9 +3,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ShieldCheck, Zap, Disc, Globe, Music, Share2, Search, Activity } from "lucide-react";
 import { NewArrivals } from "@/components/home/NewArrivals";
-import { HeroSearch } from "@/components/home/HeroSearch";
 import { TopSounds } from "@/components/home/TopSounds";
-import { AnimatedHeroLogo } from "@/components/home/AnimatedHeroLogo";
+import { AdaptiveHero } from "@/components/home/AdaptiveHero";
+import { getTopPopularSounds } from "@/lib/supabase/admin";
 
 export default async function Home() {
   const supabase = await createClient()
@@ -17,11 +17,8 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(4)
 
-  // 💿 Fetch Top Samples
-  const { data: topSamples } = await supabase
-    .from('samples')
-    .select('*, sample_packs(name, cover_url, slug)')
-    .limit(10)
+  // 💿 AUTOMATIC POPULARITY ENGINE (No Manual SQL Needed)
+  const topSamples = await getTopPopularSounds(10)
 
   const { data: { user } } = await supabase.auth.getUser()
   let unlockedSampleIds: Set<string> = new Set()
@@ -50,47 +47,8 @@ export default async function Home() {
       </div>
 
       <div className="lg:pl-20">
-        {/* 🏆 THE CINEMATIC HERO (A.R. Rahman Aesthetic) */}
-        <section className="min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-20 relative overflow-hidden py-20 md:py-0">
-            <div className="absolute inset-0 z-0 grayscale pointer-events-none">
-                <Image 
-                    src="/indian_studio.png" 
-                    alt="Mumbai Studio" 
-                    fill 
-                    className="object-cover opacity-60"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            </div>
-
-            {/* 🌬️ DEVANAGARI MARQUEE */}
-            <div className="absolute top-1/2 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.03] pointer-events-none z-0 -translate-y-1/2">
-                <div className="text-[20rem] font-bold text-white uppercase inline-block animate-marquee italic">
-                    सैंपल्स वाला सैंपल्स वाला सैंपल्स वाला सैंपल्स वाला
-                </div>
-            </div>
-
-            <div className="relative z-10 w-full max-w-7xl flex flex-col items-center text-center">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-8 md:mb-12 block">
-                    MODERN HERITAGE / मुम्बई साउंड
-                </span>
-                
-                <AnimatedHeroLogo />
-                
-                <div className="w-full max-w-4xl mb-12">
-                   <HeroSearch />
-                </div>
-
-                <p className="max-w-2xl text-lg md:text-3xl font-medium tracking-tight leading-snug mb-12 md:mb-16 opacity-60 px-4 md:px-0">
-                    Crafting the future of Indian music. Cinematic, high-contrast, and 
-                    profoundly local. Premium sounds for the high-end producer.
-                </p>
-
-                <Link href="/browse" className="mt-12 md:mt-16 group flex items-center gap-4 md:gap-6 px-10 md:px-16 py-6 md:py-8 bg-white/5 text-white font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-white hover:text-black transition-all border border-white/10 shrink-0 mx-4 md:mx-0">
-                    EXPLORE ALL COLLECTIONS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
-                </Link>
-            </div>
-        </section>
+        {/* 🏆 THE ADAPTIVE HERO (Vibe-Powered) */}
+        <AdaptiveHero />
 
         {/* 💿 NEW ARRIVALS (Parallax Section) */}
         <NewArrivals packs={latestPacks || []} />
@@ -101,36 +59,6 @@ export default async function Home() {
             unlockedSampleIds={Array.from(unlockedSampleIds)}
         />
 
-        {/* 💿 B&W FEATURED GRID (The Bollywood Vault) */}
-        <section className="px-4 md:px-20 py-24 md:py-48 border-t border-white/10 bg-[#080808]">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-8">
-                <div className="max-w-2xl">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 md:mb-8 block">नया संगीत</span>
-                    <h2 className="text-5xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4">THE<br />LEGACY</h2>
-                </div>
-                <Link href="/browse" className="text-[10px] md:text-xs font-black uppercase tracking-widest border-b-2 border-white pb-2 md:pb-4 hover:opacity-50 transition-all self-start md:self-auto">
-                    All Collections
-                </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[1px] bg-white/10 border border-white/10 overflow-hidden">
-                {[1,2,3,4].map((i) => (
-                    <div key={i} className="group bg-black p-10 hover:bg-white transition-all cursor-pointer">
-                        <div className="aspect-[4/5] bg-white/5 mb-10 relative overflow-hidden bw-stark-border group-hover:border-black/20 transition-all">
-                            <div className="absolute inset-0 flex items-center justify-center grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all">
-                                <Disc className="h-24 w-24 text-white/5 group-hover:text-black/5" />
-                                <span className="absolute top-4 right-4 text-[10px] font-black group-hover:text-black">ध्वनि {i}</span>
-                            </div>
-                        </div>
-                        <h3 className="text-4xl font-black uppercase tracking-tighter mb-16 group-hover:text-black leading-none">Bollywood<br />Artifact 0{i}</h3>
-                        <div className="flex items-center justify-between group-hover:text-black pt-10 border-t border-white/10 group-hover:border-black/10">
-                            <span className="text-xs font-black uppercase tracking-widest">₹1,499</span>
-                            <Zap className="h-4 w-4" />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </section>
 
         {/* 🛡️ BRUTALIST STATUS BAR */}
         <div className="flex flex-col md:flex-row border-y border-white/10">

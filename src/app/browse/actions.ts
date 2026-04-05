@@ -10,14 +10,18 @@ export async function getAllCategories() {
 
 export async function getFilteredPacks(filters: { query?: string, category?: string }) {
   const supabase = await createClient()
-  let query = supabase.from('sample_packs').select('*, categories(name)')
+  let queryBuilder = supabase.from('sample_packs').select('*, categories(name)')
+  
   if (filters.query) {
-    query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%`)
+    // Vibe Search: Name, Description, or Tags
+    queryBuilder = queryBuilder.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,tags.cs.{${filters.query}}`)
   }
+  
   if (filters.category) {
-    query = query.eq('category_id', filters.category)
+    queryBuilder = queryBuilder.eq('category_id', filters.category)
   }
-  const { data, error } = await query.order('created_at', { ascending: false })
+  
+  const { data, error } = await queryBuilder.order('created_at', { ascending: false })
   if (error) throw error
   return data
 }
@@ -25,14 +29,14 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
 export async function getFilteredSamples(filters: { query?: string, category?: string }) {
   const supabase = await createClient()
   
-  // Basic search for individual samples
-  let query = supabase.from('samples').select('*, sample_packs(name, category_id)')
+  let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, tags)')
   
   if (filters.query) {
-    query = query.ilike('name', `%${filters.query}%`)
+    // Vibe Search: Name, Pack Tags, or Sample Tags
+    queryBuilder = queryBuilder.or(`name.ilike.%${filters.query}%,tags.cs.{${filters.query}}`)
   }
 
-  const { data, error } = await query.order('created_at', { ascending: false }).limit(50)
+  const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(50)
   if (error) throw error
 
   // Manual filter for category if needed (since samples are linked to packs)

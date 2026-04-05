@@ -65,7 +65,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
             <div className="relative">
                 {isProcessing ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
-                ) : isUnlocked ? (
+                ) : (isUnlocked || creditCost === 0) ? (
                     <Download className={`h-5 w-5 ${isPlaying ? 'animate-bounce' : ''}`} />
                 ) : (
                     <div className="flex items-center gap-3 px-1">

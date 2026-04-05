@@ -26,14 +26,36 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
+  const [user, setUser] = useState<any>(null)
 
-  // ... (keeping other refs)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const analyzerRef = useRef<AnalyserNode | null>(null)
   const ctxRef = useRef<any>(null)
   const animationRef = useRef<number | null>(null)
+  const watermarkIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
-  // ... (keeping useEffect)
+  const userRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const { createClient } = require('@/lib/supabase/client');
+    const supabase = createClient();
+    
+    supabase.auth.getUser().then(({ data }: { data: any }) => {
+        setUser(data.user);
+        userRef.current = data.user;
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+        setUser(session?.user ?? null);
+        userRef.current = session?.user ?? null;
+    });
+
+    return () => {
+        authListener.subscription.unsubscribe();
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -49,7 +71,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioCtx();
         const analyzer = ctx.createAnalyser();
-        analyzer.fftSize = 128; // Smaller for more 'kick' sensitivity
+        analyzer.fftSize = 128;
         analyzer.smoothingTimeConstant = 0.8;
         
         const source = ctx.createMediaElementSource(audio);
@@ -60,15 +82,26 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         ctxRef.current = ctx;
     }
 
+    const startWatermark = () => {
+        // ALWAYS WATERMARK PREVIEWS (Regardless of Login)
+        stopWatermark();
+        watermarkIntervalRef.current = setInterval(() => {
+            if (audio.paused) return;
+            audio.volume = 0.2;
+            setTimeout(() => { if (audio.src) audio.volume = 1.0; }, 400);
+        }, 8000);
+    }
+
+    const stopWatermark = () => {
+        if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
+    }
+
     const updateSpectrum = () => {
         if (analyzerRef.current && !audio.paused) {
             const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
             analyzerRef.current.getByteFrequencyData(dataArray);
-            
-            // Map to 40 bars (more responsive mapping)
             const newSpectrum = [];
             for (let i = 0; i < 40; i++) {
-                // Focus on lower frequencies for better "beat" visualization
                 let val = dataArray[i * 1] / 255; 
                 newSpectrum.push(val);
             }
@@ -79,14 +112,14 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
     audio.onplay = async () => {
         setupAnalyzer();
-        if (ctxRef.current?.state === 'suspended') {
-            await ctxRef.current.resume();
-        }
+        if (ctxRef.current?.state === 'suspended') await ctxRef.current.resume();
         setIsPlaying(true);
         updateSpectrum();
+        startWatermark();
     };
     audio.onpause = () => {
         setIsPlaying(false);
+        stopWatermark();
     };
     audio.onended = () => { 
         setIsPlaying(false); 
@@ -94,6 +127,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setActiveMetadata(null);
         setCurrentTime(0); 
         setSpectrum(new Array(40).fill(0));
+        stopWatermark();
     }
     
     audio.ontimeupdate = () => { setCurrentTime(audio.currentTime); }
@@ -104,16 +138,20 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return () => { 
         audio.pause(); 
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
+        stopWatermark();
     }
   }, [])
 
   const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null }) => {
     if (!audioRef.current) return
     
-    // Toggle
     if (activeId === id) {
       if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play().catch(console.error);
+      else {
+        audioRef.current.play().catch(e => {
+            if (e.name !== 'AbortError') console.error("Toggle play failed:", e);
+        });
+      }
       return
     }
     
@@ -123,19 +161,29 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setDuration(0);
     setIsLoading(true);
     setActiveId(id);
-    if (metadata) setActiveMetadata(metadata);
+    if (metadata) setActiveMetadata(metadata as any);
 
     try {
-        // 🔥 SECURE PROXY FLOW
-        // Always generate a fresh token for this sample play
         const token = await generatePreviewToken(id);
         const finalUrl = `/api/audio?id=${id}&token=${token}`;
         
         audioRef.current.src = finalUrl;
         audioRef.current.load();
-        await audioRef.current.play();
+        
+        // 🔥 FIX: Handle the play promise to prevent AbortError
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+            playPromise.catch((error) => {
+                if (error.name === 'AbortError') {
+                    // Ignore abort errors caused by rapid play/pause
+                    console.log("Audio playback interrupted (expected).");
+                } else {
+                    console.error("Playback failed:", error);
+                }
+            });
+        }
     } catch (e) {
-        console.error("Playback start failed:", e);
+        console.error("Token generation or setup failed:", e);
         setIsLoading(false);
         setActiveId(null);
         setActiveMetadata(null);
