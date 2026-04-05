@@ -32,10 +32,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     // Debugging listener for "No supported source found" errors
     audio.onerror = (e) => {
         console.error("AUDIO PLAYER ERROR:", {
-            error: audio.error,
-            url: audio.src,
-            readyState: audio.readyState,
-            networkState: audio.networkState
+            code: audio.error?.code,
+            message: audio.error?.message,
+            src: audio.src
         });
         setIsPlaying(false);
     }

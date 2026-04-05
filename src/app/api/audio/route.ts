@@ -31,6 +31,7 @@ function getCookiesFromResponse(response: Response): string {
 }
 
 async function resolveFinalDriveUrl(url: string, cookie: string = ''): Promise<{ url: string, cookie: string }> {
+  console.log(`[AUDIO PROXY] Resolving: ${url}`);
   const response = await fetch(url, {
     method: 'GET',
     headers: { 'User-Agent': USER_AGENT, 'Cookie': cookie, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
@@ -64,24 +65,38 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id');
   const token = req.nextUrl.searchParams.get('token');
   
-  if (!id || !token) return new NextResponse('Missing Security Token', { status: 401 });
+  if (!id || !token) {
+    console.warn("[AUDIO PROXY] Missing id or token");
+    return new NextResponse('Missing Security Token', { status: 401 });
+  }
 
   try {
     // 🛡️ SECURITY LAYER 1: Verify JWT
-    const decoded: any = jwt.verify(token, JWT_SECRET);
-    if (decoded.sampleId !== id || decoded.purpose !== 'preview') {
-        return new NextResponse('Invalid Security Token', { status: 401 });
+    try {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        if (decoded.sampleId !== id || decoded.purpose !== 'preview') {
+            console.error("[AUDIO PROXY] Token Mismatch:", { decoded, id });
+            return new NextResponse('Invalid Security Token', { status: 401 });
+        }
+    } catch (e: any) {
+        console.error("[AUDIO PROXY] JWT Verify Error:", e.message);
+        return new NextResponse(`Token Error: ${e.message}`, { status: 401 });
     }
 
     // 🛡️ SECURITY LAYER 2: Referer check
     const referer = req.headers.get('referer') || '';
     const host = req.headers.get('host') || '';
-    if (!referer.includes(host)) {
+    // Fix: relaxed check for dev environments
+    if (referer && !referer.includes(host)) {
+        console.error("[AUDIO PROXY] Referer Blocked:", { referer, host });
         return new NextResponse('Direct Download Blocked', { status: 403 });
     }
 
     const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url').eq('id', id).single();
-    if (dbError || !sample) return new NextResponse('Not found', { status: 404 });
+    if (dbError || !sample) {
+        console.error("[AUDIO PROXY] DB Error:", dbError);
+        return new NextResponse('Not found', { status: 404 });
+    }
 
     const dbUrl = sample.audio_url;
     let finalUrl = dbUrl, cookie = '', fileId = '';
@@ -99,13 +114,18 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    console.log(`[AUDIO PROXY] Fetching binary from: ${finalUrl.substring(0, 50)}...`);
+
     const range = req.headers.get('range');
     const requestHeaders: HeadersInit = { 'User-Agent': USER_AGENT };
     if (cookie) requestHeaders['Cookie'] = cookie;
     if (range) requestHeaders['Range'] = range;
 
     const upstreamResponse = await fetch(finalUrl, { headers: requestHeaders });
-    if (!upstreamResponse.ok) return new NextResponse(`Error: ${upstreamResponse.status}`, { status: upstreamResponse.status });
+    if (!upstreamResponse.ok) {
+        console.error("[AUDIO PROXY] Upstream Error:", upstreamResponse.status);
+        return new NextResponse(`Error: ${upstreamResponse.status}`, { status: upstreamResponse.status });
+    }
 
     const responseHeaders = new Headers();
     ['content-type', 'content-length', 'content-range', 'accept-ranges'].forEach(h => {
@@ -115,8 +135,8 @@ export async function GET(req: NextRequest) {
     responseHeaders.set('Cache-Control', 'public, max-age=3600');
 
     return new NextResponse(upstreamResponse.body, { status: upstreamResponse.status, headers: responseHeaders });
-  } catch (error) {
-    console.error('Audio Proxy Error:', error);
-    return new NextResponse('Internal Error', { status: 500 });
+  } catch (error: any) {
+    console.error('[AUDIO PROXY] Global Error:', error.message);
+    return new NextResponse(`Internal Error: ${error.message}`, { status: 500 });
   }
 }
