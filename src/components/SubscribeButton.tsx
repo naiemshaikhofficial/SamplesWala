@@ -2,14 +2,21 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSubscription, purchaseCreditPack } from '@/app/pricing/actions'
+import { createSubscription, purchaseCreditPack, verifyPayment } from '@/app/pricing/actions'
 import { Loader2, Sparkles } from 'lucide-react'
+import Script from 'next/script'
 
 type SubscribeButtonProps = {
   planId: string
   planName: string
   isFeatured?: boolean
   mode?: 'subscription' | 'pack'
+}
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
 }
 
 export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription' }: SubscribeButtonProps) {
@@ -19,13 +26,38 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
   const handleSubscribe = async () => {
     setIsPending(true)
     try {
+      // 1. Create Server-Side Order
       const action = mode === 'pack' ? purchaseCreditPack : createSubscription
-      const result = await action(planId)
+      const orderData = await action(planId)
       
-      if (result.success) {
-        alert(result.message)
-        router.push('/browse')
+      if (!orderData.success) throw new Error('Order creation failed')
+
+      // 2. Open Razorpay Modal
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: 'INR',
+        name: 'Samples Wala',
+        description: `Purchase for ${planName}`,
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+            // 3. Verify Payment on Success
+            const verified = await verifyPayment(response, orderData.orderId, mode, planId)
+            if (verified.success) {
+                alert(`Welcome to the family! ${planName} activated.`)
+                router.push('/browse')
+            }
+        },
+        prefill: {
+            name: orderData.user.name,
+            email: orderData.user.email,
+        },
+        theme: { color: '#ffffff' },
       }
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+      
     } catch (err: any) {
       alert(err.message || 'Checkout failed. Please try again.')
     } finally {
@@ -34,7 +66,9 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
   }
 
   return (
-    <button 
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      <button 
       onClick={handleSubscribe}
       disabled={isPending}
       className={`
@@ -66,5 +100,6 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
       )}
     </button>
+    </>
   )
 }
