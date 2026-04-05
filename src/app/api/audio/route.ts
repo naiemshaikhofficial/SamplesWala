@@ -4,11 +4,13 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fallback-secret-for-dev';
 
-// Initialize Supabase Admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Initialize Supabase Admin client (Build-safe Check)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const supabaseAdmin = (supabaseUrl && supabaseServiceKey) 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
@@ -92,6 +94,11 @@ export async function GET(req: NextRequest) {
     if (!referer || !referer.includes(host)) {
         console.error("[AUDIO PROXY] Direct Access Hijack Blocked:", { referer, host });
         return new NextResponse('Direct Access Blocked (Security Code 102)', { status: 403 });
+    }
+
+    if (!supabaseAdmin) {
+        console.error("[AUDIO PROXY] Supabase Admin not initialized. Check your environment variables.");
+        return new NextResponse('Internal Server Error', { status: 500 });
     }
 
     const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url, download_url, name').eq('id', id).single();

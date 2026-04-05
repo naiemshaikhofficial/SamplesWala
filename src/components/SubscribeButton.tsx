@@ -2,23 +2,26 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSubscription } from '@/app/pricing/actions'
+import { createSubscription, purchaseCreditPack } from '@/app/pricing/actions'
 import { Loader2, Sparkles } from 'lucide-react'
 
 type SubscribeButtonProps = {
   planId: string
   planName: string
   isFeatured?: boolean
+  mode?: 'subscription' | 'pack'
 }
 
-export function SubscribeButton({ planId, planName, isFeatured }: SubscribeButtonProps) {
+export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription' }: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
 
   const handleSubscribe = async () => {
     setIsPending(true)
     try {
-      const result = await createSubscription(planId)
+      const action = mode === 'pack' ? purchaseCreditPack : createSubscription
+      const result = await action(planId)
+      
       if (result.success) {
         alert(result.message)
         router.push('/browse')
