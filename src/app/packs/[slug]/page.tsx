@@ -1,13 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc } from 'lucide-react'
 import Link from 'next/link'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
 import { PriceDisplay } from '@/components/PriceDisplay'
 import { BulkUnlockButton } from '@/components/audio/BulkUnlockButton'
 import { SubscribeButton } from '@/components/SubscribeButton'
+import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { getRelatedPacks } from '@/app/browse/actions'
 
@@ -98,64 +99,80 @@ export default async function PackPage({ params }: { params: { slug: string } })
             {pack.description || "Experimental textures and precision-engineered loops."}
           </p>
 
-          {/* 💎 FULL PACK VALUE PROPOSITION (Hidden Contents) */}
-          <div className="mb-12 flex flex-wrap gap-6 max-w-2xl">
-              <div className="p-6 rounded-[2rem] bg-white/[0.03] border border-white/10 flex items-start gap-4">
-                  <div className="h-10 w-10 flex items-center justify-center rounded-2xl bg-yellow-500/20 text-yellow-500">
-                      <Sparkles className="h-5 w-5" />
+          {/* 💎 THE VALUE DIVIDE: INDIVIDUAL vs FULL */}
+          <div className="flex flex-col lg:flex-row items-stretch gap-6 mb-20 mt-12 bg-black">
+              {/* 💠 OPTION 1: THE MANUAL GRID */}
+              {!pack.is_bundle_only && (
+                <div className="flex-1 border border-white/5 p-10 flex flex-col justify-between group hover:border-white/20 transition-all bg-[#050505]">
+                    <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-10 italic">[ Selective_Mode ]</div>
+                        <h3 className="text-3xl font-black uppercase tracking-tighter mb-4 italic leading-none">Individual Credits</h3>
+                        <p className="text-[11px] font-black uppercase tracking-widest text-white/30 leading-relaxed">
+                            Pick only the specific artifacts you need for your current signal.
+                        </p>
+                    </div>
+                    <div className="mt-12 pt-8 border-t border-white/5">
+                        <div className="text-3xl font-black italic mb-2">7 Credits / File</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-white/20">Manual HQ WAV Download</div>
+                    </div>
+                </div>
+              )}
+
+              {/* 🔱 OPTION 2: THE FULL ARTIFACT (CONVERSION BOX) */}
+              <div className="flex-[1.8] bg-white text-black p-10 md:p-14 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
+                      <Disc className="h-64 w-64 animate-spin-slow" />
                   </div>
-                  <div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Included in Full Pack</div>
-                      <div className="text-sm font-black italic">{pack.total_contents_summary || '50+ Hidden Samples, MIDI & Project Files'}</div>
+
+                  <div className="relative z-10">
+                      <div className="text-[10px] font-black uppercase tracking-[0.3em] mb-12 italic">[ Recommended_Access ]</div>
+                      <h3 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-10 italic leading-[0.8]">
+                        The Full<br />Collection
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-16">
+                          {/* 📡 100% DB-DRIVEN BENEFITS */}
+                          {(pack.total_contents_summary || "Full Artifact Access").split('|').map((benefit: string, index: number) => (
+                            <div key={index} className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest leading-tight border-b border-black/5 pb-2 group/item">
+                                <Zap className="h-4 w-4 shrink-0 text-black group-hover/item:scale-110 transition-transform" />
+                                {benefit.trim()}
+                            </div>
+                          ))}
+
+                          {/* Static Compliance/Security info - Always good to show */}
+                          <div className="md:col-span-2 mt-4 flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-black/40 italic">
+                             <ShieldCheck className="h-3 w-3" /> Encrypted Transaction & Permanent Access
+                          </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-6">
+                         {isFullPackUnlocked ? (
+                                <div className="w-full flex flex-col sm:flex-row items-center gap-6">
+                                    <div className="px-10 py-5 bg-black/5 border-2 border-black font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3">
+                                        <ShieldCheck className="h-5 w-5" /> FULL COLLECTION UNLOCKED
+                                    </div>
+                                    {pack.full_pack_download_url && (
+                                        <SecureDownloadButton packId={pack.id} />
+                                    )}
+                                </div>
+                         ) : (
+                            <div className="w-full flex flex-col sm:flex-row items-center gap-6">
+                                <div className="flex-1 w-full sm:w-auto">
+                                    <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
+                                </div>
+                                <div className="flex-1 w-full sm:w-auto">
+                                    <SubscribeButton 
+                                        planId={pack.id} 
+                                        planName={`BUY FULL PACK: ₹${pack.price_inr} / $${pack.price_usd}`} 
+                                        mode="sample_pack"
+                                        isFeatured
+                                    />
+                                </div>
+                            </div>
+                         )}
+                      </div>
                   </div>
               </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6">
-            {isFullPackUnlocked ? (
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                    <div className="px-10 py-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3">
-                        <ShieldCheck className="h-5 w-5" /> FULL COLLECTION UNLOCKED
-                    </div>
-                    {pack.full_pack_download_url && (
-                        <a 
-                            href={pack.full_pack_download_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-white text-black px-16 py-6 rounded-full font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] transition-transform shadow-[0_0_80px_rgba(255,255,255,0.3)] flex items-center gap-4 group"
-                        >
-                            <Music4 className="h-5 w-5 fill-black group-hover:animate-bounce" /> DOWNLOAD FULL COLLECTION
-                        </a>
-                    )}
-                </div>
-            ) : (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-6 w-full">
-                    {/* 💠 OPTION 1: CREDITS */}
-                    {!pack.is_bundle_only && (
-                        <div className="flex-1 sm:flex-none min-w-[320px]">
-                            <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-                        </div>
-                    )}
-                    
-                    {!pack.is_bundle_only && (
-                        <div className="flex items-center justify-center gap-4 text-white/10 italic font-black uppercase tracking-widest text-[10px]">
-                            <div className="h-[1px] w-12 bg-white/10" />
-                            OR
-                            <div className="h-[1px] w-12 bg-white/10" />
-                        </div>
-                    )}
-
-                    {/* 💳 OPTION 2: CASH */}
-                    <div className="flex-1 sm:flex-none min-w-[320px]">
-                         <SubscribeButton 
-                            planId={pack.id} 
-                            planName={`BUY FULL PACK: ₹${pack.price_inr} / $${pack.price_usd}`} 
-                            mode="sample_pack"
-                            isFeatured
-                        />
-                    </div>
-                </div>
-            )}
           </div>
         </div>
       </div>
@@ -179,19 +196,13 @@ export default async function PackPage({ params }: { params: { slug: string } })
                 <div key={sample.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 px-4 md:px-8 py-6 md:py-10 items-center transition-all hover:bg-white/[0.03] group border-b border-white/5 md:border-none">
                     <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start mb-4 md:mb-0">
                         <div className="flex items-center gap-4">
-                            {(!isFullPackUnlocked && !unlockedSampleIds.has(sample.id)) ? (
-                                <PlayButton 
-                                    id={sample.id} 
-                                    url={sample.audio_url} 
-                                    name={sample.name}
-                                    packName={pack.name}
-                                    coverUrl={pack.cover_url}
-                                />
-                            ) : (
-                                <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white/20">
-                                    <Disc className="h-5 w-5 animate-spin-slow" />
-                                </div>
-                            )}
+                            <PlayButton 
+                                id={sample.id} 
+                                url={sample.audio_url} 
+                                name={sample.name}
+                                packName={pack.name}
+                                coverUrl={pack.cover_url}
+                            />
                             <div className="md:hidden">
                                 <div className="font-black text-lg tracking-tight">{sample.name}</div>
                                 <div className="text-[9px] uppercase font-black tracking-widest text-white/20">{sample.bpm}BPM | {sample.key}</div>
