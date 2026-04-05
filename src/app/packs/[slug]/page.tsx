@@ -106,7 +106,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
                     <div className="col-span-4">
                         <div className="font-black text-lg tracking-tight group-hover:translate-x-1 transition-transform">{sample.name}</div>
                         <div className="text-[10px] uppercase font-black tracking-[0.2em] text-white/20 mt-1 flex items-center gap-2">
-                           {sample.type === 'one-shot' ? 'One Shot' : 'Creative Loop'}
+                           {pack.name}
                         </div>
                     </div>
                     <div className="col-span-2 font-mono text-[11px] text-white/40 group-hover:text-white transition-colors">
