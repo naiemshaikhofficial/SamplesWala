@@ -141,7 +141,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {relatedPacks?.map((rp) => (
-                <Link key={rp.id} href={/packs/} className="group p-4 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.05] transition-all active:scale-[0.98]">
+                <Link key={rp.id} href={`/packs/${rp.slug}`} className="group p-4 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.05] transition-all active:scale-[0.98]">
                     <div className="aspect-square relative overflow-hidden rounded-2xl mb-4 bg-white/5 shadow-2xl">
                         {rp.cover_url && (
                           <Image 
