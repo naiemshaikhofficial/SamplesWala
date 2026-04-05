@@ -38,7 +38,7 @@ export default async function BrowsePage({
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-16">
             <div className="max-w-2xl">
                 <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 block">Discovery Agent</span>
-                <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-4 italic">The Vault</h1>
+                <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-4 italic">The Vault</h1>
                 <p className="text-white/20 text-xs font-black uppercase tracking-widest">Querying: {params.q || 'ALL ARTIFACTS'}</p>
             </div>
             
@@ -128,17 +128,35 @@ export default async function BrowsePage({
         ) : (
             <div className="divide-y divide-white/10">
                 {samples?.map((sample: any) => (
-                    <div key={sample.id} className="group grid grid-cols-12 gap-8 px-6 md:px-20 py-10 items-center hover:bg-white transition-all">
-                        <div className="col-span-1">
-                            <PlayButton 
-                                id={sample.id} 
-                                url={sample.audio_url} 
-                                name={sample.name}
-                                packName={sample.sample_packs?.name}
-                                coverUrl={sample.sample_packs?.cover_url}
-                            />
+                    <div key={sample.id} className="group flex flex-col md:grid md:grid-cols-12 gap-4 md:gap-8 px-4 md:px-20 py-6 md:py-10 items-center hover:bg-white transition-all border-b border-white/5 md:border-none">
+                        <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start">
+                             <div className="flex items-center gap-4">
+                                <PlayButton 
+                                    id={sample.id} 
+                                    url={sample.audio_url} 
+                                    name={sample.name}
+                                    packName={sample.sample_packs?.name}
+                                    coverUrl={sample.sample_packs?.cover_url}
+                                />
+                                <div className="md:hidden">
+                                     <div className="font-black text-lg tracking-tight uppercase group-hover:text-black transition-all truncate">
+                                        {sample.name}
+                                    </div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30 mt-1 group-hover:text-black/40">
+                                        {sample.bpm || '--'} BPM | {sample.key || '--'}
+                                    </div>
+                                </div>
+                             </div>
+                             <div className="md:hidden">
+                                <DownloadButton 
+                                    sampleId={sample.id} 
+                                    isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
+                                    creditCost={sample.credit_cost}
+                                />
+                             </div>
                         </div>
-                        <div className="col-span-5 md:col-span-4">
+
+                        <div className="hidden md:block md:col-span-4">
                             <div className="font-black text-xl tracking-tighter uppercase group-hover:text-black transition-all truncate">
                                 {sample.name}
                             </div>
@@ -146,16 +164,19 @@ export default async function BrowsePage({
                                 {sample.sample_packs?.name}
                             </div>
                         </div>
+
                         <div className="hidden md:col-span-2 md:flex flex-col gap-1 items-start text-xs font-black uppercase tracking-widest group-hover:text-black">
                             <span>{sample.bpm || '--'} BPM</span>
                             <span className="text-[9px] opacity-40">{sample.key || '--'}</span>
                         </div>
-                        <div className="col-span-4 md:col-span-3 px-6">
+
+                        <div className="w-full md:col-span-3 px-0 md:px-6">
                             <div className="h-10 flex items-center justify-center group-hover:invert transition-all">
                                 <Waveform id={sample.id} active={true} />
                             </div>
                         </div>
-                        <div className="col-span-2 text-right">
+
+                        <div className="hidden md:block md:col-span-2 text-right">
                              <DownloadButton 
                                 sampleId={sample.id} 
                                 isUnlockedInitial={unlockedSampleIds.has(sample.id)} 

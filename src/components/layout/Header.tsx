@@ -19,9 +19,9 @@ export async function Header() {
             <Image 
               src="/Logo.png" 
               alt="SAMPLES WALA Logo" 
-              width={180} 
-              height={50} 
-              className="h-8 md:h-12 w-auto object-contain"
+              width={300} 
+              height={80} 
+              className="h-12 md:h-20 w-auto object-contain"
               priority
             />
           </Link>

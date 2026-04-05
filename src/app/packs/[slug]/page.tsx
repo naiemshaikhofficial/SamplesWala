@@ -73,25 +73,27 @@ export default async function PackPage({ params }: { params: { slug: string } })
           <div className="flex items-center gap-3 mb-6">
              <span className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/60">{pack.categories?.name}</span>
           </div>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-[0.9] italic italic">{pack.name}</h1>
+          <h1 className="text-4xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-[0.9] italic">{pack.name}</h1>
           <p className="text-xl text-white/40 mb-12 max-w-2xl leading-relaxed whitespace-pre-line">
             {pack.description || "Experimental textures and precision-engineered loops designed specifically for high-performance modern music production."}
           </p>
           
-          <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
             {unlockedSampleIds.size === samples?.length ? (
-                <div className="px-8 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-widest text-[10px] flex items-center gap-3">
+                <div className="w-full md:w-auto px-8 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center md:justify-start gap-3">
                     <ShieldCheck className="h-4 w-4" /> You own this collection
                 </div>
             ) : (
                 <>
-                    <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-                    <div className="flex items-center gap-3 px-8 text-white/40">
-                    <span className="h-[1px] w-8 bg-white/10"></span>
-                    <span className="text-[10px] font-black uppercase tracking-widest">Or</span>
-                    <span className="h-[1px] w-8 bg-white/10"></span>
+                    <div className="w-full md:w-auto">
+                        <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
                     </div>
-                    <div className="w-64">
+                    <div className="flex items-center justify-center gap-3 px-8 text-white/40">
+                        <span className="h-[1px] w-8 bg-white/10"></span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Or</span>
+                        <span className="h-[1px] w-8 bg-white/10"></span>
+                    </div>
+                    <div className="w-full md:w-64">
                          <SubscribeButton 
                             planId={pack.id} 
                             planName={pack.name} 
@@ -110,7 +112,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
            Sample Browser
         </h2>
         <div className="border border-white/10 rounded-[2.5rem] overflow-hidden bg-white/[0.01] backdrop-blur-3xl shadow-2xl">
-            <div className="grid grid-cols-12 gap-4 px-8 py-6 border-b border-white/10 text-[10px] uppercase font-black tracking-widest text-white/20 bg-white/5">
+            <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-6 border-b border-white/10 text-[10px] uppercase font-black tracking-widest text-white/20 bg-white/5">
                 <div className="col-span-1">Play</div>
                 <div className="col-span-4 text-white/30 italic">Collection Item</div>
                 <div className="col-span-2 text-white/30">Metadata</div>
@@ -120,29 +122,46 @@ export default async function PackPage({ params }: { params: { slug: string } })
 
             <div className="divide-y divide-white/5">
             {samples?.map((sample) => (
-                <div key={sample.id} className="grid grid-cols-12 gap-4 px-8 py-10 items-center transition-all hover:bg-white/[0.03] group">
-                    <div className="col-span-1">
-                        <PlayButton 
-                            id={sample.id} 
-                            url={sample.audio_url} 
-                            name={sample.name}
-                            packName={pack.name}
-                            coverUrl={pack.cover_url}
-                        />
+                <div key={sample.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 px-4 md:px-8 py-6 md:py-10 items-center transition-all hover:bg-white/[0.03] group border-b border-white/5 md:border-none">
+                    <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start mb-4 md:mb-0">
+                        <div className="flex items-center gap-4">
+                            <PlayButton 
+                                id={sample.id} 
+                                url={sample.audio_url} 
+                                name={sample.name}
+                                packName={pack.name}
+                                coverUrl={pack.cover_url}
+                            />
+                            <div className="md:hidden">
+                                <div className="font-black text-lg tracking-tight">{sample.name}</div>
+                                <div className="text-[9px] uppercase font-black tracking-widest text-white/20">{sample.bpm}BPM | {sample.key}</div>
+                            </div>
+                        </div>
+                        <div className="md:hidden">
+                            <DownloadButton 
+                                sampleId={sample.id} 
+                                isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
+                                creditCost={sample.credit_cost}
+                            />
+                        </div>
                     </div>
-                    <div className="col-span-4">
+                    
+                    <div className="hidden md:block col-span-4">
                         <div className="font-black text-lg tracking-tight group-hover:translate-x-1 transition-transform">{sample.name}</div>
                         <div className="text-[10px] uppercase font-black tracking-[0.2em] text-white/20 mt-1 flex items-center gap-2">
                            {pack.name}
                         </div>
                     </div>
-                    <div className="col-span-2 font-mono text-[11px] text-white/40 group-hover:text-white transition-colors">
+                    
+                    <div className="hidden md:block col-span-2 font-mono text-[11px] text-white/40 group-hover:text-white transition-colors">
                         {sample.bpm}BPM <span className="mx-2 text-white/10">|</span> {sample.key}
                     </div>
-                    <div className="col-span-3 px-6">
+                    
+                    <div className="w-full md:col-span-3 px-0 md:px-6">
                         <Waveform id={sample.id} active={true} />
                     </div>
-                    <div className="col-span-2 text-right">
+                    
+                    <div className="hidden md:block col-span-2 text-right">
                         <DownloadButton 
                             sampleId={sample.id} 
                             isUnlockedInitial={unlockedSampleIds.has(sample.id)} 

@@ -5,6 +5,7 @@ import { ArrowRight, ShieldCheck, Zap, Disc, Globe, Music, Share2, Search, Activ
 import { NewArrivals } from "@/components/home/NewArrivals";
 import { HeroSearch } from "@/components/home/HeroSearch";
 import { TopSounds } from "@/components/home/TopSounds";
+import { AnimatedHeroLogo } from "@/components/home/AnimatedHeroLogo";
 
 export default async function Home() {
   const supabase = await createClient()
@@ -74,18 +75,16 @@ export default async function Home() {
                     MODERN HERITAGE / मुम्बई साउंड
                 </span>
                 
-                <div className="relative mb-12 transform-gpu">
-                     <h1 className="bw-text-giant leading-none tracking-tighter relative group hover:italic transition-all duration-700">
-                        SAMPLES<br />WALA
-                    </h1>
+                <AnimatedHeroLogo />
+                
+                <div className="w-full max-w-4xl mb-12">
+                   <HeroSearch />
                 </div>
 
                 <p className="max-w-2xl text-lg md:text-3xl font-medium tracking-tight leading-snug mb-12 md:mb-16 opacity-60 px-4 md:px-0">
                     Crafting the future of Indian music. Cinematic, high-contrast, and 
                     profoundly local. Premium sounds for the high-end producer.
                 </p>
-                
-                <HeroSearch />
 
                 <Link href="/browse" className="mt-12 md:mt-16 group flex items-center gap-4 md:gap-6 px-10 md:px-16 py-6 md:py-8 bg-white/5 text-white font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-white hover:text-black transition-all border border-white/10 shrink-0 mx-4 md:mx-0">
                     EXPLORE ALL COLLECTIONS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />

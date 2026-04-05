@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function HeroSearch() {
   const router = useRouter()
@@ -15,7 +16,13 @@ export function HeroSearch() {
   }
 
   return (
-    <form onSubmit={handleSearch} className="relative group w-full max-w-4xl px-4 md:px-0">
+    <motion.form 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.4 }}
+      onSubmit={handleSearch} 
+      className="relative group w-full max-w-4xl px-4 md:px-0"
+    >
         <Search className="absolute left-8 md:left-10 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-white/20 group-focus-within:text-white transition-colors" />
         <input 
             type="text"
@@ -27,6 +34,6 @@ export function HeroSearch() {
         <button type="submit" className="absolute right-6 md:right-8 top-1/2 -translate-y-1/2 h-10 w-10 md:h-14 md:w-14 bg-white text-black flex items-center justify-center hover:invert transition-all">
             <ArrowRight className="h-4 w-4 md:h-6 md:w-6" />
         </button>
-    </form>
+    </motion.form>
   )
 }
