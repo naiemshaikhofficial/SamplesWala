@@ -75,10 +75,10 @@ export default async function BrowsePage({
             </form>
         </div>
 
-        {/* 🎞️ RAPID FILTERS */}
-        <div className="mt-16 flex flex-wrap items-center gap-2">
+        {/* 🎞️ RAPID FILTERS (GENRES) */}
+        <div className="mt-16 mb-4 flex flex-wrap items-center gap-2">
             <Link 
-                href={`/browse${params.q ? `?q=${params.q}` : ''}`}
+                href={`/browse${params.q ? `?q=${params.q}` : ''}${params.type ? `&type=${params.type}` : ''}`}
                 className={`px-6 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${!params.category ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}`}
             >
                 [ ALL_GENRES ]
@@ -86,12 +86,35 @@ export default async function BrowsePage({
             {categories?.map((cat: any) => (
                 <Link 
                     key={cat.id} 
-                    href={`/browse?category=${cat.id}${params.q ? `&q=${params.q}` : ''}`}
+                    href={`/browse?category=${cat.id}${params.q ? `&q=${params.q}` : ''}${params.type ? `&type=${params.type}` : ''}`}
                     className={`px-6 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${params.category === cat.id ? 'bg-white text-black' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}`}
                 >
                     {cat.name}
                 </Link>
             ))}
+        </div>
+
+        {/* 🏮 VIBE FILTERS (TYPES) */}
+        <div className="flex flex-wrap items-center gap-2">
+            {[
+                { label: 'LOOPS', id: 'loop' },
+                { label: 'ONE-SHOTS', id: 'oneshot' },
+                { label: 'MIDI', id: 'midi' },
+                { label: 'VOCALS', id: 'vocal' }
+            ].map((vibe) => (
+                <Link 
+                    key={vibe.id}
+                    href={`/browse?type=${vibe.id}${params.q ? `&q=${params.q}` : ''}${params.category ? `&category=${params.category}` : ''}`}
+                    className={`px-5 py-2 text-[9px] font-bold border-2 transition-all ${params.type === vibe.id ? 'border-white bg-white text-black ring-4 ring-white/10' : 'border-white/10 text-white/20 hover:border-white/40 hover:text-white'}`}
+                >
+                    {vibe.label}
+                </Link>
+            ))}
+            {params.type && (
+                <Link href={`/browse?${params.q ? `q=${params.q}` : ''}${params.category ? `&category=${params.category}` : ''}`} className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline ml-4">
+                    [ RESET_VIBE ]
+                </Link>
+            )}
         </div>
       </header>
 

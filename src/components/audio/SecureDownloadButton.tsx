@@ -3,7 +3,7 @@ import { Download, ShieldCheck, Loader2, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 import { getSecureDownloadUrl } from '@/app/packs/actions'
 
-export function SecureDownloadButton({ packId }: { packId: string }) {
+export function SecureDownloadButton({ packId, isIndividualSample = false }: { packId: string, isIndividualSample?: boolean }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -13,7 +13,7 @@ export function SecureDownloadButton({ packId }: { packId: string }) {
         
         try {
             // 🚀 GENERATE JWT TOKEN FIRST
-            const secureUrl = await getSecureDownloadUrl(packId)
+            const secureUrl = await getSecureDownloadUrl(packId, isIndividualSample)
             
             // 🚀 TRIGGER SECURE DOWNLOAD VIA AUTHORIZED BINARY STREAM
             window.location.href = secureUrl

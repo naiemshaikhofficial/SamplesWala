@@ -28,29 +28,32 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   return data
 }
 
-export async function getFilteredSamples(filters: { query?: string, category?: string }) {
+export async function getFilteredSamples(filters: { query?: string, category?: string, type?: string }) {
   const supabase = await createClient()
   const cleanQuery = filters.query?.trim()
   
-  let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id)')
+  let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, cover_url)')
   
   if (cleanQuery) {
-    // 🎧 SMART AUTOMATIC VIBE SEARCH
-    // We search the name, and check tags in multiple case variations for maximum coverage
-    const lowerQuery = cleanQuery.toLowerCase()
-    const capitalizedQuery = cleanQuery.charAt(0).toUpperCase() + cleanQuery.slice(1).toLowerCase()
-    
-    queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}},tags.cs.{${lowerQuery}},tags.cs.{${capitalizedQuery}}`)
+    queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`)
   }
 
-  const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(50)
+  // 🏮 VIBE FILTER INJECTION
+  if (filters.type) {
+    const typeLabel = filters.type.toLowerCase()
+    queryBuilder = queryBuilder.or(`name.ilike.%${typeLabel}%,tags.cs.{${typeLabel}}`)
+  }
+
+  const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(60)
   if (error) throw error
 
+  let processedData = data;
+
   if (filters.category) {
-    return data.filter((s: any) => s.sample_packs?.category_id === filters.category)
+    processedData = data.filter((s: any) => s.sample_packs?.category_id === filters.category)
   }
 
-  return data
+  return processedData
 }
 
 export async function getRelatedPacks(currentPackId: string, categoryId: string) {

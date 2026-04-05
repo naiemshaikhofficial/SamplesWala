@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 
 export function Waveform({ id, active }: { id: string; active?: boolean }) {
-  const { activeId, isPlaying, spectrum, currentTime, duration } = useAudio()
+  const { activeId, isPlaying, spectrum, currentTime, duration, seek } = useAudio()
   const isActive = activeId === id
   const progress = isActive ? (currentTime / duration) * 100 : 0
   
@@ -28,8 +28,19 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
     })
   })
 
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isActive) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    seek(percentage * duration);
+  }
+
   return (
-    <div className="relative h-14 w-full flex items-center justify-center gap-[4px] overflow-hidden select-none group cursor-pointer transition-all duration-700">
+    <div 
+      onClick={handleSeek}
+      className="relative h-14 w-full flex items-center justify-center gap-[4px] overflow-hidden select-none group cursor-pointer transition-all duration-700"
+    >
       
       {/* Subtle Glow Aura behind active bars */}
       {isActive && isPlaying && (
