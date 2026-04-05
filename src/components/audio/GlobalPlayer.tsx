@@ -51,8 +51,8 @@ export function GlobalPlayer() {
 
         {/* 🎚️ ANALOG CONTROLS */}
         <div className="flex-grow flex flex-col gap-4">
-            <div className="flex items-center gap-8">
-                <button onClick={() => isPlaying ? pause() : play(activeId, '')} className="h-12 w-12 bg-white text-black flex items-center justify-center hover:invert transition-all">
+            <div className="flex items-center gap-6">
+                <button onClick={() => isPlaying ? pause() : play(activeId, '')} className="h-12 w-12 bg-white text-black flex items-center justify-center hover:invert transition-all shrink-0">
                     {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current ml-1" />}
                 </button>
                 
@@ -68,7 +68,23 @@ export function GlobalPlayer() {
                     />
                 </div>
 
-                <div className="flex items-center gap-4 text-[10px] font-black tabular-nums tracking-widest">
+                {/* 🎹 SPLICE-STYLE METADATA */}
+                <div className="flex items-center gap-6 border-l border-white/10 pl-6 h-8 shrink-0">
+                   <div className="flex flex-col">
+                      <span className="text-[8px] font-black uppercase text-white/30 tracking-widest leading-none">Key</span>
+                      <span className="text-[14px] font-black uppercase text-white leading-none mt-1 italic tracking-tighter">
+                        {activeMetadata?.audioKey || "—"}
+                      </span>
+                   </div>
+                   <div className="flex flex-col border-l border-white/10 pl-6">
+                      <span className="text-[8px] font-black uppercase text-white/30 tracking-widest leading-none">BPM</span>
+                      <span className="text-[14px] font-black uppercase text-white leading-none mt-1 italic tracking-tighter">
+                        {activeMetadata?.bpm || "—"}
+                      </span>
+                   </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-[10px] font-black tabular-nums tracking-widest border-l border-white/10 pl-6 h-8 shrink-0">
                     <span>{formatTime(currentTime)}</span>
                     <span className="text-white/20">/</span>
                     <span>{formatTime(duration)}</span>

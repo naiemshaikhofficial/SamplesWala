@@ -193,19 +193,21 @@ export default async function PackPage({ params }: { params: { slug: string } })
 
             <div className="divide-y divide-white/5">
             {samples?.map((sample) => (
-                <div key={sample.id} className="flex flex-col md:grid md:grid-cols-12 gap-4 px-4 md:px-8 py-6 md:py-10 items-center transition-all hover:bg-white/[0.03] group border-b border-white/5 md:border-none">
-                    <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start mb-4 md:mb-0">
-                        <div className="flex items-center gap-4">
-                            <PlayButton 
-                                id={sample.id} 
-                                url={sample.audio_url} 
-                                name={sample.name}
-                                packName={pack.name}
-                                coverUrl={pack.cover_url}
-                            />
+                <div key={sample.id} className="flex flex-col md:grid md:grid-cols-12 gap-2 px-4 md:px-6 py-2.5 items-center transition-all hover:bg-white/[0.04] group border-b border-white/5 md:border-none">
+                    <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start">
+                        <div className="flex items-center gap-3">
+                                <PlayButton 
+                                    id={sample.id} 
+                                    url={sample.audio_url} 
+                                    name={sample.name}
+                                    packName={pack.name}
+                                    coverUrl={pack.cover_url}
+                                    bpm={sample.bpm}
+                                    audioKey={sample.key}
+                                />
                             <div className="md:hidden">
-                                <div className="font-black text-lg tracking-tight">{sample.name}</div>
-                                <div className="text-[9px] uppercase font-black tracking-widest text-white/20">{sample.bpm}BPM | {sample.key}</div>
+                                <div className="font-bold text-sm tracking-tight">{sample.name}</div>
+                                <div className="text-[8px] uppercase font-black tracking-widest text-white/20">{sample.bpm}BPM | {sample.key}</div>
                             </div>
                         </div>
                         
@@ -223,31 +225,30 @@ export default async function PackPage({ params }: { params: { slug: string } })
                                     creditCost={sample.credit_cost}
                                 />
                             ) : (
-                                <span className="text-[8px] font-black uppercase tracking-widest text-white/20">
-                                    {sample.is_preview_only ? 'Preview Only' : 'Bundle Exclusive'}
+                                <span className="text-[7px] font-black uppercase tracking-widest text-white/20">
+                                    LOCKED
                                 </span>
                             )}
                         </div>
                     </div>
                     
                     <div className="hidden md:block col-span-4">
-                        <div className="font-black text-lg tracking-tight group-hover:translate-x-1 transition-transform">{sample.name}</div>
-                        <div className="text-[10px] uppercase font-black tracking-[0.2em] text-white/20 mt-1 flex items-center gap-2">
+                        <div className="font-bold text-[13px] tracking-tight text-white/90 group-hover:text-white transition-colors truncate">{sample.name}</div>
+                        <div className="text-[9px] uppercase font-bold tracking-widest text-white/10 mt-0.5 group-hover:text-white/30 transition-colors">
                            {pack.name}
                         </div>
                     </div>
                     
-                    <div className="hidden md:block col-span-2 font-mono text-[11px] text-white/40 group-hover:text-white transition-colors">
-                        {sample.bpm}BPM <span className="mx-2 text-white/10">|</span> {sample.key}
+                    <div className="hidden md:block col-span-2 font-mono text-[10px] text-white/20 group-hover:text-white/60 transition-colors">
+                        {sample.bpm}BPM <span className="mx-1 opacity-20">/</span> {sample.key}
                     </div>
                     
-                    <div className="w-full md:col-span-3 px-0 md:px-6">
+                    <div className="w-full md:col-span-3 px-0 md:px-4">
                         <Waveform id={sample.id} active={true} />
                     </div>
                     
-                    <div className="hidden md:block col-span-2 text-right">
+                    <div className="hidden md:flex col-span-2 items-center justify-end">
                         {isFullPackUnlocked ? (
-                            /* 🔥 Pack Owners get direct HQ download access */
                             <DownloadButton 
                                 sampleId={sample.id} 
                                 isUnlockedInitial={true} 
@@ -260,8 +261,8 @@ export default async function PackPage({ params }: { params: { slug: string } })
                                creditCost={sample.credit_cost}
                            />
                         ) : (
-                           <span className="text-[9px] font-black uppercase tracking-widest text-white/20 italic">
-                                {sample.is_preview_only ? 'Preview Only' : 'Bundle Exclusive'}
+                           <span className="text-[8px] font-black uppercase tracking-widest text-white/10 italic pr-2">
+                                LOCKED
                            </span>
                         )}
                     </div>

@@ -4,13 +4,13 @@ import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 
 type AudioContextType = {
   activeId: string | null
-  activeMetadata: { name: string, packName: string, coverUrl?: string | null } | null
+  activeMetadata: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null } | null
   isPlaying: boolean
   isLoading: boolean
   currentTime: number
   duration: number
   spectrum: number[]
-  play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null }) => void
+  play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null }) => void
   pause: () => void
   seek: (time: number) => void
   setIsLoading: (val: boolean) => void
@@ -20,7 +20,7 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined)
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [activeMetadata, setActiveMetadata] = useState<{ name: string, packName: string } | null>(null)
+  const [activeMetadata, setActiveMetadata] = useState<{ name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null } | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -142,7 +142,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null }) => {
+  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null }) => {
     if (!audioRef.current) return
     
     if (activeId === id) {
