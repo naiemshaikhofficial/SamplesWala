@@ -5,6 +5,8 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { AudioProvider } from '@/components/audio/AudioProvider'
 import { CurrencyProvider } from '@/components/CurrencyProvider'
+import { GlobalPlayer } from '@/components/audio/GlobalPlayer'
+import { CustomCursor } from '@/components/layout/CustomCursor'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black`}>
+    <html lang="en" className="dark scroll-smooth">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden`}>
         <CurrencyProvider>
           <AudioProvider>
             <div className="flex flex-col min-h-screen">
@@ -37,6 +39,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
+              <GlobalPlayer />
             </div>
           </AudioProvider>
         </CurrencyProvider>
