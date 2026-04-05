@@ -12,6 +12,7 @@ type AudioContextType = {
   play: (id: string, url: string) => void
   pause: () => void
   seek: (time: number) => void
+  setIsLoading: (val: boolean) => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -119,6 +120,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setActiveId(id);
 
     try {
+        // 🔥 SECURE PROXY FLOW
+        // Always generate a fresh token for this sample play
         const token = await generatePreviewToken(id);
         const finalUrl = `/api/audio?id=${id}&token=${token}`;
         
@@ -141,7 +144,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AudioContext.Provider value={{ activeId, isPlaying, isLoading, currentTime, duration, spectrum, play, pause, seek }}>
+    <AudioContext.Provider value={{ activeId, isPlaying, isLoading, currentTime, duration, spectrum, play, pause, seek, setIsLoading }}>
       {children}
     </AudioContext.Provider>
   )

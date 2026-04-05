@@ -8,6 +8,8 @@ const planConfigs: any = {
     'Pro Platinum': { icon: <Crown className="h-6 w-6" />, color: 'from-emerald-400 to-cyan-600', glow: 'text-emerald-400' }
 }
 
+import { SubscribeButton } from '@/components/SubscribeButton'
+
 export default async function PricingPage() {
   const supabase = await createClient()
   const { data: plans } = await supabase.from('subscription_plans').select('*').order('price_inr', { ascending: true })
@@ -82,12 +84,11 @@ export default async function PricingPage() {
                     ))}
                 </div>
 
-                <Link 
-                    href={`/auth/signup?plan=${plan.id}`} 
-                    className={`w-full py-5 rounded-2xl text-center text-sm font-black uppercase tracking-widest transition-all ${plan.name === 'Gold' ? 'bg-white text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}
-                >
-                    Get {plan.name}
-                </Link>
+                <SubscribeButton 
+                    planId={plan.id} 
+                    planName={plan.name} 
+                    isFeatured={plan.name === 'Gold'} 
+                />
                 </div>
             )
           })}

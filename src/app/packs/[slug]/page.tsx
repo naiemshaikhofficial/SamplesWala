@@ -116,7 +116,11 @@ export default async function PackPage({ params }: { params: { slug: string } })
                         <Waveform id={sample.id} active={true} />
                     </div>
                     <div className="col-span-2 text-right">
-                        <DownloadButton sampleId={sample.id} isUnlockedInitial={unlockedSampleIds.has(sample.id)} />
+                        <DownloadButton 
+                            sampleId={sample.id} 
+                            isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
+                            creditCost={sample.credit_cost}
+                        />
                     </div>
                 </div>
             ))}
