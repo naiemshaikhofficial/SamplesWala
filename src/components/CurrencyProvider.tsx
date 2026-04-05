@@ -25,7 +25,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   }
 
   const format = (inr: number, usd: number) => {
-    if (currency === 'INR') return '?' + inr.toLocaleString()
+    if (currency === 'INR') return '₹' + inr.toLocaleString()
     return '$' + usd.toFixed(2)
   }
 

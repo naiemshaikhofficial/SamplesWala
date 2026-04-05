@@ -78,7 +78,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
                <span className="text-[10px] font-black uppercase tracking-widest">Or</span>
                <span className="h-[1px] w-8 bg-white/10"></span>
             </div>
-            <button className="text-xs font-black uppercase tracking-widest border-b border-white/20 pb-1 hover:border-white transition-all">Buy for ?{pack.price_inr}</button>
+            <button className="text-sm font-black uppercase tracking-widest border-b border-white/20 pb-1 hover:border-white transition-all">Buy for <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} /></button>
           </div>
         </div>
       </div>

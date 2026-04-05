@@ -5,6 +5,7 @@ import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 type AudioContextType = {
   activeId: string | null
   isPlaying: boolean
+  isLoading: boolean
   currentTime: number
   duration: number
   play: (id: string, url: string) => void
@@ -17,6 +18,7 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined)
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -29,7 +31,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     audio.ontimeupdate = () => { setCurrentTime(audio.currentTime); }
     audio.onloadedmetadata = () => { setDuration(audio.duration); }
     
-    // Debugging listener for "No supported source found" errors
+    // When the audio is ready to play, stop loading
+    audio.oncanplay = () => { setIsLoading(false); }
+    audio.onloadstart = () => { setIsLoading(true); }
+    
+    // Debugging listener
     audio.onerror = (e) => {
         console.error("AUDIO PLAYER ERROR:", {
             code: audio.error?.code,
@@ -37,6 +43,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             src: audio.src
         });
         setIsPlaying(false);
+        setIsLoading(false);
     }
     
     return () => { 
@@ -54,8 +61,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       return
     }
     
+    setIsLoading(true);
+    setActiveId(id);
+
     // 🚀 USE SECURE STEALTH PROXY
-    // Fetch a 60-second temporal token before playing
     let finalUrl = url;
     if (id) {
         try {
@@ -64,12 +73,14 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
             console.error("Token generation failed:", e);
             alert("Security check failed. Please refresh.");
+            setIsLoading(false);
             return;
         }
     }
 
     if (!finalUrl) {
         console.warn("NO AUDIO SOURCE FOR ID:", id);
+        setIsLoading(false);
         return;
     }
 
@@ -79,11 +90,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     
     audioRef.current.play()
       .then(() => {
-          setActiveId(id)
           setIsPlaying(true)
       })
       .catch(err => {
           console.error("Playback failed for URL:", finalUrl, err);
+          setIsLoading(false);
       })
   }
 
@@ -96,7 +107,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AudioContext.Provider value={{ activeId, isPlaying, currentTime, duration, play, pause, seek }}>
+    <AudioContext.Provider value={{ activeId, isPlaying, isLoading, currentTime, duration, play, pause, seek }}>
       {children}
     </AudioContext.Provider>
   )
