@@ -83,13 +83,14 @@ export async function GET(req: NextRequest) {
         return new NextResponse(`Token Error: ${e.message}`, { status: 401 });
     }
 
-    // 🛡️ SECURITY LAYER 2: Referer check
+    // 🛡️ SECURITY LAYER 2: Mandatory Referer check
+    // This stops anyone from copy-pasting the link into a new tab
     const referer = req.headers.get('referer') || '';
     const host = req.headers.get('host') || '';
-    // Fix: relaxed check for dev environments
-    if (referer && !referer.includes(host)) {
-        console.error("[AUDIO PROXY] Referer Blocked:", { referer, host });
-        return new NextResponse('Direct Download Blocked', { status: 403 });
+    
+    if (!referer || !referer.includes(host)) {
+        console.error("[AUDIO PROXY] Direct Access Hijack Blocked:", { referer, host });
+        return new NextResponse('Direct Access Blocked (Security Code 102)', { status: 403 });
     }
 
     const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url').eq('id', id).single();
