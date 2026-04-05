@@ -70,6 +70,18 @@ export async function unlockFullPack(packId: string) {
   }
 }
 
+export async function generatePreviewToken(sampleId: string) {
+  // Signs a short-lived token (60s) for the preview player
+  const clientIp = (await headers()).get('x-forwarded-for')?.split(',')[0] || '127.0.0.1'
+  const token = jwt.sign({ 
+    sampleId: sampleId, 
+    ip: clientIp,
+    purpose: 'preview' 
+  }, JWT_SECRET, { expiresIn: '60s' })
+  
+  return token
+}
+
 export async function generateDownloadToken(sampleId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -65,10 +65,6 @@ export default async function PackPage({ params }: { params: { slug: string } })
         <div className="lg:col-span-2 flex flex-col justify-center">
           <div className="flex items-center gap-3 mb-6">
              <span className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/60">{pack.categories?.name}</span>
-             <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-4 py-1.5 rounded-full border border-emerald-400/20">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Splice Guaranteed</span>
-             </div>
           </div>
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 uppercase leading-[0.9] italic italic">{pack.name}</h1>
           <p className="text-xl text-white/40 mb-12 max-w-2xl leading-relaxed whitespace-pre-line">

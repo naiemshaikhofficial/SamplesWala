@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-dev';
 
 // Initialize Supabase Admin client
 const supabaseAdmin = createClient(
@@ -59,9 +62,24 @@ async function resolveFinalDriveUrl(url: string, cookie: string = ''): Promise<{
 
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id');
-  if (!id) return new NextResponse('Missing ID', { status: 400 });
+  const token = req.nextUrl.searchParams.get('token');
+  
+  if (!id || !token) return new NextResponse('Missing Security Token', { status: 401 });
 
   try {
+    // 🛡️ SECURITY LAYER 1: Verify JWT
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    if (decoded.sampleId !== id || decoded.purpose !== 'preview') {
+        return new NextResponse('Invalid Security Token', { status: 401 });
+    }
+
+    // 🛡️ SECURITY LAYER 2: Referer check
+    const referer = req.headers.get('referer') || '';
+    const host = req.headers.get('host') || '';
+    if (!referer.includes(host)) {
+        return new NextResponse('Direct Download Blocked', { status: 403 });
+    }
+
     const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url').eq('id', id).single();
     if (dbError || !sample) return new NextResponse('Not found', { status: 404 });
 
@@ -98,6 +116,7 @@ export async function GET(req: NextRequest) {
 
     return new NextResponse(upstreamResponse.body, { status: upstreamResponse.status, headers: responseHeaders });
   } catch (error) {
+    console.error('Audio Proxy Error:', error);
     return new NextResponse('Internal Error', { status: 500 });
   }
 }

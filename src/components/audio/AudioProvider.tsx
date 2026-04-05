@@ -1,5 +1,6 @@
 'use client'
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react'
+import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 
 type AudioContextType = {
   activeId: string | null
@@ -46,7 +47,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const play = (id: string, url: string) => {
+  const play = async (id: string, url: string) => {
     if (!audioRef.current) return
     if (activeId === id) {
       if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
@@ -54,9 +55,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       return
     }
     
-    // 🚀 USE STEALTH PROXY
-    // This handles Google Drive, Supabase, and seeking automatically
-    const finalUrl = id ? `/api/audio?id=${id}` : url;
+    // 🚀 USE SECURE STEALTH PROXY
+    // Fetch a 60-second temporal token before playing
+    let finalUrl = url;
+    if (id) {
+        try {
+            const token = await generatePreviewToken(id);
+            finalUrl = `/api/audio?id=${id}&token=${token}`;
+        } catch (e) {
+            console.error("Token generation failed:", e);
+            alert("Security check failed. Please refresh.");
+            return;
+        }
+    }
 
     if (!finalUrl) {
         console.warn("NO AUDIO SOURCE FOR ID:", id);
