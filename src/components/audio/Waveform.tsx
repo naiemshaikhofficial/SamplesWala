@@ -1,45 +1,68 @@
 'use client'
-import { useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 
-export function Waveform({ id, active }: { id: string, active: boolean }) {
-  const { currentTime, duration, seek, isPlaying } = useAudio()
-  const containerRef = useRef<HTMLDivElement>(null)
+export function Waveform({ id, active }: { id: string; active?: boolean }) {
+  const { activeId, isPlaying, spectrum, currentTime, duration } = useAudio()
+  const isActive = activeId === id
+  const progress = isActive ? (currentTime / duration) * 100 : 0
   
-  const progress = active ? (currentTime / duration) * 100 : 0
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (!active || !containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const newProgress = x / rect.width
-    seek(newProgress * duration)
-  }
+  // Pro Audio Shape: Higher in the middle, lower at the ends
+  const [staticBars] = useState<number[]>(() => {
+    return Array.from({ length: 50 }).map((_, i) => {
+        const mid = 25;
+        const dist = Math.abs(i - mid);
+        const base = Math.max(10, 60 - dist * 2); 
+        return base + Math.random() * 20;
+    })
+  })
 
   return (
-    <div 
-      ref={containerRef}
-      onClick={handleClick}
-      className="relative w-full h-8 flex items-center gap-[2px] cursor-pointer group transition-all"
-    >
-      {[...Array(30)].map((_, i) => {
-        const barProgress = (i / 30) * 100
-        const isPlayed = progress > barProgress
+    <div className="relative h-14 w-full flex items-center justify-center gap-[4px] overflow-hidden select-none group cursor-pointer transition-all duration-700">
+      
+      {/* Subtle Glow Aura behind active bars */}
+      {isActive && isPlaying && (
+          <div 
+            className="absolute inset-y-0 left-0 bg-white/[0.03] blur-3xl pointer-events-none transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+      )}
+
+      {staticBars.map((baseHeight, i) => {
+        const barPos = (i / staticBars.length) * 100;
+        const isPast = barPos < progress;
+        
+        let realTimeHeight = baseHeight;
+        let energyValue = 0;
+        
+        if (isActive && isPlaying && spectrum) {
+             // Map frequencies to the bars
+             energyValue = spectrum[Math.floor(i % 40)] || 0;
+             realTimeHeight = Math.max(baseHeight, energyValue * 220); 
+        }
+
         return (
           <div 
-            key={i} 
-            className={`flex-1 rounded-full transition-all ${isPlayed ? 'bg-white' : 'bg-white/20 group-hover:bg-white/30'}`} 
-            style={{ height: (30 + (Math.sin(i * 0.5) * 50 + 50) * 0.4) + '%' }}
-          ></div>
+            key={i}
+            className="w-[2px] rounded-full transition-all duration-100"
+            style={{ 
+              height: `${realTimeHeight}%`,
+              // Color Logic: Bright white for past, Dim gray for upcoming
+              backgroundColor: isPast 
+                ? (isActive ? '#fff' : 'rgba(255,255,255,0.7)') 
+                : 'rgba(255,255,255,0.15)',
+              // Add a soft glow to the leading edge bar
+              boxShadow: (isActive && isPlaying && isPast && Math.abs(barPos - progress) < 3) 
+                ? '0 0 15px rgba(255,255,255,1)' 
+                : 'none',
+              transform: isActive && isPlaying ? `scaleY(${1 + energyValue * 0.3})` : 'scaleY(1)',
+              opacity: isPast ? 1 : 0.4
+            }}
+          />
         )
       })}
       
-      {active && (
-        <div 
-            className="absolute top-0 bottom-0 w-[1px] bg-white shadow-[0_0_10px_white] transition-transform duration-75"
-            style={{ left: progress + '%' }}
-        />
-      )}
+      {/* NO MORE DANDA/STICK HERE */}
     </div>
   )
 }
