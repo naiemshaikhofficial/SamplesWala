@@ -122,7 +122,13 @@ export default async function PackPage({ params }: { params: { slug: string } })
             {samples?.map((sample) => (
                 <div key={sample.id} className="grid grid-cols-12 gap-4 px-8 py-10 items-center transition-all hover:bg-white/[0.03] group">
                     <div className="col-span-1">
-                        <PlayButton id={sample.id} url={sample.audio_url} />
+                        <PlayButton 
+                            id={sample.id} 
+                            url={sample.audio_url} 
+                            name={sample.name}
+                            packName={pack.name}
+                            coverUrl={pack.cover_url}
+                        />
                     </div>
                     <div className="col-span-4">
                         <div className="font-black text-lg tracking-tight group-hover:translate-x-1 transition-transform">{sample.name}</div>

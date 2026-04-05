@@ -1,18 +1,33 @@
-'use client'
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { createClient } from '@/lib/supabase/server'
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ShieldCheck, Zap, Disc, Globe, Music, Share2, Search } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, Disc, Globe, Music, Share2, Search, Activity } from "lucide-react";
+import { NewArrivals } from "@/components/home/NewArrivals";
+import { HeroSearch } from "@/components/home/HeroSearch";
+import { TopSounds } from "@/components/home/TopSounds";
 
-export default function Home() {
-  const router = useRouter()
-  const [query, setQuery] = useState('')
+export default async function Home() {
+  const supabase = await createClient()
+  
+  // 📀 Fetch Latest Packs
+  const { data: latestPacks } = await supabase
+    .from('sample_packs')
+    .select('*, categories(name)')
+    .order('created_at', { ascending: false })
+    .limit(4)
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (query.trim()) {
-        router.push(`/browse?q=${encodeURIComponent(query)}`)
+  // 💿 Fetch Top Samples
+  const { data: topSamples } = await supabase
+    .from('samples')
+    .select('*, sample_packs(name, cover_url, slug)')
+    .limit(10)
+
+  const { data: { user } } = await supabase.auth.getUser()
+  let unlockedSampleIds: Set<string> = new Set()
+  if (user) {
+    const { data: unlocks } = await supabase.from('unlocked_samples').select('sample_id').eq('user_id', user.id)
+    if (unlocks) {
+      unlockedSampleIds = new Set(unlocks.map(u => u.sample_id))
     }
   }
 
@@ -70,26 +85,22 @@ export default function Home() {
                     profoundly local. Premium sounds for the high-end producer.
                 </p>
                 
-                {/* 🎰 THE VAULT COMMAND (Centered Search) */}
-                <form onSubmit={handleSearch} className="relative group w-full max-w-4xl">
-                    <Search className="absolute left-10 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-white transition-colors" />
-                    <input 
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="SEARCH YOUR SAMPLE..."
-                        className="w-full bg-black/40 backdrop-blur-3xl border-2 border-white/10 h-24 px-20 text-md font-black uppercase tracking-[0.4em] outline-none focus:border-white transition-all placeholder:text-white/10 text-center"
-                    />
-                    <button type="submit" className="absolute right-8 top-1/2 -translate-y-1/2 h-14 w-14 bg-white text-black flex items-center justify-center hover:invert transition-all">
-                        <ArrowRight className="h-6 w-6" />
-                    </button>
-                </form>
+                <HeroSearch />
 
                 <Link href="/browse" className="mt-16 group flex items-center gap-6 px-16 py-8 bg-white/5 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white hover:text-black transition-all border border-white/10 shrink-0">
                     EXPLORE ALL COLLECTIONS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
                 </Link>
             </div>
         </section>
+
+        {/* 💿 NEW ARRIVALS (Parallax Section) */}
+        <NewArrivals packs={latestPacks || []} />
+
+        {/* 🎚️ TOP SINGULAR SOUNDS (Sound Rack) */}
+        <TopSounds 
+            samples={topSamples || []} 
+            unlockedSampleIds={Array.from(unlockedSampleIds)}
+        />
 
         {/* 💿 B&W FEATURED GRID (The Bollywood Vault) */}
         <section className="px-6 md:px-20 py-48 border-t border-white/10 bg-[#080808]">

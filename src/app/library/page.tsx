@@ -1,96 +1,149 @@
 import { createClient } from '@/lib/supabase/server'
-import { PlayButton } from '@/components/audio/PlayButton'
-import { DownloadButton } from '@/components/audio/DownloadButton'
-import { Music, Search, Library as LibraryIcon, Zap } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Disc, Music, Download, Play, Activity, ArrowLeft, Search } from 'lucide-react'
+import { PlayButton } from '@/components/audio/PlayButton'
+import { Waveform } from '@/components/audio/Waveform'
+import { DownloadButton } from '@/components/audio/DownloadButton'
 
-export default async function LibraryPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await (await supabase.auth.getUser())
-  
-  if (!user) {
+export default async function LibraryPage({ searchParams }: { searchParams: { q?: string; sort?: string } }) {
+    const params = await (searchParams as any)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) redirect('/auth/login')
+
+    // 💿 Fetch All Unlocked Samples
+    let query = supabase
+        .from('unlocked_samples')
+        .select(`
+            sample_id,
+            samples (
+                *,
+                sample_packs (
+                    name,
+                    cover_url
+                )
+            )
+        `)
+        .eq('user_id', user.id)
+
+    const { data: unlockedData } = await query
+
+    let samples = unlockedData?.map(item => item.samples).filter(Boolean) || []
+
+    // 🕵️‍♂️ CLIENT-SIDE FILTERING (Since it's a personal archive)
+    if (params.q) {
+        const term = params.q.toLowerCase()
+        samples = samples.filter((s: any) => 
+            s.name?.toLowerCase().includes(term) || 
+            s.sample_packs?.name?.toLowerCase().includes(term)
+        )
+    }
+
+    // 🎚️ SORTING LOGIC
+    if (params.sort === 'name') {
+        samples.sort((a: any, b: any) => a.name.localeCompare(b.name))
+    } else if (params.sort === 'bpm') {
+        samples.sort((a: any, b: any) => (b.bpm || 0) - (a.bpm || 0))
+    } else {
+        // Default to newest (based on ID or created_at if available)
+        samples.reverse() 
+    }
+
     return (
-      <div className="container mx-auto px-4 py-32 text-center">
-        <h1 className="text-4xl font-black mb-8">Your Library is locked.</h1>
-        <p className="text-white/40 mb-12">Log in to view and download your unlocked sounds.</p>
-        <Link href="/login" className="bg-white text-black px-12 py-4 rounded-full font-black uppercase text-xs tracking-widest hover:opacity-90">Login</Link>
-      </div>
+        <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black lg:pl-20">
+            {/* 🎰 THE LIBRARY HEADER */}
+            <header className="border-b border-white/10 px-6 md:px-20 py-16 bg-black">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+                    <div className="max-w-2xl">
+                        <Link href="/browse" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white mb-8 flex items-center gap-2 group transition-all">
+                            <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
+                            Return to The Vault
+                        </Link>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 block">Personal Archive</span>
+                        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-4 italic">My Sounds</h1>
+                        <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">
+                             Artifact count: {samples.length} — {params.q ? `Filter active: "${params.q}"` : 'Global Collection'}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-6 w-full max-w-sm">
+                         <form action="/library" className="relative group w-full">
+                            <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-white transition-all" />
+                            <input 
+                                name="q"
+                                defaultValue={params.q}
+                                placeholder="QUERY ARCHIVE..." 
+                                className="w-full bg-transparent border-b border-white/20 h-12 text-sm font-black uppercase tracking-widest focus:border-white transition-all outline-none"
+                            />
+                        </form>
+                        <div className="flex items-center gap-6 text-[9px] font-black uppercase tracking-widest text-white/20">
+                            <span className="text-white/10">Sort by:</span>
+                            <Link href="/library" className={!params.sort ? 'text-white' : 'hover:text-white'}>Newest</Link>
+                            <Link href="/library?sort=name" className={params.sort === 'name' ? 'text-white' : 'hover:text-white'}>A-Z</Link>
+                            <Link href="/library?sort=bpm" className={params.sort === 'bpm' ? 'text-white' : 'hover:text-white'}>BPM</Link>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="bg-[#050505] min-h-[60vh]">
+                {samples.length > 0 ? (
+                    <div className="divide-y divide-white/5">
+                        {samples.map((sample: any) => (
+                            <div key={sample.id} className="group grid grid-cols-12 gap-8 px-6 md:px-20 py-12 items-center hover:bg-white transition-all">
+                                <div className="col-span-1">
+                                    <PlayButton 
+                                        id={sample.id} 
+                                        url={sample.audio_url} 
+                                        name={sample.name}
+                                        packName={sample.sample_packs?.name}
+                                        coverUrl={sample.sample_packs?.cover_url}
+                                    />
+                                </div>
+                                <div className="col-span-4 translate-x-4">
+                                     <div className="font-black text-2xl tracking-tighter uppercase group-hover:text-black transition-all truncate leading-none">
+                                        {sample.name}
+                                    </div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-2 group-hover:text-black/40">
+                                        {sample.sample_packs?.name}
+                                    </div>
+                                </div>
+                                <div className="hidden md:col-span-2 md:flex flex-col gap-1 text-[10px] font-black uppercase tracking-widest group-hover:text-black">
+                                    <span>{sample.bpm || '--'} BPM</span>
+                                    <span className="opacity-40">{sample.key || '--'}</span>
+                                </div>
+                                <div className="col-span-4 md:col-span-3 px-6">
+                                     <div className="h-10 flex items-center justify-center group-hover:invert transition-all">
+                                        <Waveform id={sample.id} active={true} />
+                                    </div>
+                                </div>
+                                <div className="col-span-1 text-right">
+                                    <DownloadButton 
+                                        sampleId={sample.id} 
+                                        isUnlockedInitial={true} 
+                                        creditCost={sample.credit_cost}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="h-[50vh] flex flex-col items-center justify-center text-white/10 grayscale">
+                        <Music className="h-32 w-32 mb-8 animate-pulse" />
+                        <p className="text-xl font-black uppercase tracking-widest italic">No Secured Artifacts</p>
+                        <Link href="/browse" className="mt-8 px-12 py-4 bg-white text-black text-[10px] font-black uppercase tracking-widest hover:invert transition-all">Explore The Vault</Link>
+                    </div>
+                )}
+            </main>
+
+            {/* 🌬️ DEVANAGARI MARQUEE */}
+            <div className="py-24 overflow-hidden whitespace-nowrap opacity-[0.02] pointer-events-none border-t border-white/5 bg-black">
+                <div className="text-[10rem] font-bold text-white uppercase inline-block animate-marquee italic">
+                    मेरा संग्रह मेरा संग्रह मेरा संग्रह मेरा संग्रह मेरा संग्रह
+                </div>
+            </div>
+        </div>
     )
-  }
-
-  // Fetch all unlocked samples with their metadata
-  const { data: unlocked } = await supabase
-    .from('unlocked_samples')
-    .select('*, samples(*, sample_packs(name))')
-    .eq('user_id', user.id)
-    .order('unlocked_at', { ascending: false })
-
-  return (
-    <div className="container mx-auto px-4 py-20 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
-        <div>
-          <div className="flex items-center gap-3 text-white/40 mb-2">
-            <LibraryIcon className="h-4 w-4" />
-            <span className="text-[10px] uppercase font-bold tracking-widest">Personal Vault</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">Your Sounds</h1>
-        </div>
-        
-        <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-6 rounded-3xl">
-          <div className="flex flex-col pr-8 border-r border-white/10">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-white/40 mb-1">Total Collection</span>
-            <span className="text-3xl font-black italic">{unlocked?.length || 0}</span>
-          </div>
-          <Link href="/browse" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white hover:text-white/80 transition-colors pl-4">
-             Explore More <Zap className="h-3 w-3 fill-white" />
-          </Link>
-        </div>
-      </div>
-
-      {unlocked && unlocked.length > 0 ? (
-        <div className="border border-white/10 rounded-[2rem] overflow-hidden bg-white/[0.02] backdrop-blur-3xl shadow-2xl">
-          <div className="grid grid-cols-12 gap-4 px-8 py-6 border-b border-white/10 text-[10px] uppercase font-bold tracking-widest text-white/20">
-            <div className="col-span-1">Play</div>
-            <div className="col-span-4">Sample Name / Pack</div>
-            <div className="col-span-2">Details</div>
-            <div className="col-span-3 text-center">Spectral Waveform</div>
-            <div className="col-span-2 text-right">Download</div>
-          </div>
-          <div className="divide-y divide-white/5">
-            {unlocked.map((item: any) => (
-              <div key={item.id} className="grid grid-cols-12 gap-4 px-8 py-8 items-center hover:bg-white/[0.03] transition-colors group">
-                <div className="col-span-1">
-                  <PlayButton id={item.samples.id} url={item.samples.audio_url} />
-                </div>
-                <div className="col-span-4">
-                  <div className="font-bold text-base tracking-tight text-white group-hover:translate-x-1 transition-transform cursor-default">{item.samples.name}</div>
-                  <div className="text-[10px] uppercase tracking-widest text-white/40 font-bold mt-1 inline-flex items-center gap-2">
-                     <span className="h-1 w-1 bg-white/20 rounded-full"></span>
-                     {item.samples.sample_packs.name}
-                  </div>
-                </div>
-                <div className="col-span-2 font-mono text-xs text-white/40">
-                  {item.samples.bpm}BPM / {item.samples.key}
-                </div>
-                <div className="col-span-3 h-10 relative flex items-center justify-center gap-[2.5px] px-8">
-                   {[...Array(32)].map((_, i) => (
-                      <div key={i} className="flex-1 bg-white/5 rounded-full transition-all group-hover:bg-white/20" style={{ height: (20 + Math.random() * 80) + '%' }}></div>
-                   ))}
-                </div>
-                <div className="col-span-2 text-right">
-                  <DownloadButton sampleId={item.samples.id} isUnlockedInitial={true} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="py-32 text-center border-2 border-dashed border-white/5 rounded-[3rem]">
-          <Music className="h-12 w-12 mx-auto mb-6 text-white/10" />
-          <h3 className="text-xl font-bold uppercase tracking-widest text-white/20 italic">No samples in your vault yet.</h3>
-          <p className="text-xs text-white/10 mt-4">Unlock sounds with your subscription credits to build a library.</p>
-        </div>
-      )}
-    </div>
-  )
 }

@@ -11,6 +11,7 @@ type SubscribeButtonProps = {
   planName: string
   isFeatured?: boolean
   mode?: 'subscription' | 'pack' | 'sample_pack'
+  disabled?: boolean
 }
 
 declare global {
@@ -19,7 +20,7 @@ declare global {
   }
 }
 
-export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription' }: SubscribeButtonProps) {
+export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled }: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
 
@@ -74,7 +75,7 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <button 
       onClick={handleSubscribe}
-      disabled={isPending}
+      disabled={isPending || disabled}
       className={`
         relative w-full py-5 rounded-2xl text-center text-sm font-black uppercase tracking-widest transition-all overflow-hidden group
         ${isFeatured 
@@ -82,7 +83,7 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
           : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20'
         }
         active:scale-[0.98]
-        disabled:opacity-50 disabled:cursor-wait
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none
       `}
     >
       <div className="relative z-10 flex items-center justify-center gap-3">
@@ -94,7 +95,7 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
         ) : (
           <>
             <Sparkles className={`h-4 w-4 ${isFeatured ? 'text-yellow-600' : 'text-white/20'} group-hover:animate-pulse`} />
-            <span>Get {planName}</span>
+            <span>{planName}</span>
           </>
         )}
       </div>

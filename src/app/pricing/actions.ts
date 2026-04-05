@@ -206,3 +206,24 @@ export async function verifyPayment(paymentRes: any, orderId: string, itemType: 
 
     return { success: true }
 }
+
+/**
+ * ⛔ Cancel Subscription
+ */
+export async function cancelSubscription() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+
+    if (error) throw new Error('Failed to cancel subscription')
+
+    revalidatePath('/pricing')
+    revalidatePath('/')
+    return { success: true }
+}

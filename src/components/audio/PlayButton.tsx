@@ -2,14 +2,14 @@
 import { Play, Pause, Loader2 } from 'lucide-react'
 import { useAudio } from './AudioProvider'
 
-export function PlayButton({ id, url }: { id: string, url: string }) {
+export function PlayButton({ id, url, name = "Unknown", packName = "Vault Artifact", coverUrl = null }: { id: string, url: string, name?: string, packName?: string, coverUrl?: string | null }) {
   const { activeId, isPlaying, isLoading, play } = useAudio()
   const isActive = activeId === id
   const currentlyPlaying = isActive && isPlaying
 
   return (
     <button 
-      onClick={(e) => { e.preventDefault(); play(id, url); }}
+      onClick={(e) => { e.preventDefault(); play(id, url, { name, packName, coverUrl }); }}
       className={`
         h-10 w-10 flex items-center justify-center rounded-full bg-white text-black transition-all hover:scale-110 active:scale-95
         ${isActive && isPlaying ? 'ring-4 ring-white/20' : ''}

@@ -1,10 +1,11 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
+import Image from 'next/image'
 import { Play, Pause, X, Music, Activity, SkipBack, SkipForward } from 'lucide-react'
 
 export function GlobalPlayer() {
-  const { activeId, isPlaying, play, pause, currentTime, duration, seek, isLoading } = useAudio()
+  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading } = useAudio()
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -26,12 +27,25 @@ export function GlobalPlayer() {
         
         {/* 📀 TRACK INFO */}
         <div className="flex items-center gap-6 min-w-[300px]">
-          <div className="h-16 w-16 bg-white flex items-center justify-center shrink-0">
-            <Music className="h-8 w-8 text-black" />
+          <div className="h-16 w-16 bg-white/5 flex items-center justify-center shrink-0 border border-white/10 relative overflow-hidden">
+            {activeMetadata?.coverUrl ? (
+                <Image 
+                    src={activeMetadata.coverUrl} 
+                    alt={activeMetadata.name} 
+                    fill 
+                    className="object-cover" 
+                />
+            ) : (
+                <Music className="h-8 w-8 text-white/10" />
+            )}
           </div>
           <div className="overflow-hidden">
-             <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-1">Previewing Artifact</span>
-             <h4 className="text-2xl font-black uppercase tracking-tighter truncate leading-none">Global Link Active</h4>
+             <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-1">
+                {activeMetadata?.packName || "Previewing Artifact"}
+             </span>
+             <h4 className="text-xl font-black uppercase tracking-tighter truncate leading-none">
+                {activeMetadata?.name || "Global Link Active"}
+             </h4>
           </div>
         </div>
 

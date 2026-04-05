@@ -130,7 +130,13 @@ export default async function BrowsePage({
                 {samples?.map((sample: any) => (
                     <div key={sample.id} className="group grid grid-cols-12 gap-8 px-6 md:px-20 py-10 items-center hover:bg-white transition-all">
                         <div className="col-span-1">
-                            <PlayButton id={sample.id} url={sample.audio_url} />
+                            <PlayButton 
+                                id={sample.id} 
+                                url={sample.audio_url} 
+                                name={sample.name}
+                                packName={sample.sample_packs?.name}
+                                coverUrl={sample.sample_packs?.cover_url}
+                            />
                         </div>
                         <div className="col-span-5 md:col-span-4">
                             <div className="font-black text-xl tracking-tighter uppercase group-hover:text-black transition-all truncate">

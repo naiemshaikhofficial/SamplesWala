@@ -9,11 +9,27 @@ const planConfigs: any = {
 }
 
 import { SubscribeButton } from '@/components/SubscribeButton'
+import { CancelSubscriptionButton } from '@/components/CancelSubscriptionButton'
 
 export default async function PricingPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  // 💿 Get active subscription from the correct table as per screenshot
+  const { data: activeSub } = user 
+    ? await supabase
+        .from('user_subscriptions')
+        .select('*, subscription_plans(*)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single() 
+    : { data: null }
+
   const { data: plans } = await supabase.from('subscription_plans').select('*').order('price_inr', { ascending: true })
   const { data: packs } = await supabase.from('credit_packs').select('*').order('credits', { ascending: true })
+
+  const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
+  const currentPrice = activeSub?.subscription_plans?.price_inr || 0
 
   return (
     <div className="min-h-screen bg-black text-white pt-32 pb-24 relative overflow-hidden">
@@ -23,6 +39,9 @@ export default async function PricingPage() {
 
       <div className="container mx-auto px-4 relative">
         <div className="text-center max-w-3xl mx-auto mb-20">
+          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-4 block">
+            {activeSub ? `Current Status: ${currentPlanName.toUpperCase()} ACTIVE` : 'Current Status: NO ACTIVE SUBSCRIPTION'}
+          </span>
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase italic mb-6 leading-[0.9]">Unlock Your Sound</h1>
           <p className="text-xl text-white/40 leading-relaxed">
             Choose a monthly membership for consistent value, or grab a one-time pack to top up your credits whenever you need.
@@ -37,6 +56,10 @@ export default async function PricingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {plans?.map((plan) => {
                 const config = planConfigs[plan.name] || planConfigs['Starter'];
+                const isActive = currentPlanName === plan.name && activeSub?.status === 'active'
+                const isUpgrade = plan.price_inr > currentPrice
+                const isLower = plan.price_inr < currentPrice
+                
                 const features = [
                     `${plan.credits_per_month} Monthly Credits`,
                     `${plan.name} License Rights`,
@@ -47,11 +70,17 @@ export default async function PricingPage() {
                 return (
                     <div 
                         key={plan.id} 
-                        className={`group relative rounded-[2.5rem] bg-white/[0.02] border border-white/10 p-10 transition-all hover:bg-white/[0.04] flex flex-col ${plan.name === 'Professional' ? 'bg-white/[0.05] border-white/20 scale-105 z-10' : ''}`}
+                        className={`group relative rounded-[2.5rem] bg-white/[0.02] border border-white/10 p-10 transition-all hover:bg-white/[0.04] flex flex-col ${isActive ? 'ring-2 ring-emerald-500 bg-emerald-500/[0.02]' : ''} ${plan.name === 'Professional' && !isActive ? 'bg-white/[0.05] border-white/20 scale-105 z-10' : ''} ${isLower ? 'opacity-40 grayscale pointer-events-none' : ''}`}
                     >
-                    {plan.name === 'Professional' && (
+                    {plan.name === 'Professional' && !isActive && !isLower && (
                         <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.5)]">
                             Most Popular Choice
+                        </div>
+                    )}
+
+                    {isActive && (
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full flex items-center gap-2 z-20">
+                            <ShieldCheck className="h-3 w-3" /> Active Plan
                         </div>
                     )}
                     
@@ -90,10 +119,17 @@ export default async function PricingPage() {
 
                     <SubscribeButton 
                         planId={plan.id} 
-                        planName={plan.name} 
-                        isFeatured={plan.name === 'Professional'} 
+                        planName={isActive ? 'Active' : isUpgrade && currentPlanName !== 'Free' ? `Upgrade to ${plan.name}` : isLower ? 'N/A' : `Get ${plan.name}`}
+                        isFeatured={plan.name === 'Professional' || isActive} 
                         mode="subscription"
+                        disabled={isActive || isLower}
                     />
+
+                    {isActive && (
+                        <div className="flex justify-center">
+                            <CancelSubscriptionButton />
+                        </div>
+                    )}
                     </div>
                 )
             })}

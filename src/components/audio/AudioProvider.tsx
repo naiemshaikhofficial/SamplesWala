@@ -4,12 +4,13 @@ import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 
 type AudioContextType = {
   activeId: string | null
+  activeMetadata: { name: string, packName: string, coverUrl?: string | null } | null
   isPlaying: boolean
   isLoading: boolean
   currentTime: number
   duration: number
   spectrum: number[]
-  play: (id: string, url: string) => void
+  play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null }) => void
   pause: () => void
   seek: (time: number) => void
   setIsLoading: (val: boolean) => void
@@ -19,17 +20,20 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined)
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeMetadata, setActiveMetadata] = useState<{ name: string, packName: string } | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
-  
+
+  // ... (keeping other refs)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const analyzerRef = useRef<AnalyserNode | null>(null)
   const ctxRef = useRef<any>(null)
   const animationRef = useRef<number | null>(null)
-
+  
+  // ... (keeping useEffect)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -87,6 +91,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     audio.onended = () => { 
         setIsPlaying(false); 
         setActiveId(null); 
+        setActiveMetadata(null);
         setCurrentTime(0); 
         setSpectrum(new Array(40).fill(0));
     }
@@ -102,7 +107,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const play = async (id: string, url: string) => {
+  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null }) => {
     if (!audioRef.current) return
     
     // Toggle
@@ -118,6 +123,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setDuration(0);
     setIsLoading(true);
     setActiveId(id);
+    if (metadata) setActiveMetadata(metadata);
 
     try {
         // 🔥 SECURE PROXY FLOW
@@ -132,6 +138,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         console.error("Playback start failed:", e);
         setIsLoading(false);
         setActiveId(null);
+        setActiveMetadata(null);
     }
   }
 
@@ -144,7 +151,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AudioContext.Provider value={{ activeId, isPlaying, isLoading, currentTime, duration, spectrum, play, pause, seek, setIsLoading }}>
+    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, play, pause, seek, setIsLoading }}>
       {children}
     </AudioContext.Provider>
   )

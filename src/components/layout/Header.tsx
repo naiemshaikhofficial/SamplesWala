@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Music, Search, User, Menu } from 'lucide-react'
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
+import { MobileMenu } from './MobileMenu'
 
 export async function Header() {
   const supabase = await createClient()
@@ -27,6 +28,12 @@ export async function Header() {
 
         <div className="flex items-center gap-6">
           <div className="hidden md:flex items-center gap-6">
+              {user && (
+                  <Link href="/library" className="group flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 hover:bg-white hover:text-black transition-all">
+                      <Music className="h-3 w-3" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">My Sounds</span>
+                  </Link>
+              )}
               {user && <CreditCounter />}
               <CurrencyToggle />
           </div>
@@ -48,9 +55,7 @@ export async function Header() {
                     Login
                 </Link>
             )}
-            <button className="lg:hidden h-10 w-10 flex items-center justify-center border border-white/10">
-                <Menu className="h-4 w-4" />
-            </button>
+            <MobileMenu user={user} />
           </div>
         </div>
       </div>
