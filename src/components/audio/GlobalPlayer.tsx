@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 import Image from 'next/image'
-import { Play, Pause, X, Music, Activity, SkipBack, SkipForward } from 'lucide-react'
+import { Play, Pause, X, Music, Activity, SkipBack, SkipForward, Repeat } from 'lucide-react'
 
 export function GlobalPlayer() {
-  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading } = useAudio()
+  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop } = useAudio()
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function GlobalPlayer() {
       <div className="flex h-24 items-center px-6 md:px-20 gap-12">
         
         {/* 📀 TRACK INFO */}
-        <div className="flex items-center gap-6 min-w-[300px]">
+        <div className="flex items-center gap-6 min-w-[300px] relative group">
           <div className="h-16 w-16 bg-white/5 flex items-center justify-center shrink-0 border border-white/10 relative overflow-hidden">
             {activeMetadata?.coverUrl ? (
                 <Image 
@@ -39,22 +39,46 @@ export function GlobalPlayer() {
                 <Music className="h-8 w-8 text-white/10" />
             )}
           </div>
-          <div className="overflow-hidden">
+          <div className="overflow-hidden flex-1">
              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-1">
                 {activeMetadata?.packName || "Previewing Artifact"}
              </span>
              <h4 className="text-xl font-black uppercase tracking-tighter truncate leading-none">
                 {activeMetadata?.name || "Global Link Active"}
              </h4>
+             
+             {/* 🧊 REACTIVE SPECTRUM (GLOBAL VISUALIZER) */}
+             <div className="flex items-end gap-[1px] h-4 mt-2 opacity-40 group-hover:opacity-100 transition-opacity">
+                {spectrum && spectrum.length > 0 ? (
+                    spectrum.slice(0, 48).map((v, i) => (
+                        <div 
+                            key={i} 
+                            className="w-[2px] bg-white rounded-full transition-all duration-75"
+                            style={{ height: `${Math.max(10, v * 300)}%` }}
+                        />
+                    ))
+                ) : (
+                    <div className="h-px w-full bg-white/10 animate-pulse" />
+                )}
+             </div>
           </div>
         </div>
 
         {/* 🎚️ ANALOG CONTROLS */}
         <div className="flex-grow flex flex-col gap-4">
             <div className="flex items-center gap-6">
-                <button onClick={() => isPlaying ? pause() : play(activeId, '')} className="h-12 w-12 bg-white text-black flex items-center justify-center hover:invert transition-all shrink-0">
-                    {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current ml-1" />}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button onClick={() => isPlaying ? pause() : play(activeId, '')} className="h-12 w-12 bg-white text-black flex items-center justify-center hover:invert transition-all shrink-0">
+                        {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current ml-1" />}
+                    </button>
+                    <button 
+                        onClick={toggleLoop} 
+                        className={`h-12 w-12 flex items-center justify-center transition-all ${isLooping ? 'bg-white text-black ring-4 ring-white/10' : 'bg-white/5 text-white hover:bg-white/10'}`}
+                        title="Toggle Loop"
+                    >
+                        <Repeat className={`h-5 w-5 ${isLooping ? 'animate-pulse' : ''}`} />
+                    </button>
+                </div>
                 
                 <div className="flex-grow group relative h-8 flex items-center">
                     <input

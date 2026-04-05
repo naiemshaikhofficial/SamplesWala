@@ -10,9 +10,11 @@ type AudioContextType = {
   currentTime: number
   duration: number
   spectrum: number[]
+  isLooping: boolean
   play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null }) => void
   pause: () => void
   seek: (time: number) => void
+  toggleLoop: () => void
   setIsLoading: (val: boolean) => void
 }
 
@@ -26,6 +28,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
+  const [isLooping, setIsLooping] = useState(false)
   const [user, setUser] = useState<any>(null)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -122,6 +125,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         stopWatermark();
     };
     audio.onended = () => { 
+        if (audio.loop) return; // Ignore ended if looping
         setIsPlaying(false); 
         setActiveId(null); 
         setActiveMetadata(null);
@@ -198,8 +202,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const toggleLoop = () => {
+    if (audioRef.current) {
+        const next = !isLooping;
+        audioRef.current.loop = next;
+        setIsLooping(next);
+    }
+  }
+
   return (
-    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, play, pause, seek, setIsLoading }}>
+    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, isLooping, play, pause, seek, toggleLoop, setIsLoading }}>
       {children}
     </AudioContext.Provider>
   )

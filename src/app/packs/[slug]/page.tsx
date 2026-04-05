@@ -232,10 +232,18 @@ export default async function PackPage({ params }: { params: { slug: string } })
                         </div>
                     </div>
                     
-                    <div className="hidden md:block col-span-4">
-                        <div className="font-bold text-[13px] tracking-tight text-white/90 group-hover:text-white transition-colors truncate">{sample.name}</div>
+                    <div className="hidden md:block col-span-4 relative group/name">
+                        <div className="font-bold text-[13px] tracking-tight text-white/90 group-hover:text-white transition-colors truncate cursor-help">{sample.name}</div>
                         <div className="text-[9px] uppercase font-bold tracking-widest text-white/10 mt-0.5 group-hover:text-white/30 transition-colors">
                            {pack.name}
+                        </div>
+                        
+                        {/* 🛸 GHOST PREVIEW WAVEFORM */}
+                        <div className="absolute left-0 bottom-full mb-2 w-64 h-12 bg-black/90 border border-white/20 rounded-xl opacity-0 translate-y-2 pointer-events-none group-hover/name:opacity-100 group-hover/name:translate-y-0 transition-all duration-300 z-50 p-2 backdrop-blur-xl">
+                            <div className="text-[8px] font-black uppercase tracking-widest text-white/40 mb-1 px-1">Spectral Signature</div>
+                            <div className="h-6 opacity-40">
+                                <Waveform id={`${sample.id}-ghost`} active={false} />
+                            </div>
                         </div>
                     </div>
                     
