@@ -3,9 +3,9 @@ import { Check, Sparkles, Zap, Crown, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
 const planConfigs: any = {
-    'Silver': { icon: <Sparkles className="h-6 w-6" />, color: 'from-slate-400 to-slate-600', glow: 'text-slate-400' },
-    'Gold': { icon: <Zap className="h-6 w-6" />, color: 'from-yellow-400 to-orange-600', glow: 'text-yellow-500' },
-    'Pro Platinum': { icon: <Crown className="h-6 w-6" />, color: 'from-emerald-400 to-cyan-600', glow: 'text-emerald-400' }
+    'Starter': { icon: <Sparkles className="h-6 w-6" />, color: 'from-slate-400 to-slate-600', glow: 'text-slate-400' },
+    'Professional': { icon: <Zap className="h-6 w-6" />, color: 'from-yellow-400 to-orange-600', glow: 'text-yellow-500' },
+    'Producer': { icon: <Crown className="h-6 w-6" />, color: 'from-emerald-400 to-cyan-600', glow: 'text-emerald-400' }
 }
 
 import { SubscribeButton } from '@/components/SubscribeButton'
@@ -41,9 +41,9 @@ export default async function PricingPage() {
             return (
                 <div 
                     key={plan.id} 
-                    className={`group relative rounded-[2.5rem] bg-white/[0.02] border border-white/10 p-10 transition-all hover:bg-white/[0.04] flex flex-col ${plan.name === 'Gold' ? 'bg-white/[0.05] border-white/20 scale-105 z-10' : ''}`}
+                    className={`group relative rounded-[2.5rem] bg-white/[0.02] border border-white/10 p-10 transition-all hover:bg-white/[0.04] flex flex-col ${plan.name === 'Professional' ? 'bg-white/[0.05] border-white/20 scale-105 z-10' : ''}`}
                 >
-                {plan.name === 'Gold' && (
+                {plan.name === 'Professional' && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.5)]">
                         Most Popular Choice
                     </div>
@@ -87,7 +87,7 @@ export default async function PricingPage() {
                 <SubscribeButton 
                     planId={plan.id} 
                     planName={plan.name} 
-                    isFeatured={plan.name === 'Gold'} 
+                    isFeatured={plan.name === 'Professional'} 
                 />
                 </div>
             )
