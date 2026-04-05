@@ -44,6 +44,7 @@ export function AdaptiveHero() {
                 src="/indian_studio.png" 
                 alt="Mumbai Studio" 
                 fill 
+                sizes="100vw"
                 className="object-cover"
                 priority
             />

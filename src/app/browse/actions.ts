@@ -10,11 +10,13 @@ export async function getAllCategories() {
 
 export async function getFilteredPacks(filters: { query?: string, category?: string }) {
   const supabase = await createClient()
+  const cleanQuery = filters.query?.trim()
+  
   let queryBuilder = supabase.from('sample_packs').select('*, categories(name)')
   
-  if (filters.query) {
-    // Vibe Search: Name, Description, or Tags
-    queryBuilder = queryBuilder.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,tags.cs.{${filters.query}}`)
+  if (cleanQuery) {
+    // 🔍 AUTOMATIC SEARCH: Name or Description (Case-insensitive)
+    queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`)
   }
   
   if (filters.category) {
@@ -28,18 +30,22 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
 
 export async function getFilteredSamples(filters: { query?: string, category?: string }) {
   const supabase = await createClient()
+  const cleanQuery = filters.query?.trim()
   
-  let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, tags)')
+  let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id)')
   
-  if (filters.query) {
-    // Vibe Search: Name, Pack Tags, or Sample Tags
-    queryBuilder = queryBuilder.or(`name.ilike.%${filters.query}%,tags.cs.{${filters.query}}`)
+  if (cleanQuery) {
+    // 🎧 SMART AUTOMATIC VIBE SEARCH
+    // We search the name, and check tags in multiple case variations for maximum coverage
+    const lowerQuery = cleanQuery.toLowerCase()
+    const capitalizedQuery = cleanQuery.charAt(0).toUpperCase() + cleanQuery.slice(1).toLowerCase()
+    
+    queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}},tags.cs.{${lowerQuery}},tags.cs.{${capitalizedQuery}}`)
   }
 
   const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(50)
   if (error) throw error
 
-  // Manual filter for category if needed (since samples are linked to packs)
   if (filters.category) {
     return data.filter((s: any) => s.sample_packs?.category_id === filters.category)
   }

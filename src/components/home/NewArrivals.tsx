@@ -61,7 +61,13 @@ export function NewArrivals({ packs }: { packs: Pack[] }) {
                                 <div className="aspect-[4/5] bg-white/5 mb-10 relative overflow-hidden bw-stark-border group-hover:border-black/20 transition-all">
                                     <div className="absolute inset-0 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000">
                                         {pack.cover_url ? (
-                                            <Image src={pack.cover_url} alt={pack.name} fill className="object-cover" />
+                                            <Image 
+                                                src={pack.cover_url} 
+                                                alt={pack.name} 
+                                                fill 
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                                className="object-cover" 
+                                            />
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <Disc className="h-24 w-24 text-white/5 group-hover:text-black/5" />

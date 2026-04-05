@@ -30,14 +30,14 @@ export default async function PackPage({ params }: { params: { slug: string } })
     const { data: unlocks } = await supabase.from('unlocked_samples').select('sample_id').eq('user_id', user.id)
     if (unlocks) unlockedSampleIds = new Set(unlocks.map(u => u.sample_id))
 
-    // 2. Check if FULL pack was purchased (100% Reliable ID Match)
+    // 2. Check if FULL pack was purchased (THE ULTIMATE SOURCE OF TRUTH)
     const { data: directUnlock } = await supabase.from('unlocked_packs')
       .select('id')
       .eq('user_id', user.id)
       .eq('pack_id', pack.id)
       .maybeSingle()
     
-    // 3. Fallback to Purchase History (String Match)
+    // 3. Fallback to Purchase History (Standard String Match)
     const { data: fullPurchase } = !directUnlock ? await supabase.from('purchases')
       .select('id')
       .eq('user_id', user.id)
@@ -205,7 +205,7 @@ export default async function PackPage({ params }: { params: { slug: string } })
                                     isUnlockedInitial={true} 
                                     creditCost={0}
                                 />
-                            ) : (!pack.is_bundle_only && !sample.is_preview_only) ? (
+                            ) : (!pack.is_bundle_only && (!sample.is_preview_only || (sample.credit_cost && sample.credit_cost > 0))) ? (
                                 <DownloadButton 
                                     sampleId={sample.id} 
                                     isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
@@ -242,16 +242,16 @@ export default async function PackPage({ params }: { params: { slug: string } })
                                 isUnlockedInitial={true} 
                                 creditCost={0}
                             />
-                        ) : sample.is_preview_only || pack.is_bundle_only ? (
-                           <span className="text-[9px] font-black uppercase tracking-widest text-white/20 italic">
-                                {sample.is_preview_only ? 'Preview Only' : 'Bundle Exclusive'}
-                           </span>
-                        ) : (
+                        ) : (!pack.is_bundle_only && (!sample.is_preview_only || (sample.credit_cost && sample.credit_cost > 0))) ? (
                            <DownloadButton 
                                sampleId={sample.id} 
                                isUnlockedInitial={unlockedSampleIds.has(sample.id)} 
                                creditCost={sample.credit_cost}
                            />
+                        ) : (
+                           <span className="text-[9px] font-black uppercase tracking-widest text-white/20 italic">
+                                {sample.is_preview_only ? 'Preview Only' : 'Bundle Exclusive'}
+                           </span>
                         )}
                     </div>
                 </div>
