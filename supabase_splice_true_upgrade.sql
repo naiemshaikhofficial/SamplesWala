@@ -5,7 +5,7 @@ ALTER TABLE user_subscriptions ALTER COLUMN status SET DEFAULT 'active';
 
 -- Function to check if a user can spend credits
 CREATE OR REPLACE FUNCTION can_spend_credits(user_id_input UUID)
-RETURNS BOOLEAN AS D:\Website\Sample\samples-wala
+RETURNS BOOLEAN AS $$
 DECLARE
     sub_status TEXT;
     sub_expiry TIMESTAMP WITH TIME ZONE;
@@ -26,18 +26,18 @@ BEGIN
 
     RETURN FALSE;
 END;
-D:\Website\Sample\samples-wala LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Add triggers for auto-setting expiry on cancellation
 CREATE OR REPLACE FUNCTION handle_subscription_update()
-RETURNS TRIGGER AS D:\Website\Sample\samples-wala
+RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.status = 'cancelled' AND OLD.status = 'active' THEN
         NEW.credits_expiry := NOW() + INTERVAL '28 days';
     END IF;
     RETURN NEW;
 END;
-D:\Website\Sample\samples-wala LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER on_sub_cancel
     BEFORE UPDATE ON user_subscriptions

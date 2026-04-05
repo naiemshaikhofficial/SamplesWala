@@ -28,7 +28,22 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     audio.ontimeupdate = () => { setCurrentTime(audio.currentTime); }
     audio.onloadedmetadata = () => { setDuration(audio.duration); }
     
-    return () => { audio.pause(); audioRef.current = null; }
+    // Debugging listener for "No supported source found" errors
+    audio.onerror = (e) => {
+        console.error("AUDIO PLAYER ERROR:", {
+            error: audio.error,
+            url: audio.src,
+            readyState: audio.readyState,
+            networkState: audio.networkState
+        });
+        setIsPlaying(false);
+    }
+    
+    return () => { 
+        audio.pause(); 
+        audio.src = "";
+        audioRef.current = null; 
+    }
   }, [])
 
   const play = (id: string, url: string) => {
@@ -38,11 +53,28 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       else { audioRef.current.play(); setIsPlaying(true); }
       return
     }
+    
+    // 🚀 USE STEALTH PROXY
+    // This handles Google Drive, Supabase, and seeking automatically
+    const finalUrl = id ? `/api/audio?id=${id}` : url;
+
+    if (!finalUrl) {
+        console.warn("NO AUDIO SOURCE FOR ID:", id);
+        return;
+    }
+
     audioRef.current.pause()
-    audioRef.current.src = url
+    audioRef.current.src = finalUrl
+    audioRef.current.load()
+    
     audioRef.current.play()
-    setActiveId(id)
-    setIsPlaying(true)
+      .then(() => {
+          setActiveId(id)
+          setIsPlaying(true)
+      })
+      .catch(err => {
+          console.error("Playback failed for URL:", finalUrl, err);
+      })
   }
 
   const pause = () => { audioRef.current?.pause(); setIsPlaying(false); }
@@ -59,6 +91,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     </AudioContext.Provider>
   )
 }
+
 export const useAudio = () => {
   const context = useContext(AudioContext)
   if (!context) throw new Error('useAudio must be used within AudioProvider')

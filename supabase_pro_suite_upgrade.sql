@@ -1,3 +1,14 @@
+-- 0. Initialize sample_type ENUM if it doesn't exist
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sample_type') THEN
+        CREATE TYPE sample_type AS ENUM ('one-shot', 'loop');
+    END IF;
+END $$;
+
+-- 0.1 Migrate samples table to use the new ENUM type (dropping the old check constraint)
+ALTER TABLE samples DROP CONSTRAINT IF EXISTS samples_type_check;
+ALTER TABLE samples ALTER COLUMN type TYPE sample_type USING type::sample_type;
+
 -- Support for Presets/Patches
 ALTER TYPE sample_type ADD VALUE IF NOT EXISTS 'preset';
 ALTER TYPE sample_type ADD VALUE IF NOT EXISTS 'patch';
@@ -17,7 +28,7 @@ CREATE TABLE IF NOT EXISTS referrals (
 
 -- Function to handle successful referral
 CREATE OR REPLACE FUNCTION reward_referral(referred_user_id UUID, ref_email TEXT)
-RETURNS VOID AS D:\Website\Sample\samples-wala
+RETURNS VOID AS $$
 DECLARE
     referrer_uuid UUID;
     reward_amt INTEGER;
@@ -33,8 +44,9 @@ BEGIN
         UPDATE referrals SET status = 'successful' WHERE referred_email = ref_email;
     END IF;
 END;
-D:\Website\Sample\samples-wala LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Security
 ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can see their own referrals" ON referrals FOR SELECT USING (auth.uid() = referrer_id);
+

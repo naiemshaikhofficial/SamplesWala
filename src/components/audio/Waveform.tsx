@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { useAudio } from './AudioProvider'
 
 export function Waveform({ id, active }: { id: string, active: boolean }) {
-  const { currentTime, duration, seek } = useAudio()
+  const { currentTime, duration, seek, isPlaying } = useAudio()
   const containerRef = useRef<HTMLDivElement>(null)
   
   const progress = active ? (currentTime / duration) * 100 : 0
@@ -20,7 +20,7 @@ export function Waveform({ id, active }: { id: string, active: boolean }) {
     <div 
       ref={containerRef}
       onClick={handleClick}
-      className={elative w-full h-8 flex items-center gap-[2px] cursor-pointer group transition-all \}
+      className="relative w-full h-8 flex items-center gap-[2px] cursor-pointer group transition-all"
     >
       {[...Array(30)].map((_, i) => {
         const barProgress = (i / 30) * 100
@@ -28,8 +28,8 @@ export function Waveform({ id, active }: { id: string, active: boolean }) {
         return (
           <div 
             key={i} 
-            className={lex-1 rounded-full transition-all \} 
-            style={{ height: (20 + (Math.sin(i * 0.5) * 40 + 40)) + '%' }}
+            className={`flex-1 rounded-full transition-all ${isPlayed ? 'bg-white' : 'bg-white/20 group-hover:bg-white/30'}`} 
+            style={{ height: (30 + (Math.sin(i * 0.5) * 50 + 50) * 0.4) + '%' }}
           ></div>
         )
       })}
