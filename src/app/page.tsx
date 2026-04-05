@@ -50,7 +50,7 @@ export default async function Home() {
 
       <div className="lg:pl-20">
         {/* 🏆 THE CINEMATIC HERO (A.R. Rahman Aesthetic) */}
-        <section className="min-h-screen flex flex-col items-center justify-center px-6 md:px-20 relative overflow-hidden">
+        <section className="min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-20 relative overflow-hidden py-20 md:py-0">
             <div className="absolute inset-0 z-0 grayscale pointer-events-none">
                 <Image 
                     src="/indian_studio.png" 
@@ -70,7 +70,7 @@ export default async function Home() {
             </div>
 
             <div className="relative z-10 w-full max-w-7xl flex flex-col items-center text-center">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-12 block">
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-8 md:mb-12 block">
                     MODERN HERITAGE / मुम्बई साउंड
                 </span>
                 
@@ -80,14 +80,14 @@ export default async function Home() {
                     </h1>
                 </div>
 
-                <p className="max-w-2xl text-xl md:text-3xl font-medium tracking-tight leading-snug mb-16 opacity-60">
+                <p className="max-w-2xl text-lg md:text-3xl font-medium tracking-tight leading-snug mb-12 md:mb-16 opacity-60 px-4 md:px-0">
                     Crafting the future of Indian music. Cinematic, high-contrast, and 
                     profoundly local. Premium sounds for the high-end producer.
                 </p>
                 
                 <HeroSearch />
 
-                <Link href="/browse" className="mt-16 group flex items-center gap-6 px-16 py-8 bg-white/5 text-white font-black uppercase tracking-widest text-[10px] hover:bg-white hover:text-black transition-all border border-white/10 shrink-0">
+                <Link href="/browse" className="mt-12 md:mt-16 group flex items-center gap-4 md:gap-6 px-10 md:px-16 py-6 md:py-8 bg-white/5 text-white font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-white hover:text-black transition-all border border-white/10 shrink-0 mx-4 md:mx-0">
                     EXPLORE ALL COLLECTIONS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
                 </Link>
             </div>
@@ -103,13 +103,13 @@ export default async function Home() {
         />
 
         {/* 💿 B&W FEATURED GRID (The Bollywood Vault) */}
-        <section className="px-6 md:px-20 py-48 border-t border-white/10 bg-[#080808]">
-            <div className="flex items-end justify-between mb-32">
+        <section className="px-4 md:px-20 py-24 md:py-48 border-t border-white/10 bg-[#080808]">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-8">
                 <div className="max-w-2xl">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-8 block">नया संगीत</span>
-                    <h2 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4">THE<br />LEGACY</h2>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 md:mb-8 block">नया संगीत</span>
+                    <h2 className="text-5xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4">THE<br />LEGACY</h2>
                 </div>
-                <Link href="/browse" className="mb-4 text-xs font-black uppercase tracking-widest border-b-2 border-white pb-4 hover:opacity-50 transition-all">
+                <Link href="/browse" className="text-[10px] md:text-xs font-black uppercase tracking-widest border-b-2 border-white pb-2 md:pb-4 hover:opacity-50 transition-all self-start md:self-auto">
                     All Collections
                 </Link>
             </div>
@@ -135,15 +135,15 @@ export default async function Home() {
 
         {/* 🛡️ BRUTALIST STATUS BAR */}
         <div className="flex flex-col md:flex-row border-y border-white/10">
-            <div className="flex-1 p-20 border-r border-white/10 hover:bg-white hover:text-black transition-colors group">
-                <ShieldCheck className="h-12 w-12 mb-8" />
-                <h4 className="text-3xl font-black uppercase tracking-tighter mb-4">Certified Samples</h4>
-                <p className="text-sm font-medium opacity-60 group-hover:opacity-100">Every Artifact is 100% royalty-free and production-ready.</p>
+            <div className="flex-1 p-8 md:p-20 border-b md:border-b-0 md:border-r border-white/10 hover:bg-white hover:text-black transition-colors group text-center md:text-left">
+                <ShieldCheck className="h-10 w-10 md:h-12 md:w-12 mb-6 md:mb-8 mx-auto md:mx-0" />
+                <h4 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4">Certified Samples</h4>
+                <p className="text-sm font-medium opacity-60 group-hover:opacity-100 px-4 md:px-0">Every Artifact is 100% royalty-free and production-ready.</p>
             </div>
-            <div className="flex-1 p-20 hover:bg-white hover:text-black transition-colors group">
-                <Disc className="h-12 w-12 mb-8" />
-                <h4 className="text-3xl font-black uppercase tracking-tighter mb-4">Global Access</h4>
-                <p className="text-sm font-medium opacity-60 group-hover:opacity-100">Used by world-class producers from Mumbai to London.</p>
+            <div className="flex-1 p-8 md:p-20 hover:bg-white hover:text-black transition-colors group text-center md:text-left">
+                <Disc className="h-10 w-10 md:h-12 md:w-12 mb-6 md:mb-8 mx-auto md:mx-0" />
+                <h4 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4">Global Access</h4>
+                <p className="text-sm font-medium opacity-60 group-hover:opacity-100 px-4 md:px-0">Used by world-class producers from Mumbai to London.</p>
             </div>
         </div>
       </div>

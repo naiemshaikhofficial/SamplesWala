@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Menu, X, Music, User, CreditCard, Zap, Globe, Mail } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -29,8 +30,13 @@ export function MobileMenu({ user }: { user: any }) {
             {/* CLOSE BUTTON */}
             <div className="flex justify-between items-center mb-16">
               <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-4 group">
-                <div className="h-4 w-4 bg-white rotate-45" />
-                <span className="text-xl font-black tracking-tighter uppercase italic">SAMPLES WALA</span>
+                <Image 
+                  src="/Logo.png" 
+                  alt="SAMPLES WALA Logo" 
+                  width={140} 
+                  height={35} 
+                  className="h-8 w-auto object-contain"
+                />
               </Link>
               <button 
                 onClick={() => setIsOpen(false)}

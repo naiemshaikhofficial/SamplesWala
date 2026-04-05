@@ -26,7 +26,7 @@ export function NewArrivals({ packs }: { packs: Pack[] }) {
   const textY = useTransform(scrollYProgress, [0, 1], [0, -200])
 
   return (
-    <section ref={containerRef} className="px-6 md:px-20 py-48 bg-black border-t border-white/10 relative overflow-hidden">
+    <section ref={containerRef} className="px-4 md:px-20 py-24 md:py-48 bg-black border-t border-white/10 relative overflow-hidden">
         {/* 🎰 THE GHOST TITLE (Parallax Background) */}
         <motion.div 
             style={{ y: textY }}
@@ -36,12 +36,12 @@ export function NewArrivals({ packs }: { packs: Pack[] }) {
         </motion.div>
 
         <div className="relative z-10">
-            <div className="flex items-end justify-between mb-32">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-8">
                 <div className="max-w-2xl">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-8 block">नया आगमन</span>
-                    <h2 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4">NEW<br />COLLECTIONS</h2>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 md:mb-8 block">नया आगमन</span>
+                    <h2 className="text-5xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4">NEW<br />COLLECTIONS</h2>
                 </div>
-                <Link href="/browse" className="mb-4 text-xs font-black uppercase tracking-widest border-b-2 border-white pb-4 hover:opacity-50 transition-all">
+                <Link href="/browse" className="text-[10px] md:text-xs font-black uppercase tracking-widest border-b-2 border-white pb-2 md:pb-4 hover:opacity-50 transition-all self-start md:self-auto">
                     Search all singular sounds
                 </Link>
             </div>

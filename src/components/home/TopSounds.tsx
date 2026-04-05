@@ -24,13 +24,13 @@ interface Sample {
 export function TopSounds({ samples, unlockedSampleIds = [] }: { samples: Sample[], unlockedSampleIds?: string[] }) {
   const unlockedSet = new Set(unlockedSampleIds)
   return (
-    <section className="px-6 md:px-20 py-48 bg-[#050505] border-t border-white/10">
-        <div className="flex items-end justify-between mb-32">
+    <section className="px-4 md:px-20 py-24 md:py-48 bg-[#050505] border-t border-white/10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-32 gap-8">
             <div className="max-w-2xl">
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-8 block">लोकप्रिय ध्वनियाँ</span>
-                <h2 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4 italic">TOP<br />SOUNDS</h2>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 md:mb-8 block">लोकप्रिय ध्वनियाँ</span>
+                <h2 className="text-5xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4 italic">TOP<br />SOUNDS</h2>
             </div>
-            <Link href="/browse?mode=samples" className="mb-4 text-xs font-black uppercase tracking-widest border-b-2 border-white pb-4 hover:opacity-50 transition-all">
+            <Link href="/browse?mode=samples" className="text-[10px] md:text-xs font-black uppercase tracking-widest border-b-2 border-white pb-2 md:pb-4 hover:opacity-50 transition-all self-start md:self-auto">
                 Audition Singular Vault
             </Link>
         </div>
@@ -104,15 +104,15 @@ export function TopSounds({ samples, unlockedSampleIds = [] }: { samples: Sample
             ))}
         </div>
 
-        <div className="mt-24 p-12 bg-white/5 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-6">
-                <Activity className="h-12 w-12 text-white/20" />
+        <div className="mt-16 md:mt-24 p-6 md:p-12 bg-white/5 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-center gap-4 md:gap-6">
+                <Activity className="h-10 w-10 md:h-12 md:w-12 text-white/20 shrink-0" />
                 <div>
-                    <h4 className="text-xl font-black uppercase tracking-tight">Need specific sounds?</h4>
-                    <p className="text-white/30 text-xs font-black uppercase tracking-widest">Our engineers are indexing new artifacts daily.</p>
+                    <h4 className="text-lg md:text-xl font-black uppercase tracking-tight leading-none mb-2">Need specific sounds?</h4>
+                    <p className="text-white/30 text-[9px] md:text-xs font-black uppercase tracking-widest">Our engineers are indexing new artifacts daily.</p>
                 </div>
             </div>
-            <Link href="/browse?mode=samples" className="px-12 py-5 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-transparent hover:text-white border border-white transition-all whitespace-nowrap">
+            <Link href="/browse?mode=samples" className="w-full md:w-auto text-center px-10 md:px-12 py-4 md:py-5 bg-white text-black text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] hover:bg-transparent hover:text-white border border-white transition-all whitespace-nowrap">
                 Query Singular Library
             </Link>
         </div>
