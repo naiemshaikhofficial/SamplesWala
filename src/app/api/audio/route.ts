@@ -86,13 +86,16 @@ export async function GET(req: NextRequest) {
         return new NextResponse(`Token Error: ${e.message}`, { status: 401 });
     }
 
-    // 🛡️ SECURITY LAYER 2: Mandatory Referer check
-    // This stops anyone from copy-pasting the link into a new tab
     const referer = req.headers.get('referer') || '';
+    const origin = req.headers.get('origin') || '';
     const host = req.headers.get('host') || '';
     
-    if (!referer || !referer.includes(host)) {
-        console.error("[AUDIO PROXY] Direct Access Hijack Blocked:", { referer, host });
+    // 🛡️ SECURITY LAYER 2: Same-Origin & Anti-Hijack
+    // Check if the request comes from our own app. Browsers block referer on direct navigation.
+    const isInternal = referer.includes(host) || origin.includes(host);
+    
+    if (!isInternal) {
+        console.error("[AUDIO PROXY] Direct Access Hijack Blocked:", { referer, origin, host });
         return new NextResponse('Direct Access Blocked (Security Code 102)', { status: 403 });
     }
 
@@ -144,7 +147,9 @@ export async function GET(req: NextRequest) {
         if (val) responseHeaders.set(h, val);
     });
     
-    responseHeaders.set('Cache-Control', 'public, max-age=3600');
+    responseHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    responseHeaders.set('Pragma', 'no-cache');
+    responseHeaders.set('Expires', '0');
     
     if (isDownload) {
         responseHeaders.set('Content-Disposition', `attachment; filename="${sample.name}.wav"`);

@@ -11,7 +11,7 @@ export async function generatePreviewToken(sampleId: string) {
         sampleId,
         purpose: 'preview',
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600
+        exp: Math.floor(Date.now() / 1000) + 60
     }
     return jwt.sign(payload, JWT_SECRET)
 }

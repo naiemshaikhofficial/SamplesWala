@@ -9,11 +9,11 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
     const [loading, setLoading] = useState(false)
     const [billing, setBilling] = useState({
         full_name: initialData?.full_name || '',
+        phone: initialData?.phone_number || '',
         address: initialData?.address_line1 || '',
         city: initialData?.city || '',
         state: initialData?.state || '',
         zip: initialData?.postal_code || '',
-        pan: initialData?.pan_number || '',
         gstin: initialData?.gstin || ''
     })
     const { showToast } = useNotify()
@@ -23,14 +23,14 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
         setLoading(true)
         try {
             const { error } = await supabase
-                .from('user_subscriptions')
+                .from('user_accounts')
                 .update({
                     full_name: billing.full_name,
+                    phone_number: billing.phone,
                     address_line1: billing.address,
                     city: billing.city,
                     state: billing.state,
                     postal_code: billing.zip,
-                    pan_number: billing.pan,
                     gstin: billing.gstin
                 })
                 .eq('user_id', userId)
@@ -114,6 +114,16 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
                         onChange={(e) => setBilling({...billing, zip: e.target.value})}
                         className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
                         placeholder="6-DIGIT CODE"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">Mobile Phone Number</label>
+                    <input 
+                        type="text" 
+                        value={billing.phone}
+                        onChange={(e) => setBilling({...billing, phone: e.target.value})}
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
+                        placeholder="+91 00000 00000"
                     />
                 </div>
                 <div className="space-y-2">

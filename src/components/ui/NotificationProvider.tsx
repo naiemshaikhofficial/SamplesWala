@@ -224,13 +224,14 @@ import { useRouter } from 'next/navigation'
 // 🎰 CREDIT TOP-UP TERMINAL (1:1 INR MODEL)
 function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const router = useRouter()
-    const [amount, setAmount] = useState<number>(50)
+    const [amount, setAmount] = useState<number>(1)
     const [coupon, setCoupon] = useState('')
     const [isRedeeming, setIsRedeeming] = useState(false)
     const [loading, setLoading] = useState(false)
     const [step, setStep] = useState<'billing' | 'payment'>('billing')
     const [billing, setBilling] = useState({
         full_name: '',
+        phone: '',
         address: '',
         city: '',
         state: '',
@@ -255,8 +256,8 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 
                 // 🏛️ VAULT SYNC: Fallback to Supabase
                 const { data, error } = await supabase
-                    .from('user_subscriptions')
-                    .select('full_name, address_line1, city, state, postal_code')
+                    .from('user_accounts')
+                    .select('full_name, phone_number, address_line1, city, state, postal_code')
                     .eq('user_id', user.id)
                     .maybeSingle()
                 
@@ -269,6 +270,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                 if (data && data.full_name) {
                     const cloudBilling = {
                         full_name: data.full_name || '',
+                        phone: data.phone_number || '',
                         address: data.address_line1 || '',
                         city: data.city || '',
                         state: data.state || '',
@@ -293,13 +295,17 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
         setLoading(true)
         try {
             const { data: { user } } = await supabase.auth.getUser()
-            const { error } = await supabase.from('user_subscriptions').update({
-                full_name: billing.full_name,
-                address_line1: billing.address,
-                city: billing.city,
-                state: billing.state,
-                postal_code: billing.zip
-            }).eq('user_id', user.id)
+            const { error } = await supabase
+                .from('user_accounts')
+                .update({
+                    full_name: billing.full_name,
+                    phone_number: billing.phone,
+                    address_line1: billing.address,
+                    city: billing.city,
+                    state: billing.state,
+                    postal_code: billing.zip
+                }).eq('user_id', user.id)
+
             if (error) throw error
 
             // 🧬 EDGE SYNC: Update local signature
@@ -408,9 +414,9 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                 initial={{ scale: 0.95, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className="relative w-full max-w-lg bg-[#050505] border border-white/20 p-8 md:p-12 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-hide"
+                className="relative w-full max-w-lg bg-[#050505] border border-white/20 p-4 md:p-8 shadow-2xl overflow-y-hidden"
             >
-                <div className="flex justify-between items-start mb-12">
+                <div className="flex justify-between items-start mb-8">
                    <div>
                         <div className="text-[10px] font-black uppercase tracking-[0.5em] text-studio-yellow mb-2 italic">[ {step === 'billing' ? 'IDENTITY_VERIFICATION' : 'SCR_TERMINAL'} ]</div>
                         <h2 className="text-4xl font-black uppercase tracking-tighter leading-none italic">{step === 'billing' ? 'BILLING\nINFO' : 'ADD\nCREDITS.'}</h2>
@@ -423,7 +429,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                 {step === 'billing' ? (
                     <div className="space-y-4 mb-10">
                         <div className="bg-white/[0.03] border border-white/5 p-8 rounded-2xl">
-                             <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-8 leading-relaxed">
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-6 leading-relaxed">
                                 AS PER GOVERNMENT GST NORMS, VALID BILLING INFORMATION IS REQUIRED TO GENERATE INVOICES AND AUTHENTICATE TRANSACTIONS.
                              </p>
                              
@@ -433,6 +439,13 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                                     placeholder="FULL LEGAL NAME" 
                                     value={billing.full_name}
                                     onChange={(e) => setBilling({...billing, full_name: e.target.value})}
+                                    className="w-full bg-black border border-white/10 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
+                                />
+                                <input 
+                                    type="text" 
+                                    placeholder="MOBILE PHONE NUMBER" 
+                                    value={billing.phone}
+                                    onChange={(e) => setBilling({...billing, phone: e.target.value})}
                                     className="w-full bg-black border border-white/10 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
                                 />
                                 <input 
@@ -478,15 +491,15 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                     </div>
                 ) : (
                     <>
-                        <div className="bg-white/[0.03] border border-white/5 p-8 mb-10 rounded-2xl">
-                    <div className="flex items-center justify-between mb-8">
+                        <div className="bg-white/[0.03] border border-white/5 p-6 mb-6 rounded-2xl">
+                    <div className="flex items-center justify-between mb-6">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-white/20">Studio Exchange Rate</span>
                         <div className="text-[10px] font-black uppercase text-white tracking-widest bg-white/10 px-3 py-1 rounded-full">
                             1 SCR : 1 ₹ INR
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-3 mb-8">
+                    <div className="grid grid-cols-3 gap-2 mb-6">
                         {[50, 100, 250, 500, 1000, 2500].map(val => (
                             <button
                                 key={val}
@@ -500,20 +513,20 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                     </div>
 
                     <div className="relative group">
-                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-black text-xs">CUSTOM</div>
+                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-black text-[10px]">CUSTOM</div>
                         <input 
                             type="number"
                             value={amount}
-                            onChange={(e) => setAmount(Math.max(50, parseInt(e.target.value) || 50))}
-                            className="w-full bg-black border border-white/10 h-16 pl-24 pr-8 text-xl font-black uppercase text-white focus:border-studio-yellow focus:outline-none transition-all"
+                            onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-full bg-black border border-white/10 h-14 pl-24 pr-8 text-lg font-black uppercase text-white focus:border-studio-yellow focus:outline-none transition-all"
                         />
-                        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 text-[10px] font-black uppercase">₹ INR</div>
+                        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 text-[9px] font-black uppercase">₹ INR</div>
                     </div>
                 </div>
 
                 {/* 🧧 PROMOTION CODE PROTOCOL */}
-                <div className="mb-10 px-4">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="mb-6 px-4">
+                    <div className="flex items-center justify-between mb-3">
                         <span className="text-[9px] font-bold uppercase tracking-widest text-white/20 italic">Has Promotional Code?</span>
                         <div className="h-0.5 flex-1 mx-4 bg-white/5" />
                     </div>
@@ -544,14 +557,14 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                     <button 
                         onClick={handlePurchase}
                         disabled={loading}
-                        className="h-20 bg-studio-yellow text-black flex items-center justify-center gap-4 group/buy hover:invert transition-all disabled:opacity-50"
+                        className="h-16 bg-studio-yellow text-black flex items-center justify-center gap-4 group/buy hover:invert transition-all disabled:opacity-50"
                     >
                         {loading ? (
-                            <Zap className="h-6 w-6 animate-spin" />
+                            <Zap className="h-5 w-5 animate-spin" />
                         ) : (
                             <>
-                                <Zap className="h-6 w-6 fill-black" />
-                                <span className="text-[14px] font-black uppercase tracking-[0.3em]">INITIATE PROTOCOL</span>
+                                <Zap className="h-5 w-5 fill-black" />
+                                <span className="text-[12px] font-black uppercase tracking-[0.3em]">INITIATE PROTOCOL</span>
                             </>
                         )}
                     </button>

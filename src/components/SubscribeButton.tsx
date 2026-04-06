@@ -44,23 +44,20 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       else if (mode === 'pack') action = purchaseCreditPack;
       else action = purchaseSamplePack;
 
-      const orderData = await action(planId)
+      const orderData: any = await action(planId)
       
       if (!orderData.success) throw new Error('Order creation failed')
 
-      // 2. Open Razorpay Modal
-      const options = {
+      // 2. Open Razorpay Modal (Orchestrating the Mandate)
+      const options: any = {
         key: orderData.key,
-        amount: orderData.amount,
-        currency: 'INR',
         name: 'Samples Wala',
-        description: `Purchase for ${planName}`,
-        order_id: orderData.orderId,
+        description: `Activation for ${planName}`,
         handler: async function (response: any) {
-            // 3. Verify Payment on Success
-            const verified = await verifyPayment(response, orderData.orderId, mode, planId)
+            // 3. Verify Payment on Success (Signature handshake)
+            const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, planId)
             if (verified.success) {
-                alert(`Welcome to the family! ${planName} activated.`)
+                alert(`SUCCESS: ${planName} LINKED TO YOUR NODE.`)
                 router.push('/browse')
             }
         },
@@ -68,7 +65,16 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
             name: orderData.user.name,
             email: orderData.user.email,
         },
-        theme: { color: '#ffffff' },
+        theme: { color: '#a6e22e' }, // Studio Neon
+      }
+
+      // 🛰️ SIGNAL ROUTING: subscription vs one-time order
+      if (orderData.isSubscription) {
+          options.subscription_id = orderData.subscriptionId;
+      } else {
+          options.order_id = orderData.orderId;
+          options.amount = orderData.amount;
+          options.currency = 'INR';
       }
 
       const rzp = new window.Razorpay(options)

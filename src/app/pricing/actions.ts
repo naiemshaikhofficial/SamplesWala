@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Razorpay from 'razorpay'
+import crypto from 'crypto'
 
 // 💳 INITIALIZE RAZORPAY (Build-safe)
 const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
@@ -14,7 +15,7 @@ const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
   : null;
 
 /**
- * 🛒 Razorpay Order Action (Monthly)
+ * 🛒 Razorpay Subscription Action (Monthly UPI Mandate Flow)
  */
 export async function createSubscription(planId: string) {
   const supabase = await createClient()
@@ -23,29 +24,55 @@ export async function createSubscription(planId: string) {
   if (!user) redirect('/auth/login?redirect=/pricing')
   if (!razorpay) throw new Error('Razorpay is not configured on the server')
 
-  // 1. Fetch Plan Details
+  // 1. Fetch Plan Details (Including the Razorpay Plan ID for mandate flow)
   const { data: plan, error: planError } = await supabase.from('subscription_plans').select('*').eq('id', planId).single()
   if (planError || !plan) throw new Error('Invalid subscription plan')
 
-  // 2. CREATE RAZORPAY ORDER
+  // 2. DETECT COMMERCE SIGNAL: Use Subscription API if Plan ID is mapped
   try {
-    const order = await razorpay.orders.create({
-      amount: plan.price_inr * 100, // Razorpay expects paise
-      currency: 'INR',
-      receipt: `sub_${Date.now()}`,
-      notes: { user_id: user.id, plan_id: planId, type: 'subscription' }
-    })
+    if (plan.razorpay_plan_id) {
+        // 🔥 UPI MANDATE FLOW (₹2 Auth)
+        const subscription = await razorpay.subscriptions.create({
+          plan_id: plan.razorpay_plan_id,
+          total_count: 12, // Authorize for 1 year of recurring signals
+          quantity: 1,
+          customer_notify: 1,
+          notes: {
+            user_id: user.id,
+            plan_id: planId,
+            type: 'subscription_mandate'
+          }
+        })
 
-    return { 
-        success: true, 
-        orderId: order.id, 
-        amount: order.amount, 
-        key: process.env.RAZORPAY_KEY_ID,
-        user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' }
+        return { 
+            success: true, 
+            subscriptionId: subscription.id,
+            amount: plan.price_inr * 100, // For display in checkout
+            key: process.env.RAZORPAY_KEY_ID,
+            user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' },
+            isSubscription: true
+        }
+    } else {
+        // Fallback to standard order if no plan_id is mapped yet
+        const order = await razorpay.orders.create({
+          amount: plan.price_inr * 100, 
+          currency: 'INR',
+          receipt: `sub_${Date.now()}`,
+          notes: { user_id: user.id, plan_id: planId, type: 'subscription' }
+        })
+
+        return { 
+            success: true, 
+            orderId: order.id, 
+            amount: order.amount, 
+            key: process.env.RAZORPAY_KEY_ID,
+            user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' },
+            isSubscription: false
+        }
     }
   } catch (err: any) {
-    console.error("Razorpay Sub Error:", err)
-    throw new Error('Failed to start checkout. Check your API keys.')
+    console.error("[SUBSCRIPTION_SIGNAL_ERROR]", err)
+    throw new Error(`Failed to initiate ${plan.razorpay_plan_id ? 'mandate' : 'order'}: ${err.message}`)
   }
 }
 
@@ -122,41 +149,57 @@ export async function purchaseSamplePack(packId: string) {
 }
 
 /**
- * ✅ Razorpay Payment Verification
- * This is called from the client after a successful Razorpay modal payment
+ * ✅ Razorpay Payment Verification (High-Fidelity Handshake)
  */
-export async function verifyPayment(paymentRes: any, orderId: string, itemType: 'subscription' | 'pack' | 'sample_pack', itemId: string) {
+export async function verifyPayment(paymentRes: any, targetId: string, itemType: 'subscription' | 'pack' | 'sample_pack', itemId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
+    // 🔐 1. SIGNATURE_VERIFICATION_ROUTING
+    const signature = paymentRes.razorpay_signature
+    const paymentId = paymentRes.razorpay_payment_id
+    const orderId = paymentRes.razorpay_order_id
+    const subscriptionId = paymentRes.razorpay_subscription_id
+
+    let body = ''
+    if (subscriptionId) body = `${subscriptionId}|${paymentId}`
+    else body = `${orderId}|${paymentId}`
+
+    const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .update(body)
+        .digest('hex')
+
+    if (expectedSignature !== signature) {
+        throw new Error('Signal Forge Detected: Payment verification failed.')
+    }
+
+    // 📡 2. COMMERCE_FULFILLMENT_ORCHESTRATION
     if (itemType === 'subscription') {
         const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
-        if (!plan) throw new Error('Plan not found')
+        if (!plan) throw new Error('Artifact Plan not found')
 
-        // 1. Link Plan & Update Account (Atomic)
+        // 1. Finalize Local Membership
         const { error: accountError } = await supabase
             .from('user_accounts')
             .upsert({
                 user_id: user.id,
                 plan_id: plan.id,
+                razorpay_subscription_id: subscriptionId || null, // Link recurring signal
                 next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
             }, { onConflict: 'user_id' })
         
         if (accountError) throw accountError
 
-        // 2. Inject Monthly Credits
-        const { error: creditError } = await supabase.rpc('add_credits', {
-            u_id: user.id,
-            amount: plan.credits_per_month
-        })
-        if (creditError) throw creditError
+        // 2. Inject Initial Credits (Tokens)
+        await supabase.rpc('add_credits', { u_id: user.id, amount: plan.credits_per_month })
 
-        // 3. Log to Ledger
+        // 3. Log Secure Audit Trail
         await supabase.from('credit_orders').insert({
             user_id: user.id,
-            order_id: orderId,
-            payment_id: paymentRes.razorpay_payment_id,
+            order_id: subscriptionId || orderId,
+            payment_id: paymentId,
             amount_inr: plan.price_inr,
             credits_awarded: plan.credits_per_month,
             status: 'paid',
@@ -229,13 +272,20 @@ export async function cancelSubscription() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
+    // 🛡️ Master Registry Sync: Update accounts directly (v5.1 Architecture)
     const { error } = await supabase
-        .from('user_subscriptions')
-        .update({ status: 'cancelled' })
+        .from('user_accounts')
+        .update({ 
+            plan_id: null, 
+            razorpay_subscription_id: null,
+            updated_at: new Date().toISOString()
+        })
         .eq('user_id', user.id)
-        .eq('status', 'active')
 
-    if (error) throw new Error('Failed to cancel subscription')
+    if (error) {
+        console.error("[STUDIO_VAULT_ERROR] CANCEL_FAILED:", error.message)
+        throw new Error('Failed to cancel membership node.')
+    }
 
     revalidatePath('/pricing')
     revalidatePath('/')

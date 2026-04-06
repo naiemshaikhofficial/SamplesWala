@@ -24,7 +24,7 @@ export default async function ProfilePage() {
         { count: unlockedCount }
     ] = await Promise.all([
         supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle(),
-        supabase.from('user_subscriptions').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle(),
+        supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle(),
         supabase.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('unlocked_samples').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
     ])

@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         const type = notes.type // 'subscription', 'pack', 'sample_pack'
         const itemId = notes.plan_id || notes.pack_id
 
-        if (!userId && event.event !== 'subscription.charged') {
+        if (!userId && event.event !== 'subscription.charged' && event.event !== 'subscription.cancelled') {
              return NextResponse.json({ received: true, skip: "Manual / Untracked payment" })
         }
 
@@ -80,13 +80,6 @@ export async function POST(req: Request) {
                             next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
                         }, { onConflict: 'user_id' })
 
-                        await supabase.from('user_subscriptions').upsert({
-                            user_id: userId,
-                            plan_id: plan.id,
-                            status: 'active',
-                            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-                        }, { onConflict: 'user_id' })
-
                         await supabase.rpc('add_credits', { u_id: userId, amount: plan.credits_per_month })
                         await supabase.from('credit_orders').insert({
                             user_id: userId,
@@ -127,7 +120,7 @@ export async function POST(req: Request) {
 
             case 'subscription.cancelled':
                 const cancelledSub = event.payload.subscription.entity
-                await supabase.from('user_subscriptions').update({ status: 'cancelled' }).eq('razorpay_subscription_id', cancelledSub.id)
+                await supabase.from('user_accounts').update({ plan_id: null, razorpay_subscription_id: null }).eq('razorpay_subscription_id', cancelledSub.id)
                 console.log(`[SUBSCRIPTION_HALTED] Node ${cancelledSub.id} disconnected.`)
                 break;
         }
