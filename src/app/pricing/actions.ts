@@ -134,74 +134,88 @@ export async function verifyPayment(paymentRes: any, orderId: string, itemType: 
         const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
         if (!plan) throw new Error('Plan not found')
 
-        await supabase.from('user_subscriptions').upsert({
+        // 1. Link Plan & Update Account (Atomic)
+        const { error: accountError } = await supabase
+            .from('user_accounts')
+            .upsert({
+                user_id: user.id,
+                plan_id: plan.id,
+                next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            }, { onConflict: 'user_id' })
+        
+        if (accountError) throw accountError
+
+        // 2. Inject Monthly Credits
+        const { error: creditError } = await supabase.rpc('add_credits', {
+            u_id: user.id,
+            amount: plan.credits_per_month
+        })
+        if (creditError) throw creditError
+
+        // 3. Log to Ledger
+        await supabase.from('credit_orders').insert({
             user_id: user.id,
-            plan_id: plan.id,
-            current_credits: plan.credits_per_month,
-            status: 'active',
-            period_start: new Date().toISOString(),
-            period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            order_id: orderId,
+            payment_id: paymentRes.razorpay_payment_id,
+            amount_inr: plan.price_inr,
+            credits_awarded: plan.credits_per_month,
+            status: 'paid',
+            raw_response: paymentRes
         })
 
-        await supabase.from('purchases').insert({
-            user_id: user.id,
-            amount: plan.price_inr,
-            item_type: 'subscription',
-            item_name: `${plan.name} Plan`,
-            payment_id: paymentRes.razorpay_payment_id
-        })
     } else if (itemType === 'pack') {
         const { data: pack } = await supabase.from('credit_packs').select('*').eq('id', itemId).single()
         if (!pack) throw new Error('Pack not found')
 
-        let { data: sub } = await supabase.from('user_subscriptions').select('id, current_credits').eq('user_id', user.id).single()
-
-        if (sub) {
-            await supabase.from('user_subscriptions').update({ current_credits: (sub.current_credits || 0) + pack.credits }).eq('id', sub.id)
-        } else {
-            await supabase.from('user_subscriptions').insert({
-                user_id: user.id,
-                current_credits: pack.credits,
-                status: 'active',
-                period_start: new Date().toISOString(),
-                period_end: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-            })
-        }
-
-        await supabase.from('purchases').insert({
-            user_id: user.id,
-            amount: pack.price_inr,
-            item_type: 'credit_pack',
-            item_name: `${pack.name} Pack`,
-            payment_id: paymentRes.razorpay_payment_id
+        // 1. Inject Pack Credits
+        const { error: creditError } = await supabase.rpc('add_credits', {
+            u_id: user.id,
+            amount: pack.credits
         })
+        if (creditError) throw creditError
+
+        // 2. Log to Ledger
+        await supabase.from('credit_orders').insert({
+            user_id: user.id,
+            order_id: orderId,
+            payment_id: paymentRes.razorpay_payment_id,
+            amount_inr: pack.price_inr,
+            credits_awarded: pack.credits,
+            status: 'paid',
+            raw_response: paymentRes
+        })
+
     } else if (itemType === 'sample_pack') {
-        // 🔥 FULL PACK UNLOCK LOGIC
-        const { data: pack } = await supabase.from('sample_packs').select('*, samples(*)').eq('id', itemId).single()
+        // 🔥 MINIMALIST FULL PACK UNLOCK
+        const { data: pack } = await supabase.from('sample_packs').select('*').eq('id', itemId).single()
         if (!pack) throw new Error('Pack not found')
 
-        const samples = pack.samples || []
-        if (samples.length > 0) {
-            const unlockEntries = samples.map((s: any) => ({
-                user_id: user.id,
-                sample_id: s.id
-            }))
-            
-            // Insert into unlocked_samples (upsert to avoid duplicates)
-            await supabase.from('unlocked_samples').upsert(unlockEntries, { onConflict: 'user_id,sample_id' })
-        }
-
-        await supabase.from('purchases').insert({
+        // Insert ONE record into user_vault (type 'pack')
+        const { error: vaultError } = await supabase.from('user_vault').upsert({
             user_id: user.id,
-            amount: pack.price_inr || 0,
-            item_type: 'sample_pack',
+            item_id: pack.id,
+            item_type: 'pack',
             item_name: `Full Pack: ${pack.name}`,
-            payment_id: paymentRes.razorpay_payment_id
+            amount: 0 // Cash purchase doesn't consume credits, it creates the entry directly
+        }, { onConflict: 'user_id,item_id' })
+
+        if (vaultError) throw vaultError
+
+        // Log transaction
+        await supabase.from('credit_orders').insert({
+            user_id: user.id,
+            order_id: orderId,
+            payment_id: paymentRes.razorpay_payment_id,
+            amount_inr: pack.price_inr || 0,
+            credits_awarded: 0,
+            status: 'paid',
+            raw_response: paymentRes
         })
     }
 
-    revalidatePath('/pricing')
     revalidatePath('/')
+    revalidatePath('/pricing')
+    revalidatePath('/browse')
     revalidatePath('/packs/[slug]', 'page')
 
     return { success: true }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -25,6 +25,11 @@ export function TopSounds({
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set(initialUnlockedIds))
   const [isUnlocking, setIsUnlocking] = useState<string | null>(null)
   
+  // 🧬 SYNC WITH SERVER REVALIDATION
+  useEffect(() => {
+    setUnlockedIds(new Set(initialUnlockedIds))
+  }, [initialUnlockedIds])
+  
   const { activeId, isPlaying } = useAudio()
   const { showToast, showConfirm, showAuthGate } = useNotify()
 
@@ -36,16 +41,24 @@ export function TopSounds({
     )
   }, [query, initialSamples])
 
+    const [isMounted, setIsMounted] = useState(false)
+    const heights = useMemo(() => {
+        if (!isMounted) return new Array(64).fill(0)
+        return [...Array(64)].map(() => Math.random() * 80 + 10)
+    }, [isMounted])
+
+    useEffect(() => { setIsMounted(true) }, [])
+
   return (
     <SectionReveal className="relative py-24 bg-transparent overflow-hidden">
         {/* 🧬 BACKGROUND SIGNAL METER */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-end justify-around gap-1 px-4">
-            {[...Array(64)].map((_, i) => (
+            {heights.map((h, i) => (
                     <div 
                         key={i} 
                         className="w-full bg-white animate-meter"
                         style={{ 
-                            height: `${Math.random() * 80 + 10}%`,
+                            height: `${h}%`,
                             animationDelay: `${i * 0.05}s`,
                             animationDuration: `${0.8 + (i % 10) * 0.15}s`
                         }}

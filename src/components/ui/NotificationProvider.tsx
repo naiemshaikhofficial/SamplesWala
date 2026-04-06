@@ -219,9 +219,12 @@ export function useNotify() {
   return context
 }
 
+import { useRouter } from 'next/navigation'
+
 // 🎰 CREDIT TOP-UP TERMINAL (1:1 INR MODEL)
 function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
-    const [amount, setAmount] = useState<number>(100)
+    const router = useRouter()
+    const [amount, setAmount] = useState<number>(50)
     const [coupon, setCoupon] = useState('')
     const [isRedeeming, setIsRedeeming] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -343,6 +346,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         if (verifyRes.success) {
                             showToast(`TRANSACTION VERIFIED: ${amount} SCR ADDED TO VAULT.`, 'success')
                             window.dispatchEvent(new Event('refresh-credits'))
+                            router.refresh()
                             onClose()
                         }
                     } catch (err: any) {
@@ -500,7 +504,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         <input 
                             type="number"
                             value={amount}
-                            onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                            onChange={(e) => setAmount(Math.max(50, parseInt(e.target.value) || 50))}
                             className="w-full bg-black border border-white/10 h-16 pl-24 pr-8 text-xl font-black uppercase text-white focus:border-studio-yellow focus:outline-none transition-all"
                         />
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 text-[10px] font-black uppercase">₹ INR</div>

@@ -1,135 +1,159 @@
 import { createClient } from '@/lib/supabase/server'
-import { Check, Sparkles, Zap, Crown, ShieldCheck } from 'lucide-react'
+import { Check, Sparkles, Zap, Crown, ShieldCheck, Activity, Cpu, Disc, Settings2, BarChart3, Database, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-
-const planConfigs: any = {
-    'Starter': { icon: <Sparkles className="h-6 w-6" />, color: 'from-slate-400 to-slate-600', glow: 'text-slate-400' },
-    'Professional': { icon: <Zap className="h-6 w-6" />, color: 'from-yellow-400 to-orange-600', glow: 'text-yellow-500' },
-    'Producer': { icon: <Crown className="h-6 w-6" />, color: 'from-emerald-400 to-cyan-600', glow: 'text-emerald-400' }
-}
-
 import { SubscribeButton } from '@/components/SubscribeButton'
 import { CancelSubscriptionButton } from '@/components/CancelSubscriptionButton'
+import React, { Suspense } from 'react'
+import { SignalMeter, DAWVisualizer } from '@/components/ui/DAWVisualizer'
+import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
+
+const planVisuals: any = {
+    'Starter': { icon: <Sparkles className="h-6 w-6" />, color: 'border-white/10', glow: 'text-studio-neon', accent: 'bg-studio-neon/20' },
+    'Professional': { icon: <Zap className="h-6 w-6" />, color: 'border-studio-yellow/20', glow: 'text-studio-yellow', accent: 'bg-studio-yellow/20' },
+    'Producer': { icon: <Crown className="h-6 w-6" />, color: 'border-spider-red/20', glow: 'text-spider-red', accent: 'bg-spider-red/20' }
+}
 
 export default async function PricingPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // 💿 Get active subscription from the correct table as per screenshot
-  const { data: activeSub } = user 
-    ? await supabase
-        .from('user_subscriptions')
-        .select('*, subscription_plans(*)')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single() 
-    : { data: null }
+  // 📀 High-Fidelity Data Extraction with Fallbacks
+  const [{ data: activeSub, error: subError }, { data: plans, error: plansError }, { data: packs, error: packsError }] = await Promise.all([
+    user ? supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle() : { data: null, error: null },
+    supabase.from('subscription_plans').select('*').order('price_inr', { ascending: true }),
+    supabase.from('credit_packs').select('*').order('credits', { ascending: true })
+  ])
 
-  const { data: plans } = await supabase.from('subscription_plans').select('*').order('price_inr', { ascending: true })
-  const { data: packs } = await supabase.from('credit_packs').select('*').order('credits', { ascending: true })
+  if (plansError) console.error("[PRICING_ENGINE] Plans Fetch Error:", plansError);
+  if (packsError) console.error("[PRICING_ENGINE] Packs Fetch Error:", packsError);
+  if (subError) console.error("[PRICING_ENGINE] Subscription Fetch Error:", subError);
 
   const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
   const currentPrice = activeSub?.subscription_plans?.price_inr || 0
 
   return (
-    <div className="min-h-screen bg-black text-white pt-32 pb-24 relative overflow-hidden">
-        {/* Background Glows */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 blur-[150px] rounded-full" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-yellow-500/10 blur-[150px] rounded-full" />
+    <div className="min-h-screen bg-studio-charcoal text-white pt-32 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
+        <MasterLight />
+        <ScanlineOverlay />
+        
+        {/* Cinematic Backdrop Artifacts */}
+        <div className="absolute top-0 right-0 p-24 opacity-[0.03] pointer-events-none">
+            <Settings2 className="h-96 w-96 animate-spin-slow" />
+        </div>
 
-      <div className="container mx-auto px-4 relative">
-        <div className="text-center max-w-3xl mx-auto mb-20">
-          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-4 block">
-            {activeSub ? `Current Status: ${currentPlanName.toUpperCase()} ACTIVE` : 'Current Status: NO ACTIVE SUBSCRIPTION'}
-          </span>
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase italic mb-6 leading-[0.9]">Unlock Your Sound</h1>
-          <p className="text-xl text-white/40 leading-relaxed">
-            Choose a monthly membership for consistent value, or grab a one-time pack to top up your credits whenever you need.
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center max-w-4xl mx-auto mb-24">
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-sm bg-black border border-white/5 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon mb-10 animate-pulse">
+            <Activity size={12} /> {activeSub ? `SUBSCRIPTION_NODE :: ${currentPlanName.toUpperCase()}_LINKED` : 'COMMERCE_TERMINAL :: INITIALIZED'}
+          </div>
+          <h1 className="text-6xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
+            SIGNAL <span className="text-studio-neon">TIERS</span>
+          </h1>
+          <p className="text-sm md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
+            Select your monthly artifact allocation or top-up your vault with one-time credit top-ups. <br/>
+            Zero latency. Universal Licensing. Performance Guaranteed.
           </p>
         </div>
 
         {/* 💎 1. SUBSCRIPTION PLANS SECTION */}
-        <div className="mb-32">
-            <h2 className="text-2xl font-black uppercase tracking-widest italic mb-12 flex items-center gap-4 text-white/40">
-                <div className="h-[1px] w-12 bg-white/20" /> Monthly Memberships
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="mb-48">
+            <div className="flex items-center gap-4 mb-16 text-white/10 group">
+                <BarChart3 className="h-6 w-6 group-hover:text-studio-neon transition-colors" />
+                <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Monthly_Memberships</h2>
+                <div className="h-px flex-1 bg-white/5" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 max-w-[1600px] mx-auto">
             {plans?.map((plan) => {
-                const config = planConfigs[plan.name] || planConfigs['Starter'];
-                const isActive = currentPlanName === plan.name && activeSub?.status === 'active'
-                const isUpgrade = plan.price_inr > currentPrice
-                const isLower = plan.price_inr < currentPrice
+                const visuals = planVisuals[plan.name] || planVisuals['Starter'];
+                const isActive = activeSub?.plan_id === plan.id
+                const isUpgrade = plan.price_inr > (activeSub?.subscription_plans?.price_inr || 0)
+                const isLower = plan.price_inr < (activeSub?.subscription_plans?.price_inr || 0)
                 
-                const features = [
+                // Fallback features if not synced yet (though SQL adds them)
+                const features = plan.features || [
                     `${plan.credits_per_month} Monthly Credits`,
                     `${plan.name} License Rights`,
-                    'Access to Exclusive Packs',
-                    'Priority Support'
+                    'Access to Exclusive Packs'
                 ]
                 
                 return (
                     <div 
                         key={plan.id} 
-                        className={`group relative rounded-[2.5rem] bg-white/[0.02] border border-white/10 p-10 transition-all hover:bg-white/[0.04] flex flex-col ${isActive ? 'ring-2 ring-emerald-500 bg-emerald-500/[0.02]' : ''} ${plan.name === 'Professional' && !isActive ? 'bg-white/[0.05] border-white/20 scale-105 z-10' : ''} ${isLower ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                        className={`group relative bg-[#151515] border-2 ${visuals.color} p-10 transition-all hover:bg-black hover:border-studio-neon flex flex-col min-h-[650px] shadow-2xl rounded-sm ${isActive ? 'border-studio-neon ring-4 ring-studio-neon/10' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''}`}
                     >
+                    {/* Diagnostic Sidebar */}
+                    <div className="absolute left-0 inset-y-0 w-1 bg-studio-neon/10 group-hover:bg-studio-neon transition-all" />
+                    
                     {plan.name === 'Professional' && !isActive && !isLower && (
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.5)]">
-                            Most Popular Choice
+                        <div className="absolute -top-4 right-10 bg-studio-yellow text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-sm shadow-[0_0_20px_rgba(234,179,8,0.3)] z-20 italic">
+                            BEST_VALUE_HINT
                         </div>
                     )}
 
                     {isActive && (
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-full flex items-center gap-2 z-20">
-                            <ShieldCheck className="h-3 w-3" /> Active Plan
+                        <div className="absolute -top-4 right-10 bg-studio-neon text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-sm flex items-center gap-2 z-20 italic">
+                            ACTIVE_LICENSE
                         </div>
                     )}
                     
-                    <div className="mb-8 flex items-center justify-between">
-                        <div className={`p-4 rounded-2xl border border-white/10 ${config.glow}`}>
-                            {React.cloneElement(config.icon, { className: `h-6 w-6` })}
+                    <div className="mb-12 flex items-center justify-between">
+                        <div className={`h-16 w-16 flex items-center justify-center bg-black border border-white/5 ${visuals.glow} group-hover:bg-studio-neon group-hover:text-black transition-all`}>
+                            {visuals.icon}
                         </div>
-                        <div className="text-right">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-white/20 block mb-1">Monthly</span>
-                            <span className="text-2xl font-black italic tracking-tighter text-white">{plan.credits_per_month} Cr</span>
-                        </div>
-                    </div>
-
-                    <h3 className="text-3xl font-black uppercase italic tracking-tight mb-4">{plan.name}</h3>
-                    <p className="text-sm text-white/40 leading-relaxed mb-10 h-10 overflow-hidden">
-                        The ultimate starting point for {plan.name === 'Starter' ? 'new' : 'pro'} sound designers.
-                    </p>
-
-                    <div className="mb-10">
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-5xl font-black tracking-tighter text-white">₹{plan.price_inr}</span>
-                            <span className="text-white/20 text-sm italic">/mo</span>
+                        <div className="text-right flex flex-col items-end gap-1">
+                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/20">CREDIT_CAPACITY</span>
+                            <span className="text-4xl font-black italic tracking-tighter text-white">{plan.credits_per_month} CR</span>
                         </div>
                     </div>
 
-                    <div className="space-y-4 mb-12 flex-1">
-                        {features.map((feature) => (
-                        <div key={feature} className="flex items-center gap-3 text-sm text-white/60 group-hover:text-white transition-colors text-left">
-                            <div className="p-1 rounded-full bg-emerald-500/20">
-                                <Check className="h-3 w-3 text-emerald-400" />
-                            </div>
+                    <div className="space-y-4 mb-10">
+                        <h3 className="text-4xl font-black uppercase italic tracking-tighter leading-none">{plan.name}</h3>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#fff]/20 leading-relaxed max-w-[80%] italic">
+                            {plan.description || "Initializing tier-level artifact allocation sequence."}
+                        </p>
+                    </div>
+
+                    <div className="mb-12 p-6 bg-black/40 border border-white/5 relative overflow-hidden group/price">
+                        <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover/price:opacity-100 transition-opacity" />
+                        <div className="flex items-baseline gap-2 relative z-10">
+                            <span className="text-6xl font-black tracking-tighter text-white mr-2">₹{plan.price_inr}</span>
+                            <span className="text-white/20 text-xs font-black uppercase tracking-widest">/ MON_RACK</span>
+                        </div>
+                        <div className="mt-4">
+                             <SignalMeter className="h-1.5 w-full opacity-20" />
+                        </div>
+                    </div>
+
+                    <div className="space-y-5 mb-14 flex-1">
+                        {features.map((feature: any) => (
+                        <div key={feature} className="flex items-start gap-4 text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-all text-left">
+                            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
                             {feature}
                         </div>
                         ))}
                     </div>
 
-                    <SubscribeButton 
-                        planId={plan.id} 
-                        planName={isActive ? 'Active' : isUpgrade && currentPlanName !== 'Free' ? `Upgrade to ${plan.name}` : isLower ? 'N/A' : `Get ${plan.name}`}
-                        isFeatured={plan.name === 'Professional' || isActive} 
-                        mode="subscription"
-                        disabled={isActive || isLower}
-                    />
+                    <div className="space-y-4">
+                        <SubscribeButton 
+                            planId={plan.id} 
+                            planName={isActive ? 'Active' : isUpgrade && currentPlanName !== 'Free' ? `UPGRADE_TO_${plan.name.toUpperCase()}` : isLower ? '—' : `INITIALIZE_${plan.name.toUpperCase()}`}
+                            isFeatured={plan.name === 'Professional' || isActive} 
+                            mode="subscription"
+                            disabled={isActive || isLower}
+                        />
 
-                    {isActive && (
-                        <div className="flex justify-center">
-                            <CancelSubscriptionButton />
-                        </div>
-                    )}
+                        {isActive && (
+                            <div className="flex justify-center mt-4">
+                                <CancelSubscriptionButton />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Animated diagnostic background */}
+                    <div className="absolute bottom-4 right-4 opacity-5 group-hover:opacity-20 transition-opacity">
+                         <DAWVisualizer color="#a6e22e" bars={12} height={20} />
+                    </div>
                     </div>
                 )
             })}
@@ -138,49 +162,88 @@ export default async function PricingPage() {
 
         {/* ⚡ 2. CREDIT PACKS (ONE-TIME) SECTION */}
         <div>
-            <h2 className="text-2xl font-black uppercase tracking-widest italic mb-12 flex items-center gap-4 text-white/40">
-                <div className="h-[1px] w-12 bg-white/20" /> Extra Credits (One-Time)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="flex items-center gap-4 mb-16 text-white/10 group">
+                <Database className="h-6 w-6 group-hover:text-studio-yellow transition-colors" />
+                <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Artifact_Vault_TopUps</h2>
+                <div className="h-px flex-1 bg-white/5" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-[1600px] mx-auto">
             {packs?.map((pack) => (
                 <div 
                     key={pack.id} 
-                    className={`group relative rounded-[2.5rem] bg-white/[0.01] border border-white/5 p-8 transition-all hover:bg-white/[0.03] flex items-center gap-8 ${pack.is_featured ? 'border-emerald-500/20 bg-emerald-500/[0.02]' : ''}`}
+                    className={`group relative bg-[#111] border-2 ${pack.is_featured ? 'border-studio-yellow/20' : 'border-white/5'} p-8 hover:border-studio-yellow transition-all flex flex-col gap-8 rounded-sm shadow-xl`}
                 >
-                    <div className="flex flex-col flex-1">
-                        <h3 className="text-xl font-black uppercase tracking-tight mb-1">{pack.name}</h3>
-                        <div className="text-4xl font-black text-white italic tracking-tighter mb-4">
-                            {pack.credits} <span className="text-xs uppercase font-normal tracking-widest text-white/20 not-italic">Credits</span>
+                    <div className="flex justify-between items-start">
+                        <div className="flex flex-col gap-1">
+                             <h3 className="text-2xl font-black uppercase tracking-tight text-white/30 italic">{pack.name}</h3>
+                             <p className="text-[8px] font-black uppercase tracking-widest text-white/15 italic">{pack.description || "One-time artifact injection."}</p>
                         </div>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-xl font-bold">₹{pack.price_inr}</span>
-                            <span className="text-[10px] font-medium text-white/20 tracking-tighter uppercase">(~${pack.price_usd})</span>
+                        <div className="h-10 w-10 flex items-center justify-center bg-black border border-white/10 text-studio-yellow">
+                            <Cpu size={16} />
                         </div>
                     </div>
-                    <div className="w-48">
-                        <SubscribeButton 
-                            planId={pack.id} 
-                            planName={`${pack.credits} Extra`} 
-                            mode="pack"
-                            isFeatured={pack.is_featured}
-                        />
+
+                    <div className="flex items-center gap-8 py-6 border-y border-white/5">
+                        <div className="text-5xl font-black text-white italic tracking-tighter leading-none">
+                            {pack.credits} <span className="text-[10px] not-italic text-white/20 uppercase tracking-[0.4em] ml-2 font-black">CREDITS</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex flex-col">
+                            <span className="text-3xl font-black tracking-tighter text-white">₹{pack.price_inr}</span>
+                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">Single_Allocation</span>
+                        </div>
+                        <div className="flex-1 max-w-[180px]">
+                            <SubscribeButton 
+                                planId={pack.id} 
+                                planName={`INJECT_${pack.credits}_CR`} 
+                                mode="pack"
+                                isFeatured={pack.is_featured}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Industrial details overlay */}
+                    <div className="absolute top-0 right-0 p-4 flex gap-1 opacity-10">
+                        {[...Array(4)].map((_, i) => <div key={i} className="w-1 h-3 bg-studio-yellow" />)}
                     </div>
                 </div>
             ))}
             </div>
         </div>
 
-        <div className="mt-32 flex flex-col items-center">
-            <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 mb-8">
-                <ShieldCheck className="h-4 w-4" /> Secure checkout with Razorpay & Stripe
+        <div className="mt-48 grid grid-cols-1 md:grid-cols-2 gap-12 border-t-8 border-black pt-24">
+            <div className="p-12 bg-black border-4 border-white/5 relative group hover:border-studio-neon transition-all rounded-sm overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity">
+                    <ShieldCheck className="h-40 w-40" />
+                </div>
+                <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">Transaction<br/>Secured</h4>
+                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">Global linking integrated with Razorpay & Stripe for zero-latency artifact acquisition.</p>
+                <div className="flex gap-4">
+                    <div className="h-10 px-6 bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">RAZORPAY_LINKED</div>
+                    <div className="h-10 px-6 bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">STRIPE_ACTIVE</div>
+                </div>
             </div>
-            <p className="text-center text-white/20 text-xs max-w-xl">
-                By choosing a plan, you agree to our Terms of Service and Licensing Agreement. All sales are final regarding digital currency assets.
-            </p>
+             <div className="p-12 bg-black border-4 border-white/5 relative group hover:border-studio-neon transition-all rounded-sm overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity rotate-45">
+                    <Database className="h-40 w-40" />
+                </div>
+                <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">Usage<br/>History</h4>
+                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">All artifact downloads are linked to your universal license node for perpetual high-fidelity recall.</p>
+                <Link href="/profile/library" className="inline-flex items-center gap-4 text-studio-neon text-[10px] font-black uppercase tracking-widest group">
+                    View My Sounds <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                </Link>
+            </div>
+        </div>
+
+        <div className="mt-32 text-center">
+             <p className="text-white/10 text-[9px] font-black uppercase tracking-[0.5em] italic">
+                SAMPLES_WALA :: COMMERCE_STACK :: PRODUCER_AUTHENTICATED
+             </p>
         </div>
       </div>
     </div>
   )
 }
-
-import React from 'react'

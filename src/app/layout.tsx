@@ -8,7 +8,9 @@ import { ClientProviders } from '@/components/ClientProviders'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { SignalScan } from '@/components/ui/SignalScan'
+import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { Suspense } from 'react'
+import { MainLayoutWrapper } from '@/components/layout/MainLayoutWrapper'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,13 +35,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
+        <MasterLight />
+        <ScanlineOverlay />
         <SignalScan />
         <ClientProviders>
           <div className="flex min-h-screen relative overflow-x-hidden">
             <Suspense fallback={null}>
                 <Sidebar />
             </Suspense>
-            <div className="flex-1 flex flex-col min-h-screen lg:pl-64 transition-all duration-500 pb-20 lg:pb-0 relative">
+            <MainLayoutWrapper>
               <Suspense fallback={null}>
                   <Header />
               </Suspense>
@@ -51,7 +55,7 @@ export default function RootLayout({
               <Suspense fallback={null}>
                   <BottomNav />
               </Suspense>
-            </div>
+            </MainLayoutWrapper>
           </div>
         </ClientProviders>
       </body>

@@ -28,28 +28,19 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (filters.filter && filters.filter !== 'all') {
     switch (filters.filter) {
+      case 'trending':
+        queryBuilder = queryBuilder.eq('is_featured', true)
+        break;
+      case 'bundles':
+        queryBuilder = queryBuilder.gt('bundle_credit_cost', 0)
+        break;
       case 'master_drums':
         queryBuilder = queryBuilder.ilike('name', '%drum%')
         break;
       case 'presets':
         queryBuilder = queryBuilder.or('name.ilike.%preset%,name.ilike.%serum%,name.ilike.%sylenth%')
         break;
-      case 'plugin':
-        queryBuilder = queryBuilder.or('name.ilike.%plugin%,description.ilike.%plugin%')
-        break;
-      case 'recent_files':
-        // Handled by default ordering usually, but we could add a date filter if we had many
-        break;
-      case 'studio_packs':
-        // Default behavior for packs
-        break;
-      case 'star':
-        // Mocking 'starred' via a high rating or specific tag if existed, 
-        // for now let's just use a sample of high-quality ones
-        queryBuilder = queryBuilder.limit(10)
-        break;
       default:
-        // No specific filter applied for other IDs yet
         break;
     }
   }
@@ -91,22 +82,16 @@ export async function getFilteredSamples(filters: { query?: string, category?: s
 
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (filters.filter && filters.filter !== 'all') {
-     switch (filters.filter) {
+    switch (filters.filter) {
+      case 'trending':
+        // Mocking trending for samples
+        queryBuilder = queryBuilder.limit(20)
+        break;
       case 'master_drums':
         queryBuilder = queryBuilder.ilike('name', '%drum%')
         break;
       case 'presets':
         queryBuilder = queryBuilder.ilike('name', '%preset%')
-        break;
-      case 'plugin':
-        queryBuilder = queryBuilder.ilike('name', '%plugin%')
-        break;
-      case 'recent_files':
-        // Default ordering handles this
-        break;
-      case 'star':
-        // Mocking featured samples
-        queryBuilder = queryBuilder.limit(20)
         break;
       default:
         break;

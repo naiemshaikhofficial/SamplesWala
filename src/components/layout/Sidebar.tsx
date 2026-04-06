@@ -1,12 +1,26 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { 
   Folder, FolderOpen, Search, Keyboard, Mic2, Cable, Cloud, Save, Key, UserCheck, 
-  Layout, FileJson, Cpu as CpuIcon, Sparkles, Timer, Disc, Music, Settings2, Power, Layers, Zap
+  Layout, FileJson, Cpu as CpuIcon, Sparkles, Timer, Disc, Music, Settings2, Power, Layers, Zap, Activity,
+  Menu, ChevronLeft, ChevronRight, X
 } from 'lucide-react'
+import { SignalMeter } from '@/components/ui/DAWVisualizer'
+import { useSidebar } from './SidebarContext'
+import { createClient } from '@/lib/supabase/client'
+
+const iconMap: any = {
+  'melodies': <Music className="w-3 h-3" />,
+  'drums': <Disc className="w-3 h-3" />,
+  'vocals': <Mic2 className="w-3 h-3" />,
+  'presets': <Settings2 className="w-3 h-3" />,
+  'fx': <Zap className="w-3 h-3" />,
+  'loops': <Activity className="w-3 h-3" />,
+  'one-shots': <Layers className="w-3 h-3" />,
+}
 
 const sidebarGroups = [
   {
@@ -47,11 +61,53 @@ const sidebarGroups = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const currentFilter = searchParams.get('filter');
+  const currentCategory = searchParams.get('category');
+  const currentSearch = searchParams.get('q') || '';
+  
+  const { isOpen, toggle } = useSidebar();
+  const [searchVal, setSearchVal] = useState(currentSearch);
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
+  const supabase = createClient();
+
+  // Fetch Categories from DB
+  useEffect(() => {
+    const fetchCats = async () => {
+        const { data } = await supabase.from('categories').select('*').order('name');
+        if (data) setDbCategories(data);
+    }
+    fetchCats();
+  }, [supabase]);
+
+  // Update local search state when URL changes
+  useEffect(() => {
+    setSearchVal(currentSearch);
+  }, [currentSearch]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchVal) {
+      params.set('q', searchVal);
+    } else {
+      params.delete('q');
+    }
+    router.push(`/browse?${params.toString()}`);
+  }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 border-r-4 border-black hidden lg:flex flex-col z-[70] bg-[#1a1a1a] shadow-2xl overflow-hidden">
+    <aside className={`fixed left-0 top-0 h-screen border-r-4 border-black hidden lg:flex flex-col z-[70] bg-[#1a1a1a] shadow-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'}`}>
+        {/* Toggle Button Inside Sidebar (Optional, maybe in Header is better but let's put it here too) */}
+        <div className="absolute right-2 top-[50%] -translate-y-1/2 z-[80] hidden xl:block">
+           <button 
+             onClick={toggle}
+             className="w-6 h-12 bg-black border border-white/10 flex items-center justify-center hover:bg-studio-neon hover:text-black transition-all group"
+           >
+              {isOpen ? <ChevronLeft size={10} /> : <ChevronRight size={10} />}
+           </button>
+        </div>
         {/* Browser Tabs */}
         <div className="bg-[#111] grid grid-cols-4 gap-px border-b border-black">
             {['All', 'Packs', 'Library', 'Star'].map((tab, i) => (
@@ -62,56 +118,131 @@ export function Sidebar() {
                     (pathname.includes(tab.toLowerCase()) || (!currentFilter && tab === 'All')) 
                     ? 'bg-studio-grey text-white border-t-2 border-studio-neon' 
                     : 'text-white/20 hover:text-white/40'
-                  }`}
+                  } ${!isOpen ? 'px-1' : ''}`}
                 >
                     <Folder size={12} />
-                    <span className="text-[7px] font-black uppercase tracking-tighter">{tab}</span>
+                    {isOpen && <span className="text-[7px] font-black uppercase tracking-tighter">{tab}</span>}
                 </Link>
             ))}
         </div>
 
         {/* Browser Search Input */}
         <div className="p-3 bg-[#1e1e1e] border-b border-black">
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-black border border-white/5 rounded-sm">
-                <Search size={12} className="text-white/40" />
-                <input 
-                  type="text" 
-                  placeholder="SEARCH_CATALOG :: INPUT_REQUEST..." 
-                  className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none"
-                />
-            </div>
+            <form onSubmit={handleSearch} className="flex items-center gap-2 px-2 py-1.5 bg-black border border-white/5 rounded-sm">
+                <Search size={12} className="text-white/40 shrink-0" />
+                {isOpen ? (
+                    <input 
+                    type="text" 
+                    value={searchVal}
+                    onChange={(e) => setSearchVal(e.target.value)}
+                    placeholder="SEARCH_CATALOG :: ..." 
+                    className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none"
+                    />
+                ) : (
+                   <div className="w-full h-4" />
+                )}
+            </form>
         </div>
 
         {/* Tree Structure */}
         <div className="flex-1 overflow-y-auto p-2 space-y-4 custom-scrollbar">
-            {sidebarGroups.map((group, gIdx) => (
-              <div key={group.label} className="space-y-1">
-                  <div className="px-2 py-1 flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">{group.label}</span>
+            {/* Dynamic Navigation Group */}
+            <div className="space-y-1">
+                {isOpen && (
+                <div className="px-2 py-1 flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Navigation</span>
                     <div className="h-px flex-1 bg-white/5"></div>
-                  </div>
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/browse?filter=${item.id}`}
-                      className={`flex items-center gap-3 px-3 py-1.5 text-[10px] font-bold transition-all hover:bg-white/5 group border-l-2 ${
-                        currentFilter === item.id 
-                        ? 'border-studio-neon bg-white/10 text-white' 
-                        : 'border-transparent text-white/40 hover:text-white'
-                      }`}
-                    >
-                      <span className={`${currentFilter === item.id ? 'text-studio-neon' : 'text-white/20 group-hover:text-studio-neon'}`}>
+                </div>
+                )}
+                {[
+                    { id: 'all', label: 'All Artifacts', icon: <Layout className="w-3 h-3" />, href: '/browse' },
+                    { id: 'packs', label: 'Sound Packs', icon: <Disc className="w-3 h-3" />, href: '/browse?mode=packs' },
+                    { id: 'trending', label: 'Trending', icon: <Sparkles className="w-3 h-3" />, href: '/browse?filter=trending' },
+                    { id: 'bundles', label: 'Bundles', icon: <Layers className="w-3 h-3" />, href: '/browse?filter=bundles' },
+                ].map((item) => (
+                <Link
+                    key={item.id}
+                    href={item.href}
+                    className={`flex flex-col gap-1 p-2 text-[10px] font-black uppercase tracking-tighter transition-all hover:bg-white/5 group border-l-2 ${
+                    (pathname === item.href || currentFilter === item.id) 
+                    ? 'border-studio-neon bg-white/10 text-white' 
+                    : 'border-transparent text-white/40 hover:text-white'
+                    } ${!isOpen ? 'items-center border-l-0 border-b-2' : ''}`}
+                >
+                    <div className="flex items-center gap-3">
+                    <span className="text-white/20 group-hover:text-studio-neon">
                         {item.icon}
-                      </span>
-                      {item.label}
+                    </span>
+                    {isOpen && item.label}
+                    </div>
+                </Link>
+                ))}
+            </div>
+
+            {/* Dynamic DB Categories Group */}
+            <div className="space-y-1">
+                {isOpen && (
+                <div className="px-2 py-1 flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Sample_Library</span>
+                    <div className="h-px flex-1 bg-white/5"></div>
+                </div>
+                )}
+                {!isOpen && <div className="h-px bg-white/5 my-2" />}
+                {dbCategories.map((cat) => (
+                <Link
+                    key={cat.id}
+                    href={`/browse?category=${cat.id}`}
+                    title={!isOpen ? cat.name : undefined}
+                    className={`flex flex-col gap-1 p-2 text-[10px] font-black uppercase tracking-tighter transition-all hover:bg-white/5 group border-l-2 ${
+                    currentCategory === cat.id 
+                    ? 'border-studio-neon bg-white/10 text-white' 
+                    : 'border-transparent text-white/40 hover:text-white'
+                    } ${!isOpen ? 'items-center border-l-0 border-b-2' : ''}`}
+                >
+                    <div className="flex items-center gap-3">
+                    <span className={`${currentCategory === cat.id ? 'text-studio-neon' : 'text-white/20 group-hover:text-studio-neon'}`}>
+                        {iconMap[cat.name.toLowerCase()] || <Music className="w-3 h-3" />}
+                    </span>
+                    {isOpen && cat.name}
+                    </div>
+
+                    {isOpen && (
+                    <div className="mt-1 ml-6 opacity-0 group-hover:opacity-30 transition-opacity duration-700 pointer-events-none scale-y-50 origin-top">
+                        <SignalMeter className="h-1.5 w-full" />
+                    </div>
+                    )}
+                </Link>
+                ))}
+            </div>
+
+            {/* Static User/System Sections */}
+            <div className="space-y-1">
+                {isOpen && (
+                <div className="px-2 py-1 flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">User_Archive</span>
+                    <div className="h-px flex-1 bg-white/5"></div>
+                </div>
+                )}
+                {[
+                    { id: 'library', label: 'My_Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
+                    { id: 'profile', label: 'User_Node', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
+                ].map((item) => (
+                    <Link
+                        key={item.id}
+                        href={item.href}
+                        className={`flex flex-col gap-1 p-2 text-[10px] font-black uppercase tracking-tighter transition-all hover:bg-white/5 group border-l-2 border-transparent text-white/40 hover:text-white ${!isOpen ? 'items-center border-l-0 border-b-2' : ''}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="text-white/20 group-hover:text-studio-neon">{item.icon}</span>
+                            {isOpen && item.label}
+                        </div>
                     </Link>
-                  ))}
-              </div>
-            ))}
+                ))}
+            </div>
         </div>
 
         {/* Console Health Monitor */}
-        <div className="p-4 bg-black/40 border-t border-black space-y-3">
+        <div className={`p-4 bg-black/40 border-t border-black space-y-3 transition-all duration-300 ${!isOpen ? 'opacity-0 h-0 p-0 overflow-hidden' : ''}`}>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Power className="w-3 h-3 text-studio-neon" />

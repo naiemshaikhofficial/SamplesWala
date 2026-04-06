@@ -20,6 +20,11 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
     const { isPlaying } = useAudio()
     const { showToast, showConfirm, showAuthGate } = useNotify()
 
+    // 🧬 SYNC STATE WITH PARENT RE-FETCH
+    React.useEffect(() => {
+        setIsUnlocked(isUnlockedInitial)
+    }, [isUnlockedInitial])
+
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
         

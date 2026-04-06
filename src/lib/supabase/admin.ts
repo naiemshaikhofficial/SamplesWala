@@ -21,10 +21,11 @@ export const getAdminClient = () => {
 export async function getTopPopularSounds(limit = 10) {
   const supabase = getAdminClient()
 
-  // 1. Fetch unlock frequency (this happens automatically from the raw data)
+  // 1. Fetch unlock frequency from the unified vault
   const { data: unlocks, error: unlockError } = await supabase
-    .from('unlocked_samples')
-    .select('sample_id')
+    .from('user_vault')
+    .select('item_id')
+    .eq('item_type', 'sample')
 
   if (unlockError || !unlocks) {
     console.error("Popularity Engine Error:", unlockError)
@@ -34,7 +35,9 @@ export async function getTopPopularSounds(limit = 10) {
   // 2. Aggregate counts in memory (Fast for thousands of records)
   const counts: Record<string, number> = {}
   unlocks.forEach(u => {
-    counts[u.sample_id] = (counts[u.sample_id] || 0) + 1
+    if (u.item_id) {
+        counts[u.item_id] = (counts[u.item_id] || 0) + 1
+    }
   })
 
   // 3. Sort and get top IDs

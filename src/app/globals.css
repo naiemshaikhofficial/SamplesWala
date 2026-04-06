@@ -170,3 +170,81 @@
 .animate-meter {
     animation: audio-meter 0.6s ease-in-out infinite;
 }
+
+/* ⚡ MASTER SECTION REVEAL */
+.section-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-reveal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(166, 226, 46, 0) 40%,
+    rgba(166, 226, 46, 0.6) 50%,
+    rgba(166, 226, 46, 0) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+.section-reveal.active::after {
+  animation: laser-scan 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 💿 SIGNAL SWEEP HOVER */
+.signal-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.signal-sweep::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 60%,
+    transparent 100%
+  );
+  transition: all 0.6s ease;
+  pointer-events: none;
+}
+
+.signal-sweep:hover::before {
+  left: 100%;
+}
+
+@keyframes laser-scan {
+  0% { left: -100%; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+@keyframes scan-slow {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}

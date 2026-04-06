@@ -96,9 +96,11 @@ export async function verifyPayment(payload: {
         .digest('hex')
 
     if (expectedSignature !== razorpay_signature) {
+        console.error("[STUDIO_VAULT_ERROR] SIGNATURE MISMATCH IN PROJECT NODE.");
         throw new Error('CRYPTOGRAPHIC SIGNATURE MISMATCH: Payment verification failed.')
     }
 
+    console.log("[STUDIO_VAULT_PAYMENT] Signature verified. Syncing with ledger...");
     const supabase = await createClient()
     
     // 1. Fetch Order to identify credits
@@ -108,26 +110,44 @@ export async function verifyPayment(payload: {
         .eq('order_id', razorpay_order_id)
         .single()
 
-    if (!order) throw new Error('Transaction record not found in vault.')
-    if (order.status === 'paid') return { success: true, alreadyProcessed: true }
+    if (!order) {
+        console.error("[STUDIO_VAULT_ERROR] ORDER_ID NOT FOUND:", razorpay_order_id);
+        throw new Error('Transaction record not found in vault.')
+    }
+    
+    if (order.status === 'paid') {
+        console.log("[STUDIO_VAULT_PAYMENT] Order already processed. Skipping.");
+        return { success: true, alreadyProcessed: true }
+    }
 
     // 2. Start Secure Injection Transaction
-    // A: Mark order as Paid
+    // A: Mark order as Paid + Store Raw Audit Data
     const { error: updateError } = await supabase
         .from('credit_orders')
-        .update({ status: 'paid', payment_id: razorpay_payment_id })
+        .update({ 
+            status: 'paid', 
+            payment_id: razorpay_payment_id,
+            raw_response: payload // High-fidelity audit backup
+        })
         .eq('order_id', razorpay_order_id)
 
-    if (updateError) throw updateError
+    if (updateError) {
+        console.error("[STUDIO_VAULT_ERROR] LEDGER UPDATE FAILED:", updateError.message);
+        throw updateError
+    }
 
     // B: Inject Credits via Secure RPC
-    const { error: creditError } = await supabase.rpc('add_credits_pro', {
-        user_id_input: order.user_id,
-        amount_to_add: order.credits_awarded
+    const { error: creditError } = await supabase.rpc('add_credits', {
+        u_id: order.user_id,
+        amount: order.credits_awarded
     })
 
-    if (creditError) throw creditError
+    if (creditError) {
+        console.error("[STUDIO_VAULT_ERROR] INJECTION FAILED:", creditError.message);
+        throw new Error(`Vault Injection Failed: ${creditError.message}`)
+    }
 
+    console.log(`[STUDIO_VAULT_SUCCESS] ${order.credits_awarded} credits added to node ${order.user_id}`);
     revalidatePath('/', 'layout')
     return { success: true }
 }

@@ -6,13 +6,21 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { HeroSearch } from './HeroSearch'
 import { AnimatedHeroLogo } from './AnimatedHeroLogo'
+import { DAWVisualizer, SignalMeter } from '@/components/ui/DAWVisualizer'
+import { TextScramble } from '@/components/ui/TextScramble'
+import { useState, useEffect } from 'react'
 
 export function AdaptiveHero() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   return (
-    <section className="relative min-h-[calc(100vh-140px)] flex flex-col items-center justify-center pt-12 pb-24 md:pb-32 overflow-hidden bg-studio-charcoal step-grid">
+    <section className="relative min-h-[calc(100vh-300px)] flex flex-col items-center justify-center pt-8 pb-16 md:pb-24 overflow-hidden bg-studio-charcoal step-grid">
         
         {/* 🧬 STUDIO ATMOSPHERE (Master Display Backdrop) */}
         <div className="absolute inset-0 pointer-events-none z-0">
@@ -41,21 +49,32 @@ export function AdaptiveHero() {
                 className="space-y-6 md:space-y-8 mb-12 md:mb-16 w-full"
             >
                 <div className="flex items-center justify-center gap-4 md:gap-6 text-studio-neon">
+                    <div className="hidden lg:block w-32 border-b border-studio-neon/20 opacity-40">
+                         <SignalMeter className="h-2 w-full opacity-30" />
+                    </div>
                     <div className="h-0.5 w-8 md:w-12 bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
-                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] flex items-center gap-2 md:gap-4">
-                        <Activity className="h-3 w-3 animate-pulse" /> Signal_Safe_Production
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] flex items-center gap-2 md:gap-4 whitespace-nowrap">
+                        <Activity className="h-3 w-3 animate-pulse" /> Signal_Safe_Production :: V5.0
                     </span>
                     <div className="h-0.5 w-8 md:w-12 bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
+                    <div className="hidden lg:block w-32 border-b border-studio-neon/20 opacity-40 transform rotate-180">
+                         <SignalMeter className="h-2 w-full opacity-30" />
+                    </div>
                 </div>
 
-                <h1 className="text-4xl sm:text-6xl md:text-[8rem] font-black uppercase tracking-tighter leading-[0.9] italic">
-                    THE WORLD'S BEST<br />
-                    <span className="text-studio-neon bg-black px-4 sm:px-8 py-2 md:py-3 border-r-[12px] md:border-r-[24px] border-studio-yellow transform -skew-x-12 inline-block mt-3 md:mt-4">SOUNDS</span>
+                <h1 className="text-3xl sm:text-5xl md:text-[7rem] font-black uppercase tracking-tighter leading-[0.9] italic">
+                    <TextScramble text="THE WORLD'S BEST" duration={1200} /><br />
+                    <span className="text-studio-neon bg-black px-4 sm:px-8 py-2 md:py-3 border-r-[12px] md:border-r-[24px] border-studio-yellow transform -skew-x-12 inline-flex items-center gap-6 mt-3 md:mt-4 group/h1">
+                        <TextScramble text="SOUNDS" delay={400} />
+                        <div className="hidden md:flex h-8 gap-[1px] items-end opacity-40 group-hover/h1:opacity-100 transition-opacity">
+                            <DAWVisualizer color="#a6e22e" bars={10} height={32} />
+                        </div>
+                    </span>
                 </h1>
 
-                <p className="max-w-2xl mx-auto text-sm md:text-2xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] leading-relaxed px-4 opacity-40 hover:opacity-100 transition-opacity duration-700 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/20">
-                    Premium high-definition samples for your track. <br className="hidden md:block" />
-                    Created by world-class producers. Royalty Free.
+                <p className="max-w-2xl mx-auto text-xs md:text-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] leading-relaxed px-4 opacity-40 hover:opacity-100 transition-opacity duration-700 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/20">
+                    <TextScramble text="Premium high-definition samples for your track." delay={800} duration={1500} /> <br className="hidden md:block" />
+                    <TextScramble text="Created by world-class producers. Royalty Free." delay={1000} duration={1500} />
                 </p>
             </motion.div>
 
@@ -70,7 +89,7 @@ export function AdaptiveHero() {
                 transition={{ duration: 1, delay: 0.8 }}
                 className="mt-12 md:mt-16 flex flex-col md:flex-row items-center gap-8 md:gap-12 w-full justify-center"
             >
-                <Link href="/browse" className="relative group overflow-hidden flex items-center gap-8 md:gap-10 px-10 md:px-16 py-6 md:py-8 bg-white text-black font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:-translate-y-2 active:scale-95 transition-all shadow-2xl border-r-[12px] md:border-r-[16px] border-studio-yellow w-full sm:w-auto">
+                <Link href="/browse" className="relative group overflow-hidden flex items-center gap-8 md:gap-10 px-10 md:px-16 py-6 md:py-8 bg-white text-black font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:-translate-y-2 active:scale-95 transition-all shadow-2xl border-r-[12px] md:border-r-[16px] border-studio-yellow w-full sm:w-auto signal-sweep">
                     <span className="relative z-10 flex items-center gap-4 justify-center w-full">
                         DISCOVER SOUNDS <ArrowRight className="h-4 w-4 group-hover:translate-x-3 transition-transform" />
                     </span>
@@ -94,7 +113,7 @@ export function AdaptiveHero() {
 
         {/* Rhythmic Level Decor (Bottom) - Hidden on smallest screens */}
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 hidden sm:flex items-end gap-1 px-4 opacity-10 md:opacity-20 max-w-full">
-             {[...Array(30)].map((_, i) => (
+             {isMounted && [...Array(30)].map((_, i) => (
                  <div key={i} className="w-1.5 md:w-2 bg-studio-neon animate-meter" style={{ height: `${10 + Math.random() * 30}px`, animationDelay: `${i * 0.05}s` }} />
              ))}
         </div>

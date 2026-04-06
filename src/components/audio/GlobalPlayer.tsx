@@ -4,9 +4,13 @@ import { useAudio } from './AudioProvider'
 import Image from 'next/image'
 import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DAWVisualizer } from '@/components/ui/DAWVisualizer'
+
+import { useSidebar } from '../layout/SidebarContext'
 
 export function GlobalPlayer() {
   const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume } = useAudio()
+  const { isOpen } = useSidebar()
   const [isVisible, setIsVisible] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -23,7 +27,7 @@ export function GlobalPlayer() {
   }
 
   return (
-    <div className="fixed bottom-[74px] lg:bottom-0 left-0 right-0 z-[100] bg-black border-t-2 border-white/20 lg:border-white lg:pl-64 animate-in slide-in-from-bottom duration-500 backdrop-blur-xl">
+    <div className={`fixed bottom-[74px] lg:bottom-0 left-0 right-0 z-[100] bg-black border-t-2 border-white/20 lg:border-white transition-all duration-300 animate-in slide-in-from-bottom duration-500 backdrop-blur-xl ${isOpen ? 'lg:pl-80' : 'lg:pl-20'}`}>
       
       {/* 🔮 ANTI-PIRACY SECURITY BANNER (Hidden on mobile for space) */}
       {!activeMetadata?.isUnlocked && (
@@ -61,14 +65,12 @@ export function GlobalPlayer() {
                     {activeMetadata?.name || "Global Link Active"}
                  </h4>
                  
-                 {/* 🧊 REACTIVE SPECTRUM (GLOBAL VISUALIZER) - Hidden on Mobile */}
+                 {/* 🧊 REACTIVE SPECTRUM (GLOBAL VISUALIZER) - Heavy DAW Animation */}
                  <div className="hidden md:flex items-end gap-[1px] h-4 mt-2 opacity-40 group-hover:opacity-100 transition-opacity">
-                    {spectrum && spectrum.length > 0 ? (
-                        spectrum.slice(0, 40).map((v, i) => (
-                            <div key={i} className="w-[2px] bg-white rounded-full transition-all duration-75" style={{ height: `${Math.max(10, v * 300)}%` }} />
-                        ))
+                    {isPlaying ? (
+                        <DAWVisualizer color="#a6e22e" bars={30} height={16} />
                     ) : (
-                        <div className="h-px w-full bg-white/10 animate-pulse" />
+                        <div className="h-[2px] w-full bg-white/10 animate-pulse mt-2" />
                     )}
                  </div>
               </div>

@@ -1,80 +1,93 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { revalidatePath } from 'next/cache'
 
 /**
- * 🛡️ SAMPLES WALA: RAZORPAY WEBHOOK RECEIVER
- * This is the ultimate "Bank-to-Marketplace" link.
- * It grants credits ONLY when Razorpay confirms the money is in your account.
+ * 🛰️ STUDIO_WEBHOOK_RECEIVER (RAZORPAY)
+ * Handles auto-renewals, subscription updates, and payment failures.
  */
 export async function POST(req: Request) {
-    const body = await req.text();
-    const signature = req.headers.get('x-razorpay-signature');
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const payload = await req.text()
+    const signature = req.headers.get('x-razorpay-signature')
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET
 
-    // 1. 🛡️ VERIFY THE BANK SIGNATURE
-    // This stops hackers from "Faking" a successful payment
-    if (webhookSecret && signature) {
-        const expectedSignature = crypto
-            .createHmac('sha256', webhookSecret)
-            .update(body)
-            .digest('hex');
-        
-        if (expectedSignature !== signature) {
-            console.error('[WEBHOOK] Invalid Bank Signature Detected!');
-            return new NextResponse('Unauthorized (Invalid Signature)', { status: 401 });
+    if (!secret || !signature) {
+        return NextResponse.json({ error: 'Webhook Secret/Signature Missing' }, { status: 400 })
+    }
+
+    // 🔐 VALIDATE RECEPTION
+    const expectedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(payload)
+        .digest('hex')
+
+    if (expectedSignature !== signature) {
+        console.error('[WEBHOOK_ERROR] CRYPTOGRAPHIC SIGNATURE MISMATCH.')
+        return NextResponse.json({ error: 'Invalid Signature' }, { status: 400 })
+    }
+
+    const event = JSON.parse(payload)
+    const supabase = await createClient()
+
+    try {
+        switch (event.event) {
+            case 'subscription.charged':
+                // 🔋 RENEWAL SUCCESSFUL
+                const subscription = event.payload.subscription.entity
+                const payment = event.payload.payment.entity
+                
+                // Fetch User by Subscription ID (Stored in user_accounts or metadata)
+                const { data: account, error: accountError } = await supabase
+                    .from('user_accounts')
+                    .select('user_id, plan_id, subscription_plans(credits_per_month)')
+                    .eq('razorpay_subscription_id', subscription.id)
+                    .single()
+
+                if (account) {
+                    const creditsToInject = (account.subscription_plans as any)?.credits_per_month || 0
+                    
+                    // 1. INJECT CREDITS
+                    await supabase.rpc('add_credits', {
+                        u_id: account.user_id,
+                        amount: creditsToInject
+                    })
+
+                    // 2. LOG TRANSACTION
+                    await supabase.from('credit_orders').insert({
+                        user_id: account.user_id,
+                        order_id: subscription.id, // Linking to Subscription ID
+                        payment_id: payment.id,
+                        amount_inr: payment.amount / 100,
+                        credits_awarded: creditsToInject,
+                        status: 'paid',
+                        raw_response: event
+                    })
+                    
+                    console.log(`[RENEWAL_SYNC_ACTIVE] ${creditsToInject} credits added for user ${account.user_id}`)
+                }
+                break;
+
+            case 'subscription.cancelled':
+                const cancelledSub = event.payload.subscription.entity
+                await supabase
+                    .from('user_accounts')
+                    .update({ plan_id: null, razorpay_subscription_id: null })
+                    .eq('razorpay_subscription_id', cancelledSub.id)
+                console.log(`[SUBSCRIPTION_HALTED] Node ${cancelledSub.id} disconnected.`)
+                break;
+
+            case 'payment.failed':
+                // Optional: Notify user
+                console.warn('[TRANSACTION_REJECTED] Payment failed for user.')
+                break;
         }
+
+        revalidatePath('/', 'layout')
+        return NextResponse.json({ received: true })
+
+    } catch (err: any) {
+        console.error('[WEBHOOK_CRITICAL_FAILURE]', err.message)
+        return NextResponse.json({ error: 'Internal Signal Error' }, { status: 500 })
     }
-
-    const payload = JSON.parse(body);
-    const event = payload.event;
-    const supabase = await createClient();
-
-    console.log(`[WEBHOOK] Processing Razorpay Event: ${event}`);
-
-    // 🚀 EVENT: SUBSCRIPTION RENEWAL (PAID)
-    if (event === 'subscription.charged') {
-        const rzpSubId = payload.payload.subscription.entity.id;
-        const amount = payload.payload.payment.entity.amount / 100; // Price in INR
-
-        // Find the user with this Razorpay Subscription ID
-        const { data: sub, error } = await supabase
-            .from('user_subscriptions')
-            .select('*, subscription_plans(credits_per_month)')
-            .eq('razorpay_sub_id', rzpSubId)
-            .single();
-
-        if (sub && sub.subscription_plans) {
-            const freshCredits = (sub.subscription_plans as any).credits_per_month;
-
-            // GRANT THE CREDITS ONLY NOW!
-            await supabase.from('user_subscriptions').update({
-                current_credits: freshCredits,
-                status: 'active',
-                period_start: new Date().toISOString(),
-                period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-            }).eq('id', sub.id);
-
-            // LOG THE REAL PURCHASE
-            await supabase.from('purchases').insert({
-                user_id: sub.user_id,
-                amount: amount,
-                item_type: 'subscription_renewal',
-                item_name: 'Monthly Auto-Renewal',
-                payment_id: payload.payload.payment.entity.id
-            });
-
-            console.log(`[WEBHOOK] Success! Granted ${freshCredits} credits to user ${sub.user_id}`);
-        }
-    }
-
-    // 🚀 EVENT: PAYMENT FAILED (SUSPEND)
-    if (event === 'subscription.pending') {
-        // Stop access if payment failed
-        const rzpSubId = payload.payload.subscription.entity.id;
-        await supabase.from('user_subscriptions').update({ status: 'suspended' }).eq('razorpay_sub_id', rzpSubId);
-        console.warn(`[WEBHOOK] Payment Failed. Subscription ${rzpSubId} suspended.`);
-    }
-
-    return NextResponse.json({ processed: true });
 }

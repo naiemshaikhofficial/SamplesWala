@@ -9,8 +9,11 @@ import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
 import { useEffect, useState } from 'react'
 import { useAudio } from '@/components/audio/AudioProvider'
+import { useSidebar } from './SidebarContext'
+import { Menu } from 'lucide-react'
 
 export function Header() {
+  const { isOpen, toggle } = useSidebar()
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
   const { isPlaying, activeId, activeMetadata, currentTime, play, pause } = useAudio()
@@ -32,7 +35,7 @@ export function Header() {
   }
 
   return (
-    <header className="fixed top-0 left-0 lg:left-64 right-0 z-[80] bg-studio-grey text-white border-b-4 border-black shadow-2xl">
+    <header className={`fixed top-0 right-0 z-[80] bg-studio-grey text-white border-b-4 border-black shadow-2xl transition-all duration-300 ${isOpen ? 'left-0 lg:left-64' : 'left-0 lg:left-20'}`}>
       
       {/* 🎹 TOP NAVIGATION (Hidden on Mobile) */}
       <div className="hidden md:flex bg-black/80 px-6 py-2.5 items-center justify-between border-b border-white/5">
@@ -103,7 +106,14 @@ export function Header() {
         </div>
 
         {/* 💎 MAIN LOGO (Responsive size) */}
-        <div className="flex-1 flex justify-center order-first xl:order-none">
+        <div className="flex-1 flex items-center justify-center gap-4 order-first xl:order-none">
+            <button 
+              onClick={toggle}
+              className="hidden lg:flex h-10 w-10 items-center justify-center bg-black/40 border border-white/5 hover:border-studio-neon transition-all rounded-sm group"
+              title="Toggle Sidebar"
+            >
+               <Menu size={18} className="group-hover:text-studio-neon" />
+            </button>
             <Link href="/" className="group relative px-4 md:px-6 py-2 md:py-3 studio-panel bg-black border-2 border-white/5 hover:border-studio-neon transition-all hover:scale-105 overflow-hidden rounded-sm">
                 <Image 
                   src="/Logo.png" 

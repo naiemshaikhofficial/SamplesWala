@@ -50,24 +50,26 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   let isFullPackUnlocked = false;
 
   if (user) {
-    const { data: unlocks } = await supabase.from('unlocked_samples').select('sample_id').eq('user_id', user.id)
-    if (unlocks) unlockedSampleIds = new Set(unlocks.map(u => u.sample_id))
+    const { data: vaultItems } = await supabase
+        .from('user_vault')
+        .select('item_id, item_type')
+        .eq('user_id', user.id)
 
-    const { data: directUnlock } = await supabase.from('unlocked_packs')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('pack_id', pack.id)
-      .maybeSingle()
-    
-    const { data: fullPurchase } = !directUnlock ? await supabase.from('purchases')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('item_type', 'sample_pack')
-      .ilike('item_name', `%${pack.name}%`)
-      .maybeSingle() : { data: null }
-    
-    if (directUnlock || fullPurchase || (samples && unlockedSampleIds.size > 0 && unlockedSampleIds.size === samples.length)) {
-        isFullPackUnlocked = true;
+    if (vaultItems) {
+        // Individual samples
+        const sampleIds = vaultItems
+            .filter(v => v.item_type === 'sample')
+            .map(v => v.item_id)
+        unlockedSampleIds = new Set(sampleIds)
+
+        // Whole pack check
+        isFullPackUnlocked = vaultItems.some(v => v.item_type === 'pack' && v.item_id === pack.id)
+        
+        // Logical fallback: If all samples are unlocked individually, treat as full pack unlocked (UX helper)
+        if (!isFullPackUnlocked && samples && samples.length > 0) {
+            const allSamplesOwned = samples.every(s => unlockedSampleIds.has(s.id))
+            if (allSamplesOwned) isFullPackUnlocked = true
+        }
     }
   }
 
