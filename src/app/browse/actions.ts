@@ -72,47 +72,109 @@ export async function getFilteredSamples(filters: {
   filter?: string,
   bpm_min?: number,
   bpm_max?: number,
-  key?: string
+  key?: string,
+  mood?: string,
+  genre?: string,
+  time_sig?: string,
+  producer?: string,
+  sort?: string,
+  limit?: string,
+  tag?: string
 }) {
   const supabase = await createClient()
   const cleanQuery = filters.query?.trim()
+  const limitVal = parseInt(filters.limit || '25')
   
   let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, cover_url)')
   
-  // 🔭 PRECISION SEARCH SIGNAL
+  // 🔭 PRECISION SEARCH SIGNAL (Search name OR tags)
   if (cleanQuery) {
     queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`)
   }
 
-  // 🎹 INSTRUMENT/CATEGORY FILTER (DATABASE LEVEL)
-  if (filters.category) {
-    // We join with sample_packs to filter by its category_id
-    // But since Supabase inner joins are tricky with maybeSingle, we do it via subquery filter if possible
-    // or just the current memory filter if result set is small.
-    // For now, let's try direct filtering on junction.
+  // 🏷️ SPECIFIC TAG SIGNAL
+  if (filters.tag) {
+    queryBuilder = queryBuilder.contains('tags', [filters.tag.toLowerCase()])
   }
 
-  // 🔋 BPM THRESHOLD SIGNAL
+  // 🔋 BPM THRESHOLD SIGNAL (Loops vs Oneshots fallback)
   if (filters.bpm_min !== undefined) queryBuilder = queryBuilder.gte('bpm', filters.bpm_min);
   if (filters.bpm_max !== undefined) queryBuilder = queryBuilder.lte('bpm', filters.bpm_max);
 
-  // 🎼 MUSICAL KEY SIGNAL
+  // 🎼 MUSICAL KEY SIGNAL (Total Metadata Resonance)
   if (filters.key && filters.key !== 'all') {
-    queryBuilder = queryBuilder.eq('key', filters.key);
+    const key = filters.key;
+    const isMinor = key.endsWith('m');
+    const base = isMinor ? key.slice(0, -1) : key;
+    
+    // Enharmonic mapping for the base note
+    const enharmonicMap: Record<string, string> = {
+      'C#': 'Db', 'Db': 'C#', 'D#': 'Eb', 'Eb': 'D#',
+      'F#': 'Gb', 'Gb': 'F#', 'G#': 'Ab', 'Ab': 'G#'
+    };
+    const altBase = enharmonicMap[base];
+
+    const generateKeyAliases = (note: string, minor: boolean) => {
+        if (!minor) return [`${note}`, `${note} Major`, `${note}Maj`];
+        return [`${note}m`, `${note} Minor`, `${note}min`, `${note} m`].map(v => v.toLowerCase());
+    }
+
+    let allAliases = generateKeyAliases(base, isMinor);
+    if (altBase) {
+        allAliases = [...allAliases, ...generateKeyAliases(altBase, isMinor)];
+    }
+
+    // Build the OR signal for all possible naming conventions
+    const orSignal = allAliases.map(alias => `key.ilike.%${alias}%`).join(',');
+    queryBuilder = queryBuilder.or(orSignal);
+  }
+
+  // 🎭 GENRE SIGNAL (Stylistic filtering)
+  if (filters.genre) {
+    const genreVal = filters.genre.toLowerCase();
+    queryBuilder = queryBuilder.or(`name.ilike.%${genreVal}%,tags.cs.{${genreVal}}`)
+  }
+
+  // 🧪 EMOTIONAL SIGNAL (Mood filtering)
+  if (filters.mood) {
+    const moodVal = filters.mood.toLowerCase();
+    queryBuilder = queryBuilder.or(`name.ilike.%${moodVal}%,tags.cs.{${moodVal}}`)
+  }
+
+  // 🎹 TIME SIGNATURE SIGNAL (Safe fallback)
+  if (filters.time_sig) {
+    try {
+        queryBuilder = queryBuilder.eq('time_signature', filters.time_sig);
+    } catch (e) {
+        console.warn('[REPAIRING_RHYTHMIC_NODE] Time Signature column missing.');
+    }
+  }
+
+  // 👤 PRODUCER IDENTITY SIGNAL
+  if (filters.producer) {
+    queryBuilder = queryBuilder.ilike('name', `%${filters.producer}%`);
   }
 
   if (filters.type) {
     const typeLabel = filters.type.toLowerCase()
-    if (typeLabel === 'loops') queryBuilder = queryBuilder.not('bpm', 'is', null);
-    else if (typeLabel === 'oneshots') queryBuilder = queryBuilder.is('bpm', null);
-    else queryBuilder = queryBuilder.or(`name.ilike.%${typeLabel}%,tags.cs.{${typeLabel}}`)
+    if (typeLabel === 'loops') {
+        queryBuilder = queryBuilder.gt('bpm', 0).not('bpm', 'is', null);
+    } else if (typeLabel === 'oneshots') {
+        queryBuilder = queryBuilder.or('bpm.eq.0,bpm.is.null');
+    } else {
+        queryBuilder = queryBuilder.or(`name.ilike.%${typeLabel}%,tags.cs.{${typeLabel}}`)
+    }
   }
+
+  // 📊 DIAGNOSTIC SORTING ENGINE
+  const sortCol = filters.sort === 'bpm' ? 'bpm' : (filters.sort === 'key' ? 'key' : 'created_at');
+  queryBuilder = queryBuilder.order(sortCol, { ascending: filters.sort !== 'newest' });
 
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (filters.filter && filters.filter !== 'all') {
     switch (filters.filter) {
       case 'trending':
-        queryBuilder = queryBuilder.limit(40)
+        // No specific trending column yet, so just limit
         break;
       case 'master_drums':
         queryBuilder = queryBuilder.ilike('name', '%drum%')
@@ -125,15 +187,26 @@ export async function getFilteredSamples(filters: {
     }
   }
 
-  const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(100)
+  let { data, error } = await queryBuilder.limit(limitVal)
+  
+  // 🛰️ SIGNAL RECOVERY: Fallback if custom columns (Time Signature) are missing
+  if (error && error.code === 'PGRST103') {
+    console.warn('[RECOVERY_MODE] Rerouting signal without Time_Signature metadata.');
+    const fallbackBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, cover_url)')
+    if (cleanQuery) fallbackBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`);
+    const { data: fbData, error: fbError } = await fallbackBuilder.limit(limitVal);
+    data = fbData;
+    error = fbError;
+  }
+
   if (error) {
     console.error('[BROWSE_ACTION_ERROR_SAMPLES]', error);
     return [];
   }
 
-  let processedData = data;
+  let processedData = data || [];
 
-  if (filters.category) {
+  if (filters.category && data) {
     processedData = data.filter((s: any) => s.sample_packs?.category_id === filters.category)
   }
 
