@@ -2,14 +2,14 @@
 import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 import Image from 'next/image'
-import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp, Loader2 } from 'lucide-react'
+import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp, Loader2, SkipBack, SkipForward } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DAWVisualizer } from '@/components/ui/DAWVisualizer'
 
 import { useSidebar } from '../layout/SidebarContext'
 
 export function GlobalPlayer() {
-  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume, stop } = useAudio()
+  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume, stop, next, prev, playlist } = useAudio()
   const { isOpen } = useSidebar()
   const [isVisible, setIsVisible] = useState(false)
 
@@ -100,15 +100,29 @@ export function GlobalPlayer() {
             <div className="hidden md:flex flex-grow items-center gap-6">
                 <div className="flex items-center p-0.5 bg-white/5 border border-white/10">
                     <button 
+                        onClick={prev}
+                        className="h-10 w-10 flex items-center justify-center hover:bg-white/10 transition-all text-white/30 hover:text-white"
+                        disabled={playlist.length <= 1}
+                    >
+                        <SkipBack size={16} fill="currentColor" />
+                    </button>
+                    <button 
                         onClick={() => isPlaying ? pause() : play(activeId!, '')} 
-                        className="h-10 w-10 flex items-center justify-center hover:bg-white hover:text-black transition-all"
+                        className="h-10 w-14 flex items-center justify-center bg-white text-black hover:bg-studio-neon transition-all"
                         disabled={isLoading}
                     >
-                        {isLoading ? <Loader2 size={18} className="animate-spin text-studio-neon" /> : isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
+                        {isLoading ? <Loader2 size={18} className="animate-spin text-black" /> : isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
+                    </button>
+                    <button 
+                        onClick={next}
+                        className="h-10 w-10 flex items-center justify-center hover:bg-white/10 transition-all text-white/30 hover:text-white"
+                        disabled={playlist.length <= 1}
+                    >
+                        <SkipForward size={16} fill="currentColor" />
                     </button>
                     <button 
                         onClick={toggleLoop} 
-                        className={`h-10 w-10 flex items-center justify-center transition-all ${isLooping ? 'bg-studio-neon text-black font-black' : 'hover:bg-white/10'}`}
+                        className={`h-10 w-10 flex items-center justify-center transition-all border-l border-white/10 ${isLooping ? 'bg-studio-neon text-black font-black' : 'hover:bg-white/10'}`}
                     >
                         <Repeat size={14} className={isLooping ? 'animate-pulse' : ''} />
                     </button>

@@ -10,6 +10,7 @@ import { BulkUnlockButton } from '@/components/audio/BulkUnlockButton'
 import { SubscribeButton } from '@/components/SubscribeButton'
 import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
+import { SampleList } from '@/components/audio/SampleList'
 import { getRelatedPacks } from '@/app/browse/actions'
 
 export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -209,59 +210,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             </div>
         </div>
 
-        <div className="bg-black/60 studio-panel border-2 border-white/5 overflow-hidden">
-            <div className="hidden md:grid grid-cols-12 gap-3 px-10 py-5 border-b-2 border-black text-[9px] uppercase font-black tracking-widest text-white/20 bg-studio-grey/40">
-                <div className="col-span-1">Play</div>
-                <div className="col-span-4 text-white/40 italic">Signature Artifact</div>
-                <div className="col-span-1">BPM</div>
-                <div className="col-span-1">Key</div>
-                <div className="col-span-4 text-center">Spectral Data</div>
-                <div className="col-span-1 text-right">Access</div>
-            </div>
-
-            <div className="divide-y divide-black">
-            {samples?.map((sample, idx) => (
-                <div key={sample.id} className="group flex flex-col md:grid md:grid-cols-12 gap-4 px-10 py-4 items-center bg-transparent hover:bg-white/[0.03] transition-all border-b border-white/5 md:border-none">
-                    <div className="w-full md:col-span-1 flex items-center justify-between md:justify-start">
-                        <PlayButton 
-                            id={sample.id} 
-                            url={sample.audio_url} 
-                            name={sample.name}
-                            packName={pack.name}
-                            coverUrl={pack.cover_url}
-                            bpm={sample.bpm}
-                            audioKey={sample.key}
-                            isUnlocked={unlockedSampleIds.has(sample.id) || isFullPackUnlocked}
-                        />
-                    </div>
-                    
-                    <div className="w-full md:col-span-4 flex flex-col">
-                        <span className="text-[15px] font-black uppercase text-white/80 group-hover:text-studio-neon transition-colors truncate">{sample.name}</span>
-                        <span className="text-[8px] font-bold uppercase text-white/10 tracking-[0.3em] mt-1 italic">Channel_{idx+1}</span>
-                    </div>
-                    
-                    <div className="hidden md:block col-span-1 font-black text-[12px] text-white/30 italic">
-                        {sample.bpm || ''}
-                    </div>
-                    <div className="hidden md:block col-span-1 font-black text-[12px] text-studio-neon tracking-tighter italic">
-                        {sample.key || ''}
-                    </div>
-                    
-                    <div className="w-full md:col-span-4">
-                        <Waveform id={sample.id} active={true} />
-                    </div>
-                    
-                    <div className="w-full md:col-span-1 flex justify-end">
-                        <DownloadButton 
-                            sampleId={sample.id} 
-                            isUnlockedInitial={unlockedSampleIds.has(sample.id) || isFullPackUnlocked} 
-                            creditCost={sample.credit_cost}
-                        />
-                    </div>
-                </div>
-            ))}
-            </div>
-        </div>
+        <SampleList samples={samples || []} packName={pack.name} coverUrl={pack.cover_url} unlockedSampleIds={unlockedSampleIds} isFullPackUnlocked={isFullPackUnlocked} />
       </div>
 
       {/* 🧬 COLLATERAL MODULES */}
@@ -271,7 +220,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
            Cross-Breediing_Artifacts
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            {relatedPacks?.map((rp) => (
+            {relatedPacks?.map((rp: any) => (
                 <Link key={rp.id} href={`/packs/${rp.slug}`} className="group studio-panel bg-studio-grey border-2 border-white/5 hover:border-studio-neon transition-all overflow-hidden">
                     <div className="aspect-square relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
                         {rp.cover_url && (

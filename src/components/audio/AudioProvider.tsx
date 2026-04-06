@@ -3,9 +3,20 @@ import React, { createContext, useContext, useState, useRef, useEffect } from 'r
 import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 import { getCachedAudio, cacheAudio } from '@/lib/audio/cache'
 
+type AudioMetadata = { 
+    id: string, 
+    url: string,
+    name: string, 
+    packName: string, 
+    coverUrl?: string | null, 
+    bpm?: number | null, 
+    audioKey?: string | null, 
+    isUnlocked?: boolean 
+}
+
 type AudioContextType = {
   activeId: string | null
-  activeMetadata: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean } | null
+  activeMetadata: AudioMetadata | null
   isPlaying: boolean
   isLoading: boolean
   currentTime: number
@@ -13,20 +24,24 @@ type AudioContextType = {
   spectrum: number[]
   isLooping: boolean
   volume: number
-  play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean }) => void
+  playlist: AudioMetadata[]
+  play: (id: string, url: string, metadata?: AudioMetadata) => void
   pause: () => void
   seek: (time: number) => void
   setVolume: (val: number) => void
   toggleLoop: () => void
   setIsLoading: (val: boolean) => void
   stop: () => void
+  setPlaylist: (list: AudioMetadata[]) => void
+  next: () => void
+  prev: () => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [activeMetadata, setActiveMetadata] = useState<{ name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean } | null>(null)
+  const [activeMetadata, setActiveMetadata] = useState<AudioMetadata | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -34,6 +49,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
   const [isLooping, setIsLooping] = useState(false)
   const [volume, setVolumeState] = useState(1.0)
+  const [playlist, setPlaylist] = useState<AudioMetadata[]>([])
   const [user, setUser] = useState<any>(null)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -44,6 +60,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   
   const userVolumeRef = useRef(1.0)
   const userRef = useRef<any>(null)
+  const playlistRef = useRef<AudioMetadata[]>([])
+
+  useEffect(() => {
+    playlistRef.current = playlist
+  }, [playlist])
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -245,7 +266,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setActiveMetadata(null);
     setCurrentTime(0);
     setSpectrum(new Array(40).fill(0));
-    // Assuming stopWatermark is available in scope
     if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
   }
 
@@ -257,11 +277,33 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  return (
-    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, isLooping, volume, play, pause, seek, setVolume, toggleLoop, setIsLoading, stop }}>
-      {children}
-    </AudioContext.Provider>
-  )
+    const next = () => {
+        const currentPlaylist = playlistRef.current
+        if (currentPlaylist.length === 0) return
+        const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
+        const nextIndex = (currentIndex + 1) % currentPlaylist.length
+        const nextSample = currentPlaylist[nextIndex]
+        play(nextSample.id, nextSample.url, nextSample)
+    }
+
+    const prev = () => {
+        const currentPlaylist = playlistRef.current
+        if (currentPlaylist.length === 0) return
+        const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
+        const prevIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length
+        const prevSample = currentPlaylist[prevIndex]
+        play(prevSample.id, prevSample.url, prevSample)
+    }
+
+    return (
+        <AudioContext.Provider value={{ 
+            activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
+            isLooping, volume, playlist, play, pause, seek, setVolume, toggleLoop, 
+            setIsLoading, stop, setPlaylist, next, prev 
+        }}>
+            {children}
+        </AudioContext.Provider>
+    )
 }
 
 export const useAudio = () => {
