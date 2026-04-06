@@ -8,7 +8,7 @@ import { useNotify } from '@/components/ui/NotificationProvider'
 export function BulkUnlockButton({ packId, cost }: { packId: string, cost: number }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const { showToast, showConfirm } = useNotify()
+  const { showToast, showConfirm, showAuthGate } = useNotify()
 
   const handleBulkUnlock = async () => {
     // 🛡️ PREMIUM CONFIRMATION SYSTEM
@@ -24,7 +24,7 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
       }
     } catch (err: any) {
       if (err.message === 'Authentication required') {
-          window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`
+          showAuthGate()
           return
       }
       alert(err.message || 'Error unlocking bundle.')

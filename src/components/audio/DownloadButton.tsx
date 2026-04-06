@@ -17,7 +17,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
     const [isUnlocked, setIsUnlocked] = useState(isUnlockedInitial)
     const [isProcessing, setIsProcessing] = useState(false)
     const { isPlaying } = useAudio()
-    const { showToast, showConfirm } = useNotify()
+    const { showToast, showConfirm, showAuthGate } = useNotify()
 
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -48,7 +48,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
             }
         } catch (err: any) {
             if (err.message === 'Authentication required') {
-                window.location.href = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`
+                showAuthGate()
                 return
             }
             showToast(err.message || "TRANSACTION FAILED", "error")

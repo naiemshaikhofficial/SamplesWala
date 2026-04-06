@@ -23,6 +23,10 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   const { data: samples } = await supabase.from('samples').select('*').eq('pack_id', pack.id).order('created_at', { ascending: true })
   const relatedPacks = await getRelatedPacks(pack.id, pack.category_id)
   
+  const melodies = samples?.filter(s => s.bpm && s.key).length || 0
+  const loops = samples?.filter(s => s.bpm && !s.key).length || 0
+  const oneShots = samples?.filter(s => !s.bpm).length || 0
+
   let unlockedSampleIds: Set<string> = new Set()
   let isFullPackUnlocked = false;
 
@@ -75,12 +79,31 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           </div>
           
-          <div className="mt-8 flex items-center gap-6 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-             <div className="flex flex-col flex-1">
-                <span className="text-[10px] uppercase font-bold tracking-widest text-white/20 mb-1">Files</span>
-                <span className="text-xl font-bold">{samples?.length || 0} Sounds</span>
+          <div className="mt-8 flex flex-wrap items-center gap-4 p-6 rounded-3xl bg-white/[0.02] border border-white/5">
+             <div className="flex flex-col flex-1 min-w-[100px]">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-white/20 mb-1">Breakdown</span>
+                <div className="flex flex-col gap-1">
+                    {melodies > 0 && (
+                        <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-emerald-400">Melodies</span>
+                            <span>{melodies}</span>
+                        </div>
+                    )}
+                    {loops > 0 && (
+                        <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-white/60">Loops</span>
+                            <span>{loops}</span>
+                        </div>
+                    )}
+                    {oneShots > 0 && (
+                        <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-white/40">One-Shots</span>
+                            <span>{oneShots}</span>
+                        </div>
+                    )}
+                </div>
              </div>
-             <div className="flex flex-col flex-1 border-l border-white/5 pl-6">
+             <div className="flex flex-col flex-1 border-l border-white/5 pl-6 min-w-[80px]">
                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/20 mb-1">Type</span>
                 <div className="flex items-center gap-1.5 text-sm font-bold">
                     <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
@@ -204,10 +227,15 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                                     coverUrl={pack.cover_url}
                                     bpm={sample.bpm}
                                     audioKey={sample.key}
+                                    isUnlocked={unlockedSampleIds.has(sample.id) || isFullPackUnlocked}
                                 />
                             <div className="md:hidden">
                                 <div className="font-bold text-sm tracking-tight">{sample.name}</div>
-                                <div className="text-[8px] uppercase font-black tracking-widest text-white/20">{sample.bpm}BPM | {sample.key}</div>
+                                <div className="text-[8px] uppercase font-black tracking-widest text-white/20">
+                                <div className="text-[8px] uppercase font-black tracking-widest text-white/20">
+                                    {sample.bpm && sample.key ? `${sample.bpm}BPM | ${sample.key} | MELODY` : (sample.bpm ? `${sample.bpm}BPM | LOOP` : 'ONE-SHOT')}
+                                </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -247,8 +275,11 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                         </div>
                     </div>
                     
-                    <div className="hidden md:block col-span-2 font-mono text-[10px] text-white/20 group-hover:text-white/60 transition-colors">
-                        {sample.bpm}BPM <span className="mx-1 opacity-20">/</span> {sample.key}
+                    <div className="hidden md:block col-span-2 font-mono text-[10px] text-white/40 group-hover:text-white/60 transition-colors">
+                        <span className="text-white/20">{sample.bpm ? `${sample.bpm}BPM / ${sample.key || 'NO KEY'}` : 'NO SYNC'}</span>
+                        <div className="text-[7px] font-black uppercase tracking-widest text-emerald-400 mt-1">
+                            {sample.bpm && sample.key ? 'MELODY' : (sample.bpm ? 'LOOP' : 'ONE-SHOT')}
+                        </div>
                     </div>
                     
                     <div className="w-full md:col-span-3 px-0 md:px-4">

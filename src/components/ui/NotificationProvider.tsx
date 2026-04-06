@@ -1,7 +1,8 @@
 'use client'
 import React, { createContext, useContext, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, CheckCircle2, AlertTriangle, Info, Bell } from 'lucide-react'
+import { X, CheckCircle2, AlertTriangle, Info, Bell, ShieldAlert, Zap } from 'lucide-react'
+import Link from 'next/link'
 
 type ToastType = 'success' | 'error' | 'info' | 'warning'
 
@@ -15,12 +16,14 @@ interface Toast {
 interface NotificationContextType {
   showToast: (message: string, type?: ToastType, duration?: number) => void
   showConfirm: (message: string) => Promise<boolean>
+  showAuthGate: () => void
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
+  const [isAuthGateOpen, setIsAuthGateOpen] = useState(false)
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean
     message: string
@@ -42,17 +45,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     })
   }, [])
 
+  const showAuthGate = useCallback(() => {
+    setIsAuthGateOpen(true)
+  }, [])
+
   const handleConfirm = (value: boolean) => {
     confirmState?.resolve(value)
     setConfirmState(null)
   }
 
   return (
-    <NotificationContext.Provider value={{ showToast, showConfirm }}>
+    <NotificationContext.Provider value={{ showToast, showConfirm, showAuthGate }}>
       {children}
       
-      {/* 🔱 THE WALA-TOASTER ENGINE */}
-      <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 pointer-events-none w-full max-w-xs">
+      {/* 🔱 GLOBAL TOASTER */}
+      <div className="fixed bottom-8 right-8 z-[200] flex flex-col gap-3 pointer-events-none w-full max-w-xs">
         <AnimatePresence mode="popLayout">
           {toasts.map((toast) => (
             <motion.div
@@ -87,10 +94,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         </AnimatePresence>
       </div>
 
-      {/* 🛡️ THE WALA-CONFIRMATION ENGINE */}
+      {/* 🛡️ GLOBAL CONFIRMATION MODAL */}
       <AnimatePresence>
         {confirmState?.isOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[210] flex items-center justify-center p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -127,6 +134,66 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* 🧬 GLOBAL AUTH GATE (SIGNAL LOCKED) */}
+      <AnimatePresence>
+        {isAuthGateOpen && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsAuthGateOpen(false)}
+                    className="absolute inset-0 bg-black/90 backdrop-blur-3xl"
+                />
+                
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 40 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 40 }}
+                    className="relative w-full max-w-lg bg-[#050505] border-2 border-white p-12 md:p-16 shadow-[0_0_100px_rgba(255,255,255,0.1)]"
+                >
+                    <div className="absolute top-0 right-0 p-8">
+                        <ShieldAlert className="h-12 w-12 text-red-500 animate-pulse" />
+                    </div>
+                    
+                    <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-8 italic">
+                        [ LOGIN_REQUIRED ]
+                    </div>
+                    
+                    <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-[0.8] mb-8 italic">
+                        PLEASE<br />LOGIN.
+                    </h2>
+                    
+                    <p className="text-white/40 text-[10px] md:text-xs font-black uppercase tracking-widest leading-relaxed mb-12">
+                        YOU NEED TO BE LOGGED IN TO AUDITION OR UNLOCK THESE PREMIUM SOUNDS. PLEASE CONNECT YOUR ACCOUNT TO CONTINUE.
+                    </p>
+                    
+                    <div className="flex flex-col gap-4">
+                        <Link 
+                            href="/auth/login"
+                            onClick={() => setIsAuthGateOpen(false)}
+                            className="h-16 bg-white text-black flex items-center justify-center font-black uppercase tracking-[0.3em] text-xs hover:invert transition-all gap-4"
+                        >
+                            LOGIN
+                        </Link>
+                        <button 
+                            onClick={() => setIsAuthGateOpen(false)}
+                            className="h-16 border border-white/10 text-white/20 flex items-center justify-center font-black uppercase tracking-[0.3em] text-[10px] hover:text-white transition-all"
+                        >
+                            RETURN TO TERMINAL
+                        </button>
+                    </div>
+
+                    <div className="mt-12 flex gap-1 justify-center">
+                        {[...Array(12)].map((_, i) => (
+                            <div key={i} className="h-1 w-4 bg-white/5" />
+                        ))}
+                    </div>
+                </motion.div>
+            </div>
         )}
       </AnimatePresence>
     </NotificationContext.Provider>

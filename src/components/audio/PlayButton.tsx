@@ -9,7 +9,8 @@ export function PlayButton({
   packName = "Vault Artifact", 
   coverUrl = null,
   bpm = null,
-  audioKey = null
+  audioKey = null,
+  isUnlocked = false
 }: { 
   id: string, 
   url: string, 
@@ -17,7 +18,8 @@ export function PlayButton({
   packName?: string, 
   coverUrl?: string | null,
   bpm?: number | null,
-  audioKey?: string | null
+  audioKey?: string | null,
+  isUnlocked?: boolean
 }) {
   const { activeId, isPlaying, isLoading, play } = useAudio()
   const isActive = activeId === id
@@ -25,7 +27,7 @@ export function PlayButton({
 
   return (
     <button 
-      onClick={(e) => { e.preventDefault(); play(id, url, { name, packName, coverUrl, bpm, audioKey }); }}
+      onClick={(e) => { e.preventDefault(); play(id, url, { name, packName, coverUrl, bpm, audioKey, isUnlocked }); }}
       className={`
         h-10 w-10 flex items-center justify-center rounded-full bg-white text-black transition-all hover:scale-110 active:scale-95
         ${isActive && isPlaying ? 'ring-4 ring-white/20' : ''}

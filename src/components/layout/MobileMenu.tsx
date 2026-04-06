@@ -51,9 +51,9 @@ export function MobileMenu({ user }: { user: any }) {
             <nav className="flex-1 space-y-8">
                <div className="space-y-4">
                   <span className="text-[9px] font-black uppercase tracking-widest text-white/10 block mb-4">Discovery — खोजें</span>
-                  <Link href="/browse" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic italic hover:text-emerald-400 block transition-all">Digital Vault</Link>
-                  <Link href="/packs" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic italic hover:text-emerald-400 block transition-all">Collections</Link>
-                  <Link href="/pricing" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic italic hover:text-emerald-400 block transition-all">Membership Access</Link>
+                  <Link href="/browse" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-emerald-400 block transition-all">Sounds</Link>
+                  <Link href="/packs" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-emerald-400 block transition-all">Packs</Link>
+                  <Link href="/pricing" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-emerald-400 block transition-all">Pricing</Link>
                </div>
 
                <div className="pt-8 space-y-4 border-t border-white/5">

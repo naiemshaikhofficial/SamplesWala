@@ -4,16 +4,18 @@ import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 
 type AudioContextType = {
   activeId: string | null
-  activeMetadata: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null } | null
+  activeMetadata: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean } | null
   isPlaying: boolean
   isLoading: boolean
   currentTime: number
   duration: number
   spectrum: number[]
   isLooping: boolean
-  play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null }) => void
+  volume: number
+  play: (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean }) => void
   pause: () => void
   seek: (time: number) => void
+  setVolume: (val: number) => void
   toggleLoop: () => void
   setIsLoading: (val: boolean) => void
 }
@@ -22,22 +24,24 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined)
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [activeMetadata, setActiveMetadata] = useState<{ name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null } | null>(null)
+  const [activeMetadata, setActiveMetadata] = useState<{ name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean } | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
   const [isLooping, setIsLooping] = useState(false)
+  const [volume, setVolumeState] = useState(1.0)
   const [user, setUser] = useState<any>(null)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const analyzerRef = useRef<AnalyserNode | null>(null)
   const ctxRef = useRef<any>(null)
   const animationRef = useRef<number | null>(null)
-  const watermarkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const watermarkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   
-  const userRef = useRef<any>(null);
+  const userVolumeRef = useRef(1.0)
+  const userRef = useRef<any>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -77,21 +81,24 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         analyzer.fftSize = 128;
         analyzer.smoothingTimeConstant = 0.8;
         
-        const source = ctx.createMediaElementSource(audio);
-        source.connect(analyzer);
-        analyzer.connect(ctx.destination);
-        
-        analyzerRef.current = analyzer;
-        ctxRef.current = ctx;
+        try {
+            const source = ctx.createMediaElementSource(audio);
+            source.connect(analyzer);
+            analyzer.connect(ctx.destination);
+            analyzerRef.current = analyzer;
+            ctxRef.current = ctx;
+        } catch (e) {
+            console.warn("Analyzer setup failed (likely already connected):", e);
+        }
     }
 
     const startWatermark = () => {
-        // ALWAYS WATERMARK PREVIEWS (Regardless of Login)
         stopWatermark();
         watermarkIntervalRef.current = setInterval(() => {
             if (audio.paused) return;
-            audio.volume = 0.2;
-            setTimeout(() => { if (audio.src) audio.volume = 1.0; }, 400);
+            const currentVol = userVolumeRef.current;
+            audio.volume = currentVol * 0.2;
+            setTimeout(() => { if (audio.src) audio.volume = userVolumeRef.current; }, 400);
         }, 8000);
     }
 
@@ -118,14 +125,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (ctxRef.current?.state === 'suspended') await ctxRef.current.resume();
         setIsPlaying(true);
         updateSpectrum();
-        startWatermark();
+        if (!activeMetadata?.isUnlocked) {
+            startWatermark();
+        }
     };
     audio.onpause = () => {
         setIsPlaying(false);
         stopWatermark();
     };
     audio.onended = () => { 
-        if (audio.loop) return; // Ignore ended if looping
+        if (audio.loop) return;
         setIsPlaying(false); 
         setActiveId(null); 
         setActiveMetadata(null);
@@ -146,7 +155,13 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null }) => {
+  const setVolume = (val: number) => {
+    setVolumeState(val)
+    userVolumeRef.current = val
+    if (audioRef.current) audioRef.current.volume = val
+  }
+
+  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean }) => {
     if (!audioRef.current) return
     
     if (activeId === id) {
@@ -172,18 +187,13 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const finalUrl = `/api/audio?id=${id}&token=${token}`;
         
         audioRef.current.src = finalUrl;
+        audioRef.current.volume = userVolumeRef.current;
         audioRef.current.load();
         
-        // 🔥 FIX: Handle the play promise to prevent AbortError
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
             playPromise.catch((error) => {
-                if (error.name === 'AbortError') {
-                    // Ignore abort errors caused by rapid play/pause
-                    console.log("Audio playback interrupted (expected).");
-                } else {
-                    console.error("Playback failed:", error);
-                }
+                if (error.name !== 'AbortError') console.error("Playback failed:", error);
             });
         }
     } catch (e) {
@@ -211,7 +221,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, isLooping, play, pause, seek, toggleLoop, setIsLoading }}>
+    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, isLooping, volume, play, pause, seek, setVolume, toggleLoop, setIsLoading }}>
       {children}
     </AudioContext.Provider>
   )

@@ -30,7 +30,7 @@ export default function PrivacyPage() {
                              {[
                                 { t: 'Agent Identity', d: 'WE COLLECT YOUR EMAIL AND NAME TO SECURE YOUR ARTIFACT VAULT ACCESS.', icon: <Database /> },
                                 { t: 'Transaction Data', d: 'RAZORPAY AND STRIPE HANDLE YOUR PAYMENT SECRETS; WE ONLY RECEIVE THE STATUS SIGNAL.', icon: <Lock /> },
-                                { t: 'Audition Metrics', d: 'WE TRACK WHICH ARTIFACTS YOU AUDITION TO OPTIMIZE THE DISCOVERY ENGINE.', icon: <Eye /> },
+                                { t: 'Usage Metrics', d: 'WE TRACK WHICH ARTIFACTS YOU VIEW TO OPTIMIZE THE DISCOVERY ENGINE.', icon: <Eye /> },
                                 { t: 'Protocol Access', d: 'WE LOG YOUR IP TO ENSURE THE SECURITY OF YOUR UNLOCKED WAV TRANSFERS.', icon: <ShieldCheck /> }
                              ].map((item, i) => (
                                 <div key={i} className="p-10 border border-white/10 bg-white/[0.02] space-y-6 group hover:bg-white transition-all duration-700">

@@ -2,11 +2,12 @@
 import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 import Image from 'next/image'
-import { Play, Pause, X, Music, Activity, SkipBack, SkipForward, Repeat } from 'lucide-react'
+import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1 } from 'lucide-react'
 
 export function GlobalPlayer() {
-  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop } = useAudio()
+  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume } = useAudio()
   const [isVisible, setIsVisible] = useState(false)
+  const [showVolume, setShowVolume] = useState(false)
 
   useEffect(() => {
     if (activeId) setIsVisible(true)
@@ -22,6 +23,25 @@ export function GlobalPlayer() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] bg-black border-t-2 border-white lg:pl-20 animate-in slide-in-from-bottom duration-500">
+      {/* 🔮 ANTI-PIRACY SECURITY BANNER */}
+      {!activeMetadata?.isUnlocked && (
+          <div className="bg-white text-black h-8 flex items-center justify-between px-6 md:px-20 overflow-hidden relative group/banner">
+              <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                       <Activity size={10} className="animate-pulse" />
+                       <span className="text-[9px] font-black uppercase tracking-[0.2em] italic">[ PREVIEW_MODE_ACTIVE ]</span>
+                  </div>
+                  <span className="hidden md:inline text-[8px] font-bold uppercase tracking-widest text-black/60">
+                      LOW QUALITY AUDIO WITH WATERMARK. UNLOCK TO DOWNLOAD FULL HIGH-QUALITY WAV.
+                  </span>
+              </div>
+              <div className="flex items-center gap-1 opacity-20 group-hover/banner:opacity-100 transition-opacity">
+                  {[...Array(8)].map((_, i) => (
+                      <div key={i} className="h-1 w-4 bg-black" />
+                  ))}
+              </div>
+          </div>
+      )}
       {/* 🎰 THE RACK HEADER */}
       <div className="flex h-24 items-center px-6 md:px-20 gap-12">
         
@@ -40,7 +60,7 @@ export function GlobalPlayer() {
             )}
           </div>
           <div className="overflow-hidden flex-1">
-             <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-1">
+             <span className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-1 italic">
                 {activeMetadata?.packName || "Previewing Artifact"}
              </span>
              <h4 className="text-xl font-black uppercase tracking-tighter truncate leading-none">
@@ -73,7 +93,7 @@ export function GlobalPlayer() {
                     </button>
                     <button 
                         onClick={toggleLoop} 
-                        className={`h-12 w-12 flex items-center justify-center transition-all ${isLooping ? 'bg-white text-black ring-4 ring-white/10' : 'bg-white/5 text-white hover:bg-white/10'}`}
+                        className={`h-12 w-12 flex items-center justify-center transition-all ${isLooping ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/10' : 'bg-white/5 text-white hover:bg-white/10'}`}
                         title="Toggle Loop"
                     >
                         <Repeat className={`h-5 w-5 ${isLooping ? 'animate-pulse' : ''}`} />
@@ -92,7 +112,6 @@ export function GlobalPlayer() {
                     />
                 </div>
 
-                {/* 🎹 SPLICE-STYLE METADATA */}
                 <div className="flex items-center gap-6 border-l border-white/10 pl-6 h-8 shrink-0">
                    <div className="flex flex-col">
                       <span className="text-[8px] font-black uppercase text-white/30 tracking-widest leading-none">Key</span>
@@ -116,9 +135,31 @@ export function GlobalPlayer() {
             </div>
         </div>
 
-        {/* 🛡️ RACK STATUS */}
-        <div className="hidden xl:flex items-center gap-12 border-l border-white/10 pl-12">
-            <div className="flex flex-col gap-1 items-end">
+        {/* 🛡️ RACK STATUS & VOLUME */}
+        <div className="hidden xl:flex items-center gap-8 border-l border-white/10 pl-12 h-12">
+            
+            {/* 🔊 GAIN CONTROL (Volume) */}
+            <div className="relative group/vol flex items-center gap-4">
+                <button 
+                   onClick={() => setVolume(volume === 0 ? 1 : 0)} 
+                   className="h-10 w-10 flex items-center justify-center hover:bg-white hover:text-black transition-all"
+                >
+                    {volume === 0 ? <VolumeX size={18} /> : volume < 0.5 ? <Volume1 size={18} /> : <Volume2 size={18} />}
+                </button>
+                <div className="w-24 h-8 flex items-center">
+                    <input 
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="w-full h-1 bg-white/10 accent-white appearance-none cursor-crosshair group-hover/vol:h-2 transition-all"
+                    />
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-1 items-end ml-4">
                 <div className="flex gap-1">
                     {[1,2,3,4,5].map(i => (
                         <div key={i} className={`h-4 w-1 bg-white ${isPlaying ? 'animate-pulse' : 'opacity-20'}`} style={{ animationDelay: `${i * 0.1}s` }} />
@@ -126,6 +167,7 @@ export function GlobalPlayer() {
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Signal Lock</span>
             </div>
+            
             <button onClick={() => setIsVisible(false)} className="h-10 w-10 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all">
                 <X className="h-4 w-4" />
             </button>

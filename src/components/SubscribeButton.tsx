@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createSubscription, purchaseCreditPack, purchaseSamplePack, verifyPayment } from '@/app/pricing/actions'
 import { Loader2, Sparkles, CreditCard } from 'lucide-react'
 import Script from 'next/script'
+import { useNotify } from '@/components/ui/NotificationProvider'
+import { createClient } from '@/lib/supabase/client'
 
 type SubscribeButtonProps = {
   planId: string
@@ -23,8 +25,17 @@ declare global {
 export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled }: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
+  const { showAuthGate } = useNotify()
+  const supabase = createClient()
 
   const handleSubscribe = async () => {
+    // 🧬 AUTH CHECK
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+        showAuthGate()
+        return
+    }
+
     setIsPending(true)
     try {
       // 1. Create Server-Side Order

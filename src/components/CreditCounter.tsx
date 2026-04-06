@@ -24,10 +24,14 @@ export function CreditCounter() {
           const total = data.reduce((acc: number, row: any) => acc + (row.current_credits || 0), 0)
           setCredits(total)
           
-          // Get the most significant plan name (if multiple)
           const name = (data[0].subscription_plans as any)?.name
           setPlanName(name || 'Member')
+        } else {
+          setCredits(0)
+          setPlanName('Member')
         }
+      } else {
+        setCredits(null)
       }
   }, [supabase])
 
