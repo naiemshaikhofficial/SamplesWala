@@ -10,7 +10,8 @@ export function PlayButton({
   coverUrl = null,
   bpm = null,
   audioKey = null,
-  isUnlocked = false
+  isUnlocked = false,
+  lightMode = false
 }: { 
   id: string, 
   url: string, 
@@ -19,7 +20,8 @@ export function PlayButton({
   coverUrl?: string | null,
   bpm?: number | null,
   audioKey?: string | null,
-  isUnlocked?: boolean
+  isUnlocked?: boolean,
+  lightMode?: boolean
 }) {
   const { activeId, isPlaying, isLoading, play } = useAudio()
   const isActive = activeId === id

@@ -3,17 +3,17 @@
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Music, User, Menu, Play, Activity } from 'lucide-react'
+import { Music, User, Activity, Play, Pause, Square, Circle, Cpu, Layers, Disc } from 'lucide-react'
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
-import { TextScramble } from '@/components/ui/TextScramble'
 import { useEffect, useState } from 'react'
-import { signOut } from '@/app/auth/actions'
+import { useAudio } from '@/components/audio/AudioProvider'
 
 export function Header() {
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
+  const { isPlaying, activeId, activeMetadata, currentTime, play, pause } = useAudio()
 
   useEffect(() => {
     const getUser = async () => {
@@ -23,92 +23,123 @@ export function Header() {
     getUser()
   }, [])
 
+  // Format time MM:SS:CC
+  const formatTime = (time: number) => {
+    const mins = Math.floor(time / 60)
+    const secs = Math.floor(time % 60)
+    const cents = Math.floor((time % 1) * 100)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}:${cents.toString().padStart(2, '0')}`
+  }
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black text-white lg:pl-20 group/nav h-20 md:h-24">
-      {/* 🧬 NAVIGATION SCAN LINE */}
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-white opacity-[0.05] animate-scan-line pointer-events-none group-hover/nav:opacity-20 transition-all duration-700" />
+    <header className="sticky top-0 z-[80] w-full bg-studio-grey text-white border-b-4 border-black shadow-2xl">
       
-      <div className="flex h-full items-center justify-between px-4 md:px-20 container mx-auto">
-        <div className="flex items-center gap-6 md:gap-16">
-          <Link href="/" className="flex items-center gap-3 md:gap-4 group/logo relative">
-            <div className="relative">
+      {/* 🎹 TOP NAVIGATION (Hidden on Mobile) */}
+      <div className="hidden md:flex bg-black/80 px-6 py-2.5 items-center justify-between border-b border-white/5">
+        <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.4em] text-white/40">
+            {[
+              { label: 'Sounds', href: '/browse' },
+              { label: 'Packs', href: '/browse' },
+              { label: 'Pricing', href: '/pricing' },
+              { label: 'My Library', href: '/profile/library' },
+              { label: 'User Node', href: '/profile' }
+            ].map(item => (
+                <Link key={item.label} href={item.href} className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group">
+                   <div className="w-1.5 h-1.5 rounded-full bg-studio-neon opacity-20 group-hover:opacity-100 transition-opacity" />
+                   {item.label}
+                </Link>
+            ))}
+        </div>
+        <div className="flex items-center gap-6 text-[9px] font-black uppercase text-white/20">
+            <span className="flex items-center gap-2 text-studio-neon"><Activity size={10} /> MASTER_BUS_LIVE</span>
+            <span className="flex items-center gap-2"><Disc size={10} className="animate-spin-slow" /> AUDIO_ENCODED</span>
+        </div>
+      </div>
+
+      <div className="px-4 md:px-6 py-3 md:py-4 flex flex-col xl:flex-row items-center gap-4 md:gap-12">
+        
+        {/* 🚀 TRANSPORT CONTROLS & LCD (Responsive Scaling) */}
+        <div className="w-full xl:w-auto flex items-center justify-between xl:justify-start gap-4 md:gap-6 bg-[#181818] p-2 md:p-2.5 border-2 border-white/5 shadow-inner rounded-sm scale-90 sm:scale-100 origin-left overflow-x-auto no-scrollbar">
+            <div className="flex gap-1.5 border-r border-white/10 pr-4 md:pr-5 shrink-0">
+                <button 
+                    onClick={() => isPlaying ? pause() : activeId ? null : null} 
+                    className={`h-8 w-8 md:h-9 md:w-9 flex items-center justify-center bg-black hover:bg-studio-neon hover:text-black transition-all border border-white/5 rounded-sm group ${isPlaying ? 'bg-studio-neon text-black' : ''}`}
+                >
+                    {isPlaying ? (
+                        <Pause size={14} fill="currentColor" />
+                    ) : (
+                        <Play size={14} fill="currentColor" className="text-studio-neon group-hover:text-black ml-0.5" />
+                    )}
+                </button>
+                <button 
+                    onClick={() => pause()}
+                    className="h-8 w-8 md:h-9 md:w-9 flex items-center justify-center bg-black hover:bg-white hover:text-black transition-all border border-white/5 rounded-sm"
+                >
+                    <Square size={12} fill="currentColor" />
+                </button>
+            </div>
+
+            <div className="flex gap-3 md:gap-4 shrink-0">
+                {/* BPM LCD */}
+                <div className="flex flex-col gap-0.5 items-center justify-center px-3 md:px-4 py-1 md:py-1.5 bg-black/80 border border-white/10 rounded-sm min-w-[60px] md:min-w-[70px]">
+                    <span className="text-[14px] md:text-[16px] font-black text-studio-neon leading-none tracking-tighter">
+                        {activeMetadata?.bpm ? activeMetadata.bpm.toFixed(2) : '120.00'}
+                    </span>
+                    <span className="text-[5px] md:text-[6px] font-black uppercase text-white/20 tracking-widest">TEMPO</span>
+                </div>
+                {/* TIME LCD */}
+                <div className="flex flex-col gap-0.5 items-center justify-center px-3 md:px-4 py-1 md:py-1.5 bg-black/80 border border-white/10 rounded-sm min-w-[80px] md:min-w-[90px]">
+                    <span className="text-[14px] md:text-[16px] font-black text-white leading-none tracking-tighter">
+                        {formatTime(currentTime)}
+                    </span>
+                    <span className="text-[5px] md:text-[6px] font-black uppercase text-white/20 tracking-widest">TIMESTAMP</span>
+                </div>
+                {/* PATTERN LCD */}
+                <div className="hidden sm:flex flex-col gap-0.5 items-center justify-center px-3 md:px-4 py-1 md:py-1.5 bg-black/80 border border-white/10 rounded-sm min-w-[40px] md:min-w-[50px]">
+                    <span className="text-[14px] md:text-[16px] font-black text-studio-yellow leading-none tracking-tighter italic">P01</span>
+                    <span className="text-[5px] md:text-[6px] font-black uppercase text-white/20 tracking-widest">RACK</span>
+                </div>
+            </div>
+        </div>
+
+        {/* 💎 MAIN LOGO (Responsive size) */}
+        <div className="flex-1 flex justify-center order-first xl:order-none">
+            <Link href="/" className="group relative px-4 md:px-6 py-2 md:py-3 studio-panel bg-black border-2 border-white/5 hover:border-studio-neon transition-all hover:scale-105 overflow-hidden rounded-sm">
                 <Image 
                   src="/Logo.png" 
                   alt="SAMPLES WALA Logo" 
-                  width={300} 
-                  height={80} 
-                  style={{ width: 'auto' }}
-                  className="h-12 md:h-16 w-auto object-contain transition-transform duration-700 group-hover/logo:scale-110 group-hover/logo:brightness-125"
+                  width={140} 
+                  height={35} 
+                  className="h-7 md:h-9 w-auto object-contain brightness-110 group-hover:brightness-150 transition-all duration-700"
                   priority
                 />
-                {/* 🧬 Logo Pulse Aura */}
-                <div className="absolute inset-0 bg-white/0 group-hover/logo:bg-white/5 blur-xl transition-all duration-700 -z-10 rounded-full" />
-            </div>
-            
-            {/* 🧬 Logo Rhythmic Decoration */}
-            <div className="hidden xl:flex flex-col gap-[2px] items-start opacity-20 group-hover/logo:opacity-60 transition-all">
-                <div className="h-[2px] w-4 bg-white animate-meter" style={{ animationDelay: '0.1s' }} />
-                <div className="h-[2px] w-6 bg-white animate-meter" style={{ animationDelay: '0.2s' }} />
-                <div className="h-[2px] w-2 bg-white animate-meter" style={{ animationDelay: '0.3s' }} />
-            </div>
-          </Link>
-          
-          <nav className="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden">
-            <Link href="/browse" className="text-white/30 hover:text-white transition-all py-8 px-2 relative group/link">
-                <TextScramble text="Sounds" autostart={false} />
-                <div className="absolute bottom-4 left-0 w-0 h-[2px] bg-white group-hover/link:w-full transition-all duration-500" />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                    <Activity size={10} className="text-white/40" />
-                </div>
             </Link>
-            <Link href="/packs" className="text-white/30 hover:text-white transition-all py-8 px-2 relative group/link">
-                <TextScramble text="Packs" autostart={false} />
-                <div className="absolute bottom-4 left-0 w-0 h-[2px] bg-white group-hover/link:w-full transition-all duration-500" />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                    <Music size={10} className="text-white/40" />
-                </div>
-            </Link>
-            <Link href="/pricing" className="text-white/30 hover:text-white transition-all py-8 px-2 relative group/link">
-                <TextScramble text="Pricing" autostart={false} />
-                <div className="absolute bottom-4 left-0 w-0 h-[2px] bg-white group-hover/link:w-full transition-all duration-500" />
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/link:opacity-100 transition-opacity">
-                    <Play size={10} fill="white" className="text-white/40" />
-                </div>
-            </Link>
-          </nav>
         </div>
 
-        <div className="flex items-center gap-4 md:gap-6">
-          <div className="hidden md:flex items-center gap-6">
-              {user && (
-                  <Link href="/library" className="group flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 hover:bg-white hover:text-black transition-all overflow-hidden relative">
-                      <Music className="h-3 w-3 relative z-10" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-inherit relative z-10">My Library</span>
-                      <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 -z-0" />
-                  </Link>
-              )}
-              {user && <CreditCounter />}
-              <CurrencyToggle />
-          </div>
+        {/* 🧬 AUTH & RACK STATS */}
+        <div className="flex items-center gap-4 md:gap-6 ml-auto xl:ml-0">
+            <div className="hidden xxl:flex items-center gap-5 px-5 py-1.5 bg-black/40 border-l border-white/10 scale-90">
+                <div className="flex flex-col items-end">
+                    <div className="flex gap-1 h-1.5 mb-1">
+                        {[...Array(6)].map((_, i) => <div key={i} className="w-1 bg-studio-neon/20 animate-peak" style={{ animationDelay: `${i*0.1}s` }} />)}
+                    </div>
+                    <span className="text-[7px] font-black uppercase text-white/15 tracking-widest">ENGINE_BUS_ACTIVE</span>
+                </div>
+            </div>
 
-          <div className="flex items-center gap-3 md:gap-4 ml-2 md:ml-6 pl-2 md:pl-6 border-l border-white/10 h-10">
             {user ? (
-                <div className="flex items-center gap-3 md:gap-4 h-full">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/40 hidden sm:block">
-                        {user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
-                    </span>
-                    <Link href="/profile" className="h-full w-10 flex items-center justify-center border border-white/10 hover:bg-white hover:text-black transition-all">
-                        <User className="h-4 w-4" />
+                <div className="flex items-center gap-3 md:gap-4">
+                    <CreditCounter />
+                    <Link href="/profile" className="h-9 w-9 md:h-11 md:w-11 flex items-center justify-center studio-panel border-2 border-white/5 hover:border-studio-neon hover:bg-black transition-all group/user bg-[#222]">
+                        <User className="h-4 w-4 group-hover:text-studio-neon text-white/40" />
                     </Link>
                 </div>
             ) : (
-                <Link href="/auth/login" className="h-full px-4 md:px-8 flex items-center justify-center bg-white text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white border border-white transition-all overflow-hidden relative group">
-                    <span className="relative z-10">Login</span>
-                    <div className="absolute inset-x-0 bottom-0 h-0 group-hover:h-full bg-black transition-all duration-300 -z-0" />
+                <Link href="/auth/login" className="h-9 px-4 md:h-11 md:px-6 flex items-center justify-center bg-white text-black text-[9px] font-black uppercase tracking-widest hover:bg-studio-neon transition-all border-r-4 border-studio-yellow">
+                    Login
                 </Link>
             )}
             <MobileMenu user={user} />
-          </div>
         </div>
       </div>
     </header>

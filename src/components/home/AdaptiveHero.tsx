@@ -1,143 +1,101 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Play, Activity, Music2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowRight, Play, Activity, Disc } from 'lucide-react'
 import Link from 'next/link'
-import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Image from 'next/image'
 import { HeroSearch } from './HeroSearch'
 import { AnimatedHeroLogo } from './AnimatedHeroLogo'
-import { TextScramble } from '@/components/ui/TextScramble'
 
 export function AdaptiveHero() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
 
-  // 📀 MASTER VIBE ENGINE 
-  const vibe = useMemo(() => {
-    if (!query) return 'default'
-    const q = query.toLowerCase()
-    if (q.includes('drum') || q.includes('beat')) return 'percussive'
-    if (q.includes('vocal') || q.includes('sing')) return 'melodic'
-    if (q.includes('vintage') || q.includes('old')) return 'analog'
-    if (q.includes('trap') || q.includes('bass')) return 'heavy'
-    return 'default'
-  }, [query])
-
-  // 🎨 FILTER CONFIG (Professional Studio Grade)
-  const getFilter = () => {
-    switch(vibe) {
-      case 'percussive': return 'grayscale(1) contrast(1.4) brightness(0.7)'
-      case 'melodic': return 'sepia(0.3) brightness(0.9) contrast(0.9)'
-      case 'analog': return 'sepia(0.6) hue-rotate(-10deg) saturate(0.8) brightness(0.8)'
-      case 'heavy': return 'invert(0.1) brightness(0.6) contrast(1.6) saturate(1.2)'
-      default: return 'grayscale(1) brightness(0.5)'
-    }
-  }
-
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 md:pt-32 pb-24 md:pb-48 overflow-hidden bg-black">
+    <section className="relative min-h-[calc(100vh-140px)] flex flex-col items-center justify-center pt-12 pb-24 md:pb-32 overflow-hidden bg-studio-charcoal step-grid">
         
-        {/* 🧬 STUDIO ATMOSPHERE (Adaptive Backdrop) */}
+        {/* 🧬 STUDIO ATMOSPHERE (Master Display Backdrop) */}
         <div className="absolute inset-0 pointer-events-none z-0">
-            <motion.div 
-                key={vibe}
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ 
-                    filter: getFilter(),
-                    scale: 1,
-                    opacity: 1
-                }}
-                transition={{ 
-                    duration: 2.5,
-                    ease: [0.16, 1, 0.3, 1]
-                }}
-                className="absolute inset-0 opacity-40 bg-cover bg-center bg-no-repeat transition-all duration-1000 animate-float-prod"
-                style={{ 
-                    backgroundImage: `url('https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1920&auto=format&fit=crop')`,
-                }}
-            />
-            {/* 🧬 Dynamic Light Glares (Hover Reactivity Simulation) */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
-            <div className="absolute inset-0 bg-noise opacity-[0.03] mix-blend-overlay" />
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_0%,transparent_70%)]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-studio-neon opacity-20 animate-pulse" />
+            
+            {/* Pulsing Mechanical Orbs */}
+            <div className="absolute top-1/4 left-1/4 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-studio-neon opacity-[0.03] blur-[80px] md:blur-[150px] rounded-full animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-spider-red opacity-[0.02] blur-[60px] md:blur-[120px] rounded-full animate-ping" />
         </div>
 
-        {/* 🧬 SCAN PASS EFFECT */}
-        <div className="absolute inset-0 pointer-events-none z-10 animate-scan opacity-20" />
+        {/* 🧬 CONSOLE SCAN PASS */}
+        <div className="absolute inset-x-0 h-[2px] bg-studio-neon opacity-10 shadow-[0_0_20px_#a6e22e] animate-scan pointer-events-none z-10" />
 
-        <div className="relative z-20 flex flex-col items-center text-center px-4 md:px-0">
-            <AnimatedHeroLogo />
+        <div className="relative z-20 flex flex-col items-center text-center px-4 md:px-6 max-w-7xl mx-auto w-full">
+            
+            <div className="mb-6 md:mb-8 relative group scale-[0.65] sm:scale-75 md:scale-100">
+                <div className="absolute -inset-10 bg-studio-neon/5 blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                <AnimatedHeroLogo />
+            </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center gap-6 mb-8"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                className="space-y-6 md:space-y-8 mb-12 md:mb-16 w-full"
             >
-                <div className="h-[1px] w-8 md:w-16 bg-white/20 animate-pulse" />
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-white/40 italic">
-                    <TextScramble 
-                        key={vibe}
-                        text={`MODERN HERITAGE / ${vibe === 'default' ? 'मुम्बई साउंड' : vibe.toUpperCase()}`}
-                        autostart={true}
-                        duration={1200}
-                    />
-                </span>
-                <div className="h-[1px] w-8 md:w-16 bg-white/20 animate-pulse" />
+                <div className="flex items-center justify-center gap-4 md:gap-6 text-studio-neon">
+                    <div className="h-0.5 w-8 md:w-12 bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] flex items-center gap-2 md:gap-4">
+                        <Activity className="h-3 w-3 animate-pulse" /> Signal_Safe_Production
+                    </span>
+                    <div className="h-0.5 w-8 md:w-12 bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
+                </div>
+
+                <h1 className="text-4xl sm:text-6xl md:text-[8rem] font-black uppercase tracking-tighter leading-[0.9] italic">
+                    THE WORLD'S BEST<br />
+                    <span className="text-studio-neon bg-black px-4 sm:px-8 py-2 md:py-3 border-r-[12px] md:border-r-[24px] border-studio-yellow transform -skew-x-12 inline-block mt-3 md:mt-4">SOUNDS</span>
+                </h1>
+
+                <p className="max-w-2xl mx-auto text-sm md:text-2xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] leading-relaxed px-4 opacity-40 hover:opacity-100 transition-opacity duration-700 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/20">
+                    Premium high-definition samples for your track. <br className="hidden md:block" />
+                    Created by world-class producers. Royalty Free.
+                </p>
             </motion.div>
 
-            <motion.p 
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 0.6 }}
-                animate={{ opacity: 0.6 }}
-                transition={{ duration: 1.5, delay: 0.8 }}
-                className="max-w-2xl text-lg md:text-3xl font-medium tracking-tight leading-snug mb-12 md:mb-16 px-4 md:px-0 italic group"
-            >
-                Crafting the future of <span className="text-white group-hover:text-emerald-400 transition-colors">Indian music</span>. Cinematic, high-contrast, and 
-                profoundly local. Premium samples for music producers.
-            </motion.p>
-
-            <HeroSearch />
+            {/* 🔎 MASTER PRESET SELECTOR (Search) */}
+            <div className="w-full max-w-3xl transform hover:scale-[1.01] transition-transform duration-700 shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
+                <HeroSearch />
+            </div>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                className="mt-12 md:mt-20 flex flex-col md:flex-row items-center gap-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                className="mt-12 md:mt-16 flex flex-col md:flex-row items-center gap-8 md:gap-12 w-full justify-center"
             >
-                <Link href="/browse" className="relative group overflow-hidden flex items-center gap-8 px-16 py-8 bg-white text-black font-black uppercase tracking-widest text-[10px] hover:scale-[1.05] active:scale-[0.98] transition-all shrink-0">
-                    <span className="relative z-10 flex items-center gap-4">
-                        DISCOVER ALL SOUNDS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                <Link href="/browse" className="relative group overflow-hidden flex items-center gap-8 md:gap-10 px-10 md:px-16 py-6 md:py-8 bg-white text-black font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:-translate-y-2 active:scale-95 transition-all shadow-2xl border-r-[12px] md:border-r-[16px] border-studio-yellow w-full sm:w-auto">
+                    <span className="relative z-10 flex items-center gap-4 justify-center w-full">
+                        DISCOVER SOUNDS <ArrowRight className="h-4 w-4 group-hover:translate-x-3 transition-transform" />
                     </span>
-                    <div className="absolute inset-0 bg-emerald-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                    <span className="absolute inset-0 flex items-center justify-center gap-4 text-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">
-                        START CREATING NOW <Music2 className="h-4 w-4 animate-bounce" />
+                    <div className="absolute inset-0 bg-studio-neon translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                    <span className="absolute inset-0 flex items-center justify-center gap-4 text-black translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">
+                        START NOW <Disc className="h-4 w-4 animate-spin-slow" />
                     </span>
                 </Link>
 
-                <div className="flex items-center gap-4 pl-4 md:border-l border-white/10 group cursor-pointer">
-                    <div className="h-10 w-10 flex items-center justify-center border border-white/10 group-hover:border-white transition-all rounded-full group-hover:bg-white group-hover:text-black">
-                         <Play size={16} fill="white" className="group-hover:fill-black ml-1 transition-all" />
+                <div className="flex items-center gap-6 group cursor-pointer pl-0 md:pl-8 border-l-0 md:border-l-4 border-black w-full sm:w-auto justify-center sm:justify-start">
+                    <div className="h-12 w-12 md:h-14 md:w-14 flex items-center justify-center studio-panel border-2 border-white/5 group-hover:border-studio-neon hover:bg-black transition-all rotate-12 group-hover:rotate-0">
+                         <Play size={18} fill="currentColor" className="text-white group-hover:text-studio-neon transition-colors" />
                     </div>
-                    <div className="text-left">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/60 group-hover:text-white transition-all">Preview All Drops</p>
-                        <p className="text-[9px] text-white/20 group-hover:text-emerald-400 transition-all italic underline decoration-white/0 group-hover:decoration-emerald-400/50 underline-offset-4">Listen to the latest sequence</p>
+                    <div className="text-left space-y-0.5">
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-studio-neon transition-all">Studio Preview</p>
+                        <p className="text-[7px] md:text-[8px] text-white/20 font-bold uppercase tracking-widest italic group-hover:text-white transition-all">Listen to the latest sequence</p>
                     </div>
                 </div>
             </motion.div>
         </div>
 
-        {/* 🧬 MASTER SIGNAL DECOR (Sides) */}
-        <div className="absolute top-0 bottom-0 left-8 md:left-20 w-[1px] bg-white/5 flex flex-col items-center justify-center gap-24 py-32 pointer-events-none hidden md:flex">
-             {[...Array(4)].map((_, i) => (
-                 <div key={i} className="flex flex-col gap-1 items-center">
-                    <div className="h-32 w-[1px] bg-white/5 overflow-hidden">
-                        <div className="h-full w-full bg-white/20 animate-meter" style={{ animationDelay: `${i * 0.4}s` }} />
-                    </div>
-                    <span className="text-[8px] font-black vertical-text uppercase tracking-widest text-white/10 opacity-50">Signal_{i}</span>
-                 </div>
+        {/* Rhythmic Level Decor (Bottom) - Hidden on smallest screens */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 hidden sm:flex items-end gap-1 px-4 opacity-10 md:opacity-20 max-w-full">
+             {[...Array(30)].map((_, i) => (
+                 <div key={i} className="w-1.5 md:w-2 bg-studio-neon animate-meter" style={{ height: `${10 + Math.random() * 30}px`, animationDelay: `${i * 0.05}s` }} />
              ))}
         </div>
     </section>

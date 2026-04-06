@@ -5,6 +5,9 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { GlobalPlayer } from '@/components/audio/GlobalPlayer'
 import { ClientProviders } from '@/components/ClientProviders'
+import { Sidebar } from '@/components/layout/Sidebar'
+import { BottomNav } from '@/components/layout/BottomNav'
+import { SignalScan } from '@/components/ui/SignalScan'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -21,8 +24,6 @@ export const metadata: Metadata = {
   description: 'High-performance, royalty-free audio samples, loops, and sample packs for modern music producers.',
 }
 
-import { SignalScan } from '@/components/ui/SignalScan'
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,16 +31,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-black`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
         <SignalScan />
         <ClientProviders>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-            <GlobalPlayer />
+          <div className="flex min-h-screen relative overflow-x-hidden">
+            <Sidebar />
+            <div className="flex-1 flex flex-col min-h-screen lg:pl-64 transition-all duration-500 pb-20 lg:pb-0">
+              <Header />
+              <main className="flex-grow relative">
+                {children}
+              </main>
+              <Footer />
+              <GlobalPlayer />
+              <BottomNav />
+            </div>
           </div>
         </ClientProviders>
       </body>

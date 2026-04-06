@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, ShieldCheck, Zap, Disc, Globe, Music, Share2, Search, Activity } from "lucide-react";
+import { 
+  ShieldCheck, Disc, Activity, Settings2, SlidersHorizontal, 
+  BarChart3, Radio
+} from "lucide-react";
 import { NewArrivals } from "@/components/home/NewArrivals";
 import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
@@ -17,8 +19,8 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(4)
 
-  // 💿 AUTOMATIC POPULARITY ENGINE (No Manual SQL Needed)
-  const topSamples = await getTopPopularSounds(10)
+  // 💿 AUTOMATIC POPULARITY ENGINE
+  const topSamples = await getTopPopularSounds(12)
 
   const { data: { user } } = await supabase.auth.getUser()
   let unlockedSampleIds: Set<string> = new Set()
@@ -30,50 +32,106 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black overflow-x-hidden">
-      {/* 🎰 THE FILM GRAIN OVERLAY */}
-      <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.03] mix-blend-overlay bw-grid"></div>
-      
-      {/* 🎰 THE MUMBAI SIDEBAR (Vertical Wala) */}
-      <div className="fixed left-0 top-0 h-screen w-20 border-r border-white/10 hidden lg:flex flex-col items-center py-12 z-50 mix-blend-difference bg-black">
-        <span className="[writing-mode:vertical-rl] text-[10px] font-black uppercase tracking-[0.6em] text-white/40 rotate-180 mb-20 whitespace-nowrap">
-            SAMPLES WALA — मुम्बई — EST. 2024
-        </span>
-        <div className="mt-auto flex flex-col gap-8 opacity-40 hover:opacity-100 transition-opacity">
-            <Link href="#"><Globe className="h-4 w-4" /></Link>
-            <Link href="#"><Music className="h-4 w-4" /></Link>
-            <Link href="#"><Share2 className="h-4 w-4" /></Link>
-        </div>
-      </div>
-
-      <div className="lg:pl-20">
-        {/* 🏆 THE ADAPTIVE HERO (Vibe-Powered) */}
+    <div className="min-h-screen bg-studio-charcoal text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono step-grid transition-all duration-300">
+        
+        {/* 🏆 MASTER DASHBOARD HERO */}
         <AdaptiveHero />
 
-        {/* 💿 NEW ARRIVALS (Parallax Section) */}
-        <NewArrivals packs={latestPacks || []} />
-
-        {/* 🎚️ TOP SINGULAR SOUNDS (Sound Rack) */}
-        <TopSounds 
-            samples={topSamples || []} 
-            unlockedSampleIds={Array.from(unlockedSampleIds)}
-        />
-
-
-        {/* 🛡️ BRUTALIST STATUS BAR */}
-        <div className="flex flex-col md:flex-row border-y border-white/10">
-            <div className="flex-1 p-8 md:p-20 border-b md:border-b-0 md:border-r border-white/10 hover:bg-white hover:text-black transition-colors group text-center md:text-left">
-                <ShieldCheck className="h-10 w-10 md:h-12 md:w-12 mb-6 md:mb-8 mx-auto md:mx-0" />
-                <h4 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4">Certified Samples</h4>
-                <p className="text-sm font-medium opacity-60 group-hover:opacity-100 px-4 md:px-0">Every Artifact is 100% royalty-free and production-ready.</p>
+        {/* 💿 CHANNEL RACK: NEW SIGNALS */}
+        <div className="px-6 md:px-20 py-24 border-y-8 border-black bg-studio-grey/30 relative">
+            <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-neon opacity-20">
+                <div className="w-4 h-4 border-2 border-studio-neon animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Channel_Rack::New_Arrivals</span>
             </div>
-            <div className="flex-1 p-8 md:p-20 hover:bg-white hover:text-black transition-colors group text-center md:text-left">
-                <Disc className="h-10 w-10 md:h-12 md:w-12 mb-6 md:mb-8 mx-auto md:mx-0" />
-                <h4 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4">Global Access</h4>
-                <p className="text-sm font-medium opacity-60 group-hover:opacity-100 px-4 md:px-0">Used by world-class producers from Mumbai to London.</p>
+            <NewArrivals packs={latestPacks || []} />
+        </div>
+
+        {/* 🎚️ MASTER FX RACK */}
+        <div className="grid grid-cols-1 md:grid-cols-3 border-b-8 border-black">
+            <div className="p-12 border-b-8 md:border-b-0 md:border-r-8 border-black bg-studio-charcoal group hover:bg-[#151515] transition-all">
+                <div className="flex items-center gap-2 mb-8">
+                  <BarChart3 className="w-4 h-4 text-studio-neon" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">EQ_MASTER</span>
+                </div>
+                <div className="space-y-6">
+                   {[10, 30, 80, 45, 15, 60, 40].map((h, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <span className="text-[8px] font-black text-white/20 w-8">BAND_{i+1}</span>
+                      <div className="flex-1 h-2 bg-black border border-white/5 relative">
+                        <div className="absolute inset-y-0 left-0 bg-studio-neon/40 shadow-[0_0_5px_rgba(166,226,46,0.3)] transition-all group-hover:bg-studio-neon" style={{ width: `${h}%` }} />
+                      </div>
+                    </div>
+                   ))}
+                </div>
+            </div>
+            <div className="p-12 border-b-8 md:border-b-0 md:border-r-8 border-black bg-studio-charcoal">
+                <div className="flex items-center gap-2 mb-8">
+                  <Activity className="w-4 h-4 text-studio-yellow" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">DYNAMICS_CTRL</span>
+                </div>
+                <div className="aspect-square border-4 border-black bg-[#151515] rounded-full flex items-center justify-center relative group">
+                    <div className="absolute inset-4 border border-white/5 rounded-full" />
+                    <div className="w-1 h-32 bg-gradient-to-t from-transparent to-studio-yellow origin-bottom rotate-45 transform transition-transform group-hover:rotate-[120deg]" />
+                    <div className="absolute bottom-6 text-[10px] font-black text-white/20 uppercase tracking-widest">THRESHOLD</div>
+                </div>
+            </div>
+            <div className="p-12 bg-studio-charcoal group hover:bg-[#151515] transition-all">
+                 <div className="flex items-center gap-2 mb-8">
+                  <Radio className="w-4 h-4 text-spider-red" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">LIMITER_VUE</span>
+                </div>
+                <div className="h-48 bg-black border border-white/10 p-4 flex gap-1 items-end overflow-hidden">
+                   {[...Array(24)].map((_, i) => (
+                    <div 
+                      key={i} 
+                      className="flex-1 bg-spider-red/40 group-hover:bg-spider-red transition-all" 
+                      style={{ height: `${Math.random() * 100}%` }} 
+                    />
+                   ))}
+                </div>
+                <div className="mt-8 flex justify-between">
+                  <span className="text-[8px] font-black text-white/20 uppercase">ATTACK: 10ms</span>
+                  <span className="text-[8px] font-black text-white/20 uppercase">GAIN: +3dB</span>
+                </div>
             </div>
         </div>
-      </div>
+
+        {/* 🎚️ PLAYLIST ARRANGEMENT: TOP SOUNDS */}
+        <div className="px-6 md:px-20 py-32 bg-studio-charcoal border-b-8 border-black relative">
+            <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-yellow opacity-20">
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Playlist::Top_Signatures</span>
+            </div>
+            <div className="max-w-[2000px] mx-auto">
+                <TopSounds 
+                    samples={topSamples || []} 
+                    unlockedSampleIds={Array.from(unlockedSampleIds)}
+                />
+            </div>
+        </div>
+
+        {/* 🛡️ HARDWARE STATUS CARDS - BOTTOM ROW */}
+        <div className="flex flex-col md:flex-row border-b-8 border-black bg-studio-grey">
+            <div className="flex-1 p-12 md:p-24 border-b-8 md:border-b-0 md:border-r-8 border-black hover:bg-studio-neon hover:text-black transition-all group relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:opacity-20 transition-opacity">
+                    <SlidersHorizontal className="h-40 w-40" />
+                </div>
+                <ShieldCheck className="h-16 w-16 mb-12 text-studio-neon group-hover:text-black transition-colors" />
+                <h4 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">Universal<br/>License</h4>
+                <p className="text-lg font-bold opacity-40 group-hover:opacity-100 group-hover:text-black leading-loose max-w-sm mt-8">Every artifact is 100% royalty-free and production-ready for your DAW.</p>
+                <div className="mt-12 h-2 w-20 bg-studio-yellow group-hover:bg-black transition-all" />
+            </div>
+            <div className="flex-1 p-12 md:p-24 hover:bg-studio-yellow hover:text-black transition-all group relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:opacity-20 transition-opacity">
+                    <Settings2 className="h-40 w-40 animate-spin-slow" />
+                </div>
+                <Disc className="h-16 w-16 mb-12 text-spider-red group-hover:text-black transition-colors" />
+                <h4 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">Global<br/>Link</h4>
+                <p className="text-lg font-bold opacity-40 group-hover:opacity-100 group-hover:text-black leading-loose max-w-sm mt-8">Used by world-class producers from Mumbai to London. Join the loop.</p>
+                <div className="mt-12 h-2 w-20 bg-studio-neon group-hover:bg-black transition-all" />
+            </div>
+        </div>
+
     </div>
   );
 }
