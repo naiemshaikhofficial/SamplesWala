@@ -32,7 +32,7 @@ export default async function PricingPage() {
   const currentPrice = activeSub?.subscription_plans?.price_inr || 0
 
   return (
-    <div className="min-h-screen bg-studio-charcoal text-white pt-32 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
+    <div className="min-h-screen bg-studio-charcoal text-white pt-24 md:pt-32 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
         <MasterLight />
         <ScanlineOverlay />
         
@@ -42,28 +42,28 @@ export default async function PricingPage() {
         </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center max-w-4xl mx-auto mb-24">
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-sm bg-black border border-white/5 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon mb-10 animate-pulse">
-            <Activity size={12} /> {activeSub ? `SUBSCRIPTION_NODE :: ${currentPlanName.toUpperCase()}_LINKED` : 'COMMERCE_TERMINAL :: INITIALIZED'}
+        <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 px-4">
+          <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
+            <Activity size={10} /> {activeSub ? `SUBSCRIPTION_NODE :: ${currentPlanName.toUpperCase()}_LINKED` : 'COMMERCE_TERMINAL :: INITIALIZED'}
           </div>
-          <h1 className="text-6xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
+          <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
             SIGNAL <span className="text-studio-neon">TIERS</span>
           </h1>
-          <p className="text-sm md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
-            Select your monthly artifact allocation or top-up your vault with one-time credit top-ups. <br/>
+          <p className="text-xs md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
+            Select your monthly artifact allocation or top-up your vault with one-time credit top-ups. <br className="hidden md:block"/>
             Zero latency. Universal Licensing. Performance Guaranteed.
           </p>
         </div>
 
         {/* 💎 1. SUBSCRIPTION PLANS SECTION */}
-        <div className="mb-48">
-            <div className="flex items-center gap-4 mb-16 text-white/10 group">
-                <BarChart3 className="h-6 w-6 group-hover:text-studio-neon transition-colors" />
-                <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Monthly_Memberships</h2>
+        <div className="mb-32 md:mb-48">
+            <div className="flex items-center gap-4 mb-12 md:mb-16 text-white/10 group px-2">
+                <BarChart3 className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-neon transition-colors" />
+                <h2 className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] italic">Memberships</h2>
                 <div className="h-px flex-1 bg-white/5" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 max-w-[1600px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 max-w-[1600px] mx-auto">
             {plans?.map((plan) => {
                 const visuals = planVisuals[plan.name] || planVisuals['Starter'];
                 const isActive = activeSub?.plan_id === plan.id
@@ -80,78 +80,75 @@ export default async function PricingPage() {
                 return (
                     <div 
                         key={plan.id} 
-                        className={`group relative bg-[#151515] border-2 ${visuals.color} p-10 transition-all hover:bg-black hover:border-studio-neon flex flex-col min-h-[650px] shadow-2xl rounded-sm ${isActive ? 'border-studio-neon ring-4 ring-studio-neon/10' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''}`}
+                        className={`group relative bg-[#151515] border-2 ${visuals.color} p-6 md:p-10 transition-all hover:bg-black hover:border-studio-neon flex flex-col min-h-[550px] md:min-h-[650px] shadow-2xl rounded-sm ${isActive ? 'border-studio-neon ring-4 ring-studio-neon/10' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''}`}
                     >
                     {/* Diagnostic Sidebar */}
                     <div className="absolute left-0 inset-y-0 w-1 bg-studio-neon/10 group-hover:bg-studio-neon transition-all" />
                     
                     {plan.name === 'Professional' && !isActive && !isLower && (
-                        <div className="absolute -top-4 right-10 bg-studio-yellow text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-sm shadow-[0_0_20px_rgba(234,179,8,0.3)] z-20 italic">
-                            BEST_VALUE_HINT
+                        <div className="absolute -top-3 right-6 bg-studio-yellow text-black text-[8px] md:text-[10px] font-black uppercase tracking-widest px-4 md:px-6 py-2 rounded-sm shadow-[0_0_20px_rgba(234,179,8,0.3)] z-20 italic">
+                            BEST_VALUE
                         </div>
                     )}
 
                     {isActive && (
-                        <div className="absolute -top-4 right-10 bg-studio-neon text-black text-[10px] font-black uppercase tracking-widest px-6 py-2 rounded-sm flex items-center gap-2 z-20 italic">
-                            ACTIVE_LICENSE
+                        <div className="absolute -top-3 right-6 bg-studio-neon text-black text-[8px] md:text-[10px] font-black uppercase tracking-widest px-4 md:px-6 py-2 rounded-sm flex items-center gap-2 z-20 italic">
+                            ACTIVE
                         </div>
                     )}
                     
-                    <div className="mb-12 flex items-center justify-between">
-                        <div className={`h-16 w-16 flex items-center justify-center bg-black border border-white/5 ${visuals.glow} group-hover:bg-studio-neon group-hover:text-black transition-all`}>
-                            {visuals.icon}
+                    <div className="mb-10 md:mb-12 flex items-center justify-between">
+                        <div className={`h-12 w-12 md:h-16 md:w-16 flex items-center justify-center bg-black border border-white/5 ${visuals.glow} group-hover:bg-studio-neon group-hover:text-black transition-all`}>
+                            {React.cloneElement(visuals.icon as React.ReactElement, { size: 24 } as any)}
                         </div>
                         <div className="text-right flex flex-col items-end gap-1">
-                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/20">CREDIT_CAPACITY</span>
-                            <span className="text-4xl font-black italic tracking-tighter text-white">{plan.credits_per_month} CR</span>
+                            <span className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.2em] text-white/20">CREDITS</span>
+                            <span className="text-3xl md:text-4xl font-black italic tracking-tighter text-white">{plan.credits_per_month}</span>
                         </div>
                     </div>
 
-                    <div className="space-y-4 mb-10">
-                        <h3 className="text-4xl font-black uppercase italic tracking-tighter leading-none">{plan.name}</h3>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#fff]/20 leading-relaxed max-w-[80%] italic">
+                    <div className="space-y-3 md:space-y-4 mb-8 md:mb-10">
+                        <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">{plan.name}</h3>
+                        <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#fff]/20 leading-relaxed max-w-full md:max-w-[80%] italic">
                             {plan.description || "Initializing tier-level artifact allocation sequence."}
                         </p>
                     </div>
 
-                    <div className="mb-12 p-6 bg-black/40 border border-white/5 relative overflow-hidden group/price">
+                    <div className="mb-10 md:mb-12 p-5 md:p-6 bg-black/40 border border-white/5 relative overflow-hidden group/price">
                         <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover/price:opacity-100 transition-opacity" />
                         <div className="flex items-baseline gap-2 relative z-10">
-                            <span className="text-6xl font-black tracking-tighter text-white mr-2">₹{plan.price_inr}</span>
-                            <span className="text-white/20 text-xs font-black uppercase tracking-widest">/ MON_RACK</span>
-                        </div>
-                        <div className="mt-4">
-                             <SignalMeter className="h-1.5 w-full opacity-20" />
+                            <span className="text-4xl md:text-6xl font-black tracking-tighter text-white mr-1 md:mr-2">₹{plan.price_inr}</span>
+                            <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">/ MON</span>
                         </div>
                     </div>
 
-                    <div className="space-y-5 mb-14 flex-1">
+                    <div className="space-y-4 md:space-y-5 mb-10 md:mb-14 flex-1">
                         {features.map((feature: any) => (
-                        <div key={feature} className="flex items-start gap-4 text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-all text-left">
-                            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
+                        <div key={feature} className="flex items-start gap-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-all text-left">
+                            <div className="mt-1 h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
                             {feature}
                         </div>
                         ))}
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-auto">
                         <SubscribeButton 
                             planId={plan.id} 
-                            planName={isActive ? 'Active' : isUpgrade && currentPlanName !== 'Free' ? `UPGRADE_TO_${plan.name.toUpperCase()}` : isLower ? '—' : `INITIALIZE_${plan.name.toUpperCase()}`}
+                            planName={isActive ? 'Active' : isUpgrade && currentPlanName !== 'Free' ? `UPGRADE` : isLower ? '—' : `INITIALIZE`}
                             isFeatured={plan.name === 'Professional' || isActive} 
                             mode="subscription"
                             disabled={isActive || isLower}
                         />
 
                         {isActive && (
-                            <div className="flex justify-center mt-4">
+                            <div className="flex justify-center mt-2">
                                 <CancelSubscriptionButton />
                             </div>
                         )}
                     </div>
 
                     {/* Animated diagnostic background */}
-                    <div className="absolute bottom-4 right-4 opacity-5 group-hover:opacity-20 transition-opacity">
+                    <div className="absolute bottom-4 right-4 opacity-[0.03] group-hover:opacity-10 transition-opacity hidden md:block">
                          <DAWVisualizer color="#a6e22e" bars={12} height={20} />
                     </div>
                     </div>

@@ -45,7 +45,7 @@ export function Header() {
               { label: 'Packs', href: '/browse' },
               { label: 'Pricing', href: '/pricing' },
               { label: 'My Library', href: '/profile/library' },
-              { label: 'User Node', href: '/profile' }
+              { label: 'ACCOUNT', href: '/profile' }
             ].map(item => (
                 <Link key={item.label} href={item.href} className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group">
                    <div className="w-1.5 h-1.5 rounded-full bg-studio-neon opacity-20 group-hover:opacity-100 transition-opacity" />
@@ -114,7 +114,7 @@ export function Header() {
             >
                <Menu size={18} className="group-hover:text-studio-neon" />
             </button>
-            <Link href="/" className="group relative px-4 md:px-6 py-2 md:py-3 studio-panel bg-black border-2 border-white/5 hover:border-studio-neon transition-all hover:scale-105 overflow-hidden rounded-sm">
+            <Link href="/" className="group relative px-2 transition-all hover:scale-105">
                 <Image 
                   src="/Logo.png" 
                   alt="SAMPLES WALA Logo" 

@@ -49,88 +49,95 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
     }
 
     return (
-        <div className="space-y-8 p-10 border border-white/10 bg-white/[0.02]">
-            <div className="flex items-center justify-between">
+        <div className="space-y-8 p-6 md:p-10 border border-white/10 bg-black/40 studio-panel rounded-sm shadow-2xl relative overflow-hidden group">
+            {/* 💎 STUDIO DECOR */}
+            <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none group-hover:rotate-12 transition-transform duration-1000">
+                <MapPin className="h-32 w-32" />
+            </div>
+
+            <div className="flex items-center justify-between border-b border-white/5 pb-6 relative z-10">
                 <div>
-                   <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-2">Billing & Compliance Signature</h3>
-                   <p className="text-[9px] font-bold uppercase tracking-widest text-white/10 italic">Government GST Norms / KYC Metadata</p>
+                   <h3 className="text-[12px] font-black uppercase tracking-[0.4em] text-studio-neon mb-1">Billing_Information</h3>
+                   <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 italic">For Secure Checkout & Universal Receipts</p>
                 </div>
-                <div className="h-10 w-10 flex items-center justify-center border border-white/10 bg-white/5">
-                    <MapPin className="h-4 w-4 text-white/40" />
+                <div className="h-10 w-10 flex items-center justify-center bg-black border border-white/10 text-white/20">
+                    <ShieldCheck className="h-4 w-4" />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-2">Full Legal Name</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">Full Legal Name</label>
                     <input 
                         type="text" 
                         value={billing.full_name}
-                        onChange={(e) => setBilling({...billing, full_name: e.target.value})}
-                        className="w-full bg-black border border-white/10 h-12 px-4 text-[10px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
-                        placeholder="NAME ON GOVT ID"
+                        onChange={(e) => setBilling({...billing, full_name: e.target.value.toUpperCase()})}
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
+                        placeholder="ENTER YOUR FULL NAME"
                     />
                 </div>
-                <div className="space-y-1">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-2">Street Address</label>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">Street Address</label>
                     <input 
                         type="text" 
                         value={billing.address}
-                        onChange={(e) => setBilling({...billing, address: e.target.value})}
-                        className="w-full bg-black border border-white/10 h-12 px-4 text-[10px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
-                        placeholder="HOUSE / BUILDING / STREET"
+                        onChange={(e) => setBilling({...billing, address: e.target.value.toUpperCase()})}
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
+                        placeholder="HOUSE / BUILDING / STREET NAME"
                     />
                 </div>
-                <div className="space-y-1">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-2">City</label>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">City</label>
                     <input 
                         type="text" 
                         value={billing.city}
-                        onChange={(e) => setBilling({...billing, city: e.target.value})}
-                        className="w-full bg-black border border-white/10 h-12 px-4 text-[10px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
+                        onChange={(e) => setBilling({...billing, city: e.target.value.toUpperCase()})}
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
                         placeholder="CITY NAME"
                     />
                 </div>
-                <div className="space-y-1">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-2">State / UT</label>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">State / Territory</label>
                     <input 
                         type="text" 
                         value={billing.state}
-                        onChange={(e) => setBilling({...billing, state: e.target.value})}
-                        className="w-full bg-black border border-white/10 h-12 px-4 text-[10px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
-                        placeholder="INDIAN STATE / UT"
+                        onChange={(e) => setBilling({...billing, state: e.target.value.toUpperCase()})}
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
+                        placeholder="ENTER STATE / UT"
                     />
                 </div>
-                <div className="space-y-1">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-2">Postal Code (ZIP)</label>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">Pincode (ZIP)</label>
                     <input 
                         type="text" 
                         value={billing.zip}
                         onChange={(e) => setBilling({...billing, zip: e.target.value})}
-                        className="w-full bg-black border border-white/10 h-12 px-4 text-[10px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
-                        placeholder="Pincode"
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
+                        placeholder="6-DIGIT CODE"
                     />
                 </div>
-                <div className="space-y-1 opacity-60">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-2">GSTIN / PAN (Optional)</label>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">GSTIN / TAX_ID (Optional)</label>
                     <input 
                         type="text" 
                         value={billing.gstin}
-                        onChange={(e) => setBilling({...billing, gstin: e.target.value})}
-                        className="w-full bg-black border border-white/10 h-12 px-4 text-[10px] font-black uppercase text-white tracking-widest focus:border-studio-yellow focus:outline-none"
+                        onChange={(e) => setBilling({...billing, gstin: e.target.value.toUpperCase()})}
+                        className="w-full bg-[#111] border border-white/5 h-14 px-6 text-[11px] font-black uppercase text-white tracking-widest focus:border-studio-neon focus:bg-black focus:outline-none transition-all placeholder:text-white/10"
                         placeholder="BUSINESS GSTIN"
                     />
                 </div>
             </div>
 
-            <button 
-                onClick={handleSave}
-                disabled={loading}
-                className="w-full h-14 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:invert transition-all"
-            >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {loading ? 'SECURING SIGNATURE...' : 'SAVE BILLING SIGNATURE'}
-            </button>
+            <div className="pt-6 relative z-10">
+                <button 
+                    onClick={handleSave}
+                    disabled={loading}
+                    className="w-full h-16 bg-white text-black text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 hover:bg-studio-neon transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-r-[12px] border-studio-yellow group/btn"
+                >
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 group-hover/btn:scale-125 transition-transform" />}
+                    {loading ? 'SYNCHRONIZING...' : 'SAVE BILLING INFO'}
+                </button>
+            </div>
         </div>
     )
 }

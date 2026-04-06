@@ -74,13 +74,13 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   }
 
   return (
-    <div className="container mx-auto px-6 py-12 min-h-screen font-mono">
-      <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-12 group transition-all">
+    <div className="container mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono">
+      <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-8 md:mb-12 group transition-all">
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
         RELOAD_BROWSER
       </Link>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-24 relative">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-16 mb-24 relative">
         {/* 🧬 VST GUI MODULE */}
         <div className="lg:col-span-1">
           <div className="aspect-square relative overflow-hidden studio-panel bg-studio-grey border-2 border-white/10 shadow-2xl group">
@@ -99,7 +99,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                  alt={pack.name} 
                  fill 
                  sizes="(max-width: 1024px) 100vw, 33vw"
-                 className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 pt-8" 
+                 className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 pt-10" 
                />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center pt-8">
@@ -109,7 +109,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
           </div>
           
-          <div className="mt-8 grid grid-cols-2 gap-4 p-6 studio-panel bg-black/40 border-2 border-white/5">
+          <div className="mt-8 grid grid-cols-2 gap-4 p-4 md:p-6 studio-panel bg-black/40 border-2 border-white/5">
              <div className="flex flex-col">
                 <span className="text-[10px] uppercase font-black tracking-widest text-white/20 mb-3 border-b border-white/5 pb-1">Artifact_Stats</span>
                 <div className="space-y-1.5">
@@ -118,7 +118,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                     {oneShots > 0 && <div className="flex items-center justify-between text-[9px] font-black text-white/40"><span>1SHOTS</span><span>{oneShots}</span></div>}
                 </div>
              </div>
-             <div className="flex flex-col border-l border-white/5 pl-6">
+             <div className="flex flex-col border-l border-white/5 pl-4 md:pl-6">
                 <span className="text-[10px] uppercase font-black tracking-widest text-white/20 mb-3 border-b border-white/5 pb-1">Signal_Type</span>
                 <div className="flex items-center gap-2 text-[10px] font-black text-studio-yellow">
                     <Disc className="h-3 w-3 animate-spin-slow" />
@@ -130,59 +130,59 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
         </div>
         
         <div className="lg:col-span-2 flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-8">
-             <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon">
+          <div className="flex items-center gap-3 mb-6 md:mb-8">
+             <span className="px-3 md:px-4 py-1 bg-black border border-white/10 text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon">
                 {pack.categories?.name || 'STUDIO_PACK'}
             </span>
           </div>
-          <h1 className="text-4xl md:text-9xl font-black tracking-tighter mb-8 uppercase leading-[0.8] italic text-white shadow-studio-text">
+          <h1 className="text-5xl md:text-7xl xl:text-[10vw] font-black tracking-tighter mb-8 uppercase leading-[0.85] md:leading-[0.8] italic text-white shadow-studio-text">
             {pack.name}
           </h1>
-          <p className="text-lg md:text-2xl text-white/40 mb-16 max-w-3xl leading-relaxed whitespace-pre-line font-bold italic">
+          <p className="text-sm md:text-2xl text-white/40 mb-12 md:mb-16 max-w-3xl leading-snug md:leading-relaxed whitespace-pre-line font-bold italic">
             {pack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
           </p>
 
           {/* 💎 ACQUISITION RACK */}
-          <div className="flex flex-col lg:flex-row items-stretch gap-8 mb-24">
-              <div className="flex-1 bg-studio-grey p-10 flex flex-col justify-between border-2 border-white/5 group hover:border-white/20 transition-all">
+          <div className="flex flex-col lg:flex-row items-stretch gap-6 md:gap-8 mb-24">
+              <div className="flex-1 bg-studio-grey p-8 md:p-10 flex flex-col justify-between border-2 border-white/5 group hover:border-white/20 transition-all">
                   <div>
-                      <div className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 mb-12">[ SELECTIVE_MODE ]</div>
-                      <h3 className="text-3xl font-black uppercase tracking-tighter mb-6 italic text-white/80">Individual Samples</h3>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30 leading-relaxed">
+                      <div className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-white/20 mb-8 md:mb-12">[ SELECTIVE_MODE ]</div>
+                      <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 md:mb-6 italic text-white/80">Individual Samples</h3>
+                      <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/30 leading-relaxed">
                           Precision extraction mode. Unlock specific frequencies for your project using individual credits.
                       </p>
                   </div>
-                  <div className="mt-12 pt-8 border-t border-white/10">
-                      <div className="text-4xl font-black italic mb-2 tracking-tighter text-studio-neon">7 CREDITS</div>
+                  <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/10">
+                      <div className="text-3xl md:text-4xl font-black italic mb-2 tracking-tighter text-studio-neon">7 CREDITS</div>
                       <div className="text-[9px] font-black uppercase tracking-widest text-white/20">INSTANT CLOUD SYNC</div>
                   </div>
               </div>
 
-              <div className="flex-[1.8] bg-white text-black p-10 md:p-14 relative overflow-hidden group border-r-[24px] border-studio-yellow">
+              <div className="flex-[1.8] bg-white text-black p-8 md:p-14 relative overflow-hidden group border-b-[16px] lg:border-b-0 lg:border-r-[24px] border-studio-yellow">
                   <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:rotate-180 transition-transform duration-[3s]">
                       <Disc className="h-64 w-64" />
                   </div>
 
                   <div className="relative z-10">
-                      <div className="text-[9px] font-black uppercase tracking-[0.4em] mb-12 italic text-black/40">[ FULL_ACCESS_PROTOCOL ]</div>
-                      <h3 className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-12 italic leading-[0.8]">
+                      <div className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] mb-8 md:mb-12 italic text-black/40">[ FULL_ACCESS_PROTOCOL ]</div>
+                      <h3 className="text-4xl md:text-8xl font-black uppercase tracking-tighter mb-8 md:mb-12 italic leading-[0.8] md:leading-[0.8]">
                         The Full<br />Artifact
                       </h3>
                       
-                      <div className="flex flex-col sm:flex-row items-center gap-6 mt-12 pt-12 border-t border-black/10">
+                      <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 mt-12 pt-8 md:pt-12 border-t border-black/10">
                          {isFullPackUnlocked ? (
                                 <div className="w-full flex flex-col sm:flex-row items-center gap-6">
-                                    <div className="px-10 py-5 bg-black text-white font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-4">
+                                    <div className="px-8 md:px-10 py-4 md:py-5 bg-black text-white font-black uppercase tracking-widest text-[10px] md:text-[11px] flex items-center justify-center gap-4">
                                         <ShieldCheck className="h-5 w-5 text-studio-neon" /> ACCESS_GRANTED
                                     </div>
                                     <SecureDownloadButton packId={pack.id} />
                                 </div>
                          ) : (
-                            <div className="w-full flex gap-6 flex-wrap">
+                            <div className="w-full flex gap-4 md:gap-6 flex-wrap">
                                 <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
                                 <SubscribeButton 
                                     planId={pack.id} 
-                                    planName={`BUY: ₹${pack.price_inr} / $${pack.price_usd}`} 
+                                    planName={`BUY: ₹${pack.price_inr}`} 
                                     mode="sample_pack"
                                     isFeatured
                                 />
@@ -197,14 +197,14 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
 
       {/* 🎹 TRACK LIST ARRANGEMENT */}
       <div className="mb-32">
-        <div className="flex items-center justify-between mb-12 border-b-4 border-black pb-6">
-            <h2 className="text-4xl font-black uppercase italic tracking-tighter flex items-center gap-6 text-white/40">
-                <Layers className="h-8 w-8 text-studio-neon" /> 
-                Track_Playlist :: {slug}.flp
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-12 border-b-4 border-black pb-6 gap-4">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-black uppercase italic tracking-tighter flex items-center gap-4 md:gap-6 text-white/40">
+                <Layers className="h-6 w-6 md:h-8 md:h-8 text-studio-neon" /> 
+                Playlist :: {slug}
             </h2>
-            <div className="flex gap-1.5 h-6">
-                 {[...Array(20)].map((_, i) => (
-                    <div key={i} className="w-1 bg-studio-neon/20 animate-peak" style={{ animationDelay: `${i*0.1}s` }} />
+            <div className="flex gap-1 h-4 md:h-6 overflow-hidden max-w-full">
+                 {[...Array(15)].map((_, i) => (
+                    <div key={i} className="w-1 bg-studio-neon/20 animate-peak shrink-0" style={{ animationDelay: `${i*0.1}s` }} />
                  ))}
             </div>
         </div>

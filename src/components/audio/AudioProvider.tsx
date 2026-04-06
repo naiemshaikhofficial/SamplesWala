@@ -1,6 +1,7 @@
 'use client'
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react'
 import { generatePreviewToken } from '@/app/packs/[slug]/actions'
+import { getCachedAudio, cacheAudio } from '@/lib/audio/cache'
 
 type AudioContextType = {
   activeId: string | null
@@ -184,10 +185,32 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (metadata) setActiveMetadata(metadata as any);
 
     try {
+        // 🧪 PHASE 1: CHECK LOCAL REPOSITORY (VAULT_CACHE)
+        const cachedBlob = await getCachedAudio(id);
+        if (cachedBlob) {
+            console.log(`[VAULT_CACHE] Local signal found for node ${id}. Bypassing network fetch.`);
+            const localUrl = URL.createObjectURL(cachedBlob);
+            audioRef.current.src = localUrl;
+            audioRef.current.play();
+            setIsLoading(false);
+            return;
+        }
+
+        // 🌡️ PHASE 2: VAULT FETCH (API HANDSHAKE)
         const token = await generatePreviewToken(id);
         const finalUrl = `/api/audio?id=${id}&token=${token}`;
         
-        audioRef.current.src = finalUrl;
+        const response = await fetch(finalUrl);
+        const blob = await response.blob();
+
+        // 💾 PHASE 3: SECURE PERSISTENCE
+        // Only cache watermarked previews (items that are NOT unlocked) for security
+        if (!metadata?.isUnlocked) {
+            await cacheAudio(id, blob);
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+        audioRef.current.src = objectUrl;
         audioRef.current.volume = userVolumeRef.current;
         audioRef.current.load();
         

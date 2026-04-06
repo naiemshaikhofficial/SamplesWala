@@ -15,29 +15,25 @@ export function CreditCounter() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // 📀 FETCH FROM THE CONSOLIDATED user_accounts TABLE
-      const { data: account, error: accountError } = await supabase
+      // 📀 FETCH INTEGRATED STATE (Credits + Active Subscription from User Node)
+      const { data: account, error } = await supabase
           .from('user_accounts')
           .select('credits, subscription_plans(name)')
           .eq('user_id', user.id)
           .maybeSingle()
 
-      if (accountError) {
-          console.error("[CREDIT_SYNC_ERROR]", accountError.message)
-          setData({ credits: 0, plan: 'Free' })
-          return
-      }
+      if (error) throw error
 
-      if (account) {
-          setData({ 
-            credits: account.credits, 
-            plan: (account.subscription_plans as any)?.name || 'Free' 
-          });
-      } else {
-          setData({ credits: 0, plan: 'Free' });
-      }
+      const credits = account?.credits ?? 0
+      const planName = (account?.subscription_plans as any)?.name || 'FREE'
+
+      setData({ 
+          credits: credits, 
+          plan: planName.toUpperCase() 
+      });
+      
     } catch (err) {
-      console.error("[CREDIT_COUNTER_CRITICAL]", err)
+      console.error("[CREDIT_SYNC_CRITICAL]", err)
     }
   }, [supabase])
 
