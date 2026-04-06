@@ -109,20 +109,33 @@ function SignupForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <input type="hidden" name="redirect" value={redirectPath} />
             {error && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-500 text-xs shadow-[0_0_20px_rgba(234,179,8,0.1)] mb-6">
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     {error}
                 </div>
             )}
 
             <div className="relative group">
+               <UserPlus className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-yellow-500 transition-colors" />
+               <input 
+                 name="name"
+                 type="text" 
+                 placeholder="Full Name" 
+                 className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/5 rounded-2xl focus:border-yellow-500/50 focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20"
+                 required
+               />
+            </div>
+
+            <div className="relative group">
                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-yellow-500 transition-colors" />
                <input 
                  name="email"
                  type="email" 
-                 placeholder="Producer Email" 
+                 placeholder="Producer Email (@gmail.com only)" 
                  className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/5 rounded-2xl focus:border-yellow-500/50 focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20"
                  required
+                 pattern=".+@gmail\.com$"
+                 title="Only @gmail.com emails are allowed"
                />
             </div>
             
@@ -134,6 +147,7 @@ function SignupForm() {
                  placeholder="Strong Password" 
                  className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/5 rounded-2xl focus:border-yellow-500/50 focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20"
                  required
+                 minLength={6}
                />
             </div>
 

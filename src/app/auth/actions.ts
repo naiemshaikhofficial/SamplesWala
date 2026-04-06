@@ -26,9 +26,23 @@ export async function signup(formData: FormData) {
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const name = formData.get('name') as string
   const redirectTo = (formData.get('redirect') as string) || '/browse'
 
-  const { error } = await supabase.auth.signUp({ email, password })
+  // 🛡️ STRICT GMAIL ENFORCEMENT
+  if (!email.endsWith('@gmail.com')) {
+    return { error: 'Only @gmail.com emails are allowed to maintain high-quality producer signal.' }
+  }
+
+  const { error } = await supabase.auth.signUp({ 
+    email, 
+    password,
+    options: {
+        data: {
+            full_name: name
+        }
+    }
+  })
 
   if (error) {
     return { error: error.message }
