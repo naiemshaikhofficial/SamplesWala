@@ -21,7 +21,7 @@ export function CreditCounter() {
             .eq('user_id', user.id)
             
         if (data && data.length > 0) {
-          const total = data.reduce((acc, row) => acc + (row.current_credits || 0), 0)
+          const total = data.reduce((acc: number, row: any) => acc + (row.current_credits || 0), 0)
           setCredits(total)
           
           // Get the most significant plan name (if multiple)
