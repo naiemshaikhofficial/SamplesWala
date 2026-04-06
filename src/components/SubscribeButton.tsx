@@ -49,10 +49,13 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       if (!orderData.success) throw new Error('Order creation failed')
 
       // 2. Open Razorpay Modal (Orchestrating the Mandate)
+      const isMandate = orderData.amount === 200 || orderData.isSubscription; // ₹2 is usually mandate auth
       const options: any = {
         key: orderData.key,
         name: 'Samples Wala',
-        description: `Activation for ${planName}`,
+        description: isMandate 
+            ? `Mandate Setup: ${planName} (Recurring Activation)` 
+            : `Activation for ${planName}`,
         handler: async function (response: any) {
             // 3. Verify Payment on Success (Signature handshake)
             const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, planId)
