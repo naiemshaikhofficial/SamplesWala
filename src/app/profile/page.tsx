@@ -33,8 +33,8 @@ export default async function ProfilePage() {
     const activePlan = account?.subscription_plans || activeSub?.subscription_plans
     const planName = (activePlan as any)?.name || 'FREE'
     const expiryDate = activeSub?.current_period_end ? new Date(activeSub.current_period_end).toLocaleDateString() : 'PERPETUAL'
-    const isCancelled = activeSub?.cancel_at_period_end ?? false
-    const hasActiveSub = !!(account?.plan_id || activeSub?.plan_id)
+    const isCancelled = activeSub?.status === 'cancelled' || activeSub?.status === 'inactive' || activeSub?.cancel_at_period_end === true
+    const hasActiveSub = !!(account?.plan_id || (activeSub?.plan_id && activeSub?.status !== 'inactive'))
 
     return (
         <div className="min-h-screen bg-studio-charcoal text-white selection:bg-studio-neon selection:text-black lg:pl-20 font-mono pb-40 relative overflow-hidden">

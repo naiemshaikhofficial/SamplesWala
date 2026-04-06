@@ -4,8 +4,8 @@ import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
 
 /**
- * 🛰️ STUDIO_WEBHOOK_RECEIVER (RAZORPAY)
- * Handles auto-renewals, subscription updates, and payment failures.
+ * 🛰️ UNIVERSAL_COMMERCE_WEBHOOK (RAZORPAY)
+ * Orchestrates signal fulfillment for Subscriptions and Credit Top-ups.
  */
 export async function POST(req: Request) {
     const payload = await req.text()
@@ -13,81 +13,131 @@ export async function POST(req: Request) {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET
 
     if (!secret || !signature) {
-        return NextResponse.json({ error: 'Webhook Secret/Signature Missing' }, { status: 400 })
+        return NextResponse.json({ error: 'Auth Failure' }, { status: 400 })
     }
 
-    // 🔐 VALIDATE RECEPTION
+    // 🔐 CRYPTOGRAPHIC VERIFICATION
     const expectedSignature = crypto
         .createHmac('sha256', secret)
         .update(payload)
         .digest('hex')
 
     if (expectedSignature !== signature) {
-        console.error('[WEBHOOK_ERROR] CRYPTOGRAPHIC SIGNATURE MISMATCH.')
-        return NextResponse.json({ error: 'Invalid Signature' }, { status: 400 })
+        console.error('[COMMERCE_ERROR] SIGNATURE_MISMATCH_SECURITY_ALERT.')
+        return NextResponse.json({ error: 'Forgery Detected' }, { status: 400 })
     }
 
     const event = JSON.parse(payload)
     const supabase = await createClient()
 
     try {
+        const payment = event.payload.payment?.entity
+        const notes = payment?.notes || {}
+        const userId = notes.user_id
+        const type = notes.type // 'subscription', 'pack', 'sample_pack'
+        const itemId = notes.plan_id || notes.pack_id
+
+        if (!userId && event.event !== 'subscription.charged') {
+             return NextResponse.json({ received: true, skip: "Manual / Untracked payment" })
+        }
+
+        // 🛡️ DEDUPLICATION CHECK (Signal Integrity)
+        const { data: existing } = await supabase
+            .from('credit_orders')
+            .select('id')
+            .eq('payment_id', payment?.id)
+            .maybeSingle()
+
+        if (existing) {
+            return NextResponse.json({ received: true, status: 'Duplicate signal ignored' })
+        }
+
         switch (event.event) {
+            case 'order.paid':
+            case 'payment.captured':
+                // 💿 ONE-TIME ORDER FULFILLMENT (Packs / First-time Sub)
+                if (type === 'pack') {
+                    const { data: pack } = await supabase.from('credit_packs').select('*').eq('id', itemId).single()
+                    if (pack) {
+                        await supabase.rpc('add_credits', { u_id: userId, amount: pack.credits })
+                        await supabase.from('credit_orders').insert({
+                            user_id: userId,
+                            order_id: payment.order_id,
+                            payment_id: payment.id,
+                            amount_inr: payment.amount / 100,
+                            credits_awarded: pack.credits,
+                            status: 'paid',
+                            raw_response: event
+                        })
+                    }
+                } else if (type === 'subscription') {
+                    const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
+                    if (plan) {
+                        // Activate Membership
+                        await supabase.from('user_accounts').upsert({
+                            user_id: userId,
+                            plan_id: plan.id,
+                            next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                        }, { onConflict: 'user_id' })
+
+                        await supabase.from('user_subscriptions').upsert({
+                            user_id: userId,
+                            plan_id: plan.id,
+                            status: 'active',
+                            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                        }, { onConflict: 'user_id' })
+
+                        await supabase.rpc('add_credits', { u_id: userId, amount: plan.credits_per_month })
+                        await supabase.from('credit_orders').insert({
+                            user_id: userId,
+                            order_id: payment.order_id,
+                            payment_id: payment.id,
+                            amount_inr: payment.amount / 100,
+                            credits_awarded: plan.credits_per_month,
+                            status: 'paid',
+                            raw_response: event
+                        })
+                    }
+                }
+                break;
+
             case 'subscription.charged':
-                // 🔋 RENEWAL SUCCESSFUL
-                const subscription = event.payload.subscription.entity
-                const payment = event.payload.payment.entity
-                
-                // Fetch User by Subscription ID (Stored in user_accounts or metadata)
-                const { data: account, error: accountError } = await supabase
+                // 🔋 AUTOMATED RENEWAL FULFILLMENT (Recurring)
+                const subEntity = event.payload.subscription.entity
+                const { data: account } = await supabase
                     .from('user_accounts')
-                    .select('user_id, plan_id, subscription_plans(credits_per_month)')
-                    .eq('razorpay_subscription_id', subscription.id)
-                    .single()
+                    .select('user_id, plan_id, subscription_plans(*)')
+                    .eq('razorpay_subscription_id', subEntity.id)
+                    .maybeSingle()
 
-                if (account) {
-                    const creditsToInject = (account.subscription_plans as any)?.credits_per_month || 0
-                    
-                    // 1. INJECT CREDITS
-                    await supabase.rpc('add_credits', {
-                        u_id: account.user_id,
-                        amount: creditsToInject
-                    })
-
-                    // 2. LOG TRANSACTION
+                if (account?.subscription_plans) {
+                    const credits = (account.subscription_plans as any).credits_per_month
+                    await supabase.rpc('add_credits', { u_id: account.user_id, amount: credits })
                     await supabase.from('credit_orders').insert({
                         user_id: account.user_id,
-                        order_id: subscription.id, // Linking to Subscription ID
+                        order_id: subEntity.id,
                         payment_id: payment.id,
                         amount_inr: payment.amount / 100,
-                        credits_awarded: creditsToInject,
+                        credits_awarded: credits,
                         status: 'paid',
                         raw_response: event
                     })
-                    
-                    console.log(`[RENEWAL_SYNC_ACTIVE] ${creditsToInject} credits added for user ${account.user_id}`)
                 }
                 break;
 
             case 'subscription.cancelled':
                 const cancelledSub = event.payload.subscription.entity
-                await supabase
-                    .from('user_accounts')
-                    .update({ plan_id: null, razorpay_subscription_id: null })
-                    .eq('razorpay_subscription_id', cancelledSub.id)
+                await supabase.from('user_subscriptions').update({ status: 'cancelled' }).eq('razorpay_subscription_id', cancelledSub.id)
                 console.log(`[SUBSCRIPTION_HALTED] Node ${cancelledSub.id} disconnected.`)
-                break;
-
-            case 'payment.failed':
-                // Optional: Notify user
-                console.warn('[TRANSACTION_REJECTED] Payment failed for user.')
                 break;
         }
 
         revalidatePath('/', 'layout')
+        revalidatePath('/profile')
         return NextResponse.json({ received: true })
 
     } catch (err: any) {
-        console.error('[WEBHOOK_CRITICAL_FAILURE]', err.message)
+        console.error('[WEBHOOK_CRITICAL_SIGNAL_FAILURE]', err.message)
         return NextResponse.json({ error: 'Internal Signal Error' }, { status: 500 })
     }
 }
