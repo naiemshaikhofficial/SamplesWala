@@ -137,6 +137,8 @@ export function TopSounds({
                                             name={sound.name}
                                             packName={sound.sample_packs?.name}
                                             coverUrl={sound.sample_packs?.cover_url}
+                                            isUnlocked={isUnlocked}
+                                            creditCost={cost}
                                             lightMode={false}
                                         />
                                     </div>

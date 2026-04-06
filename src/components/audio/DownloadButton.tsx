@@ -17,7 +17,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
     const [isUnlocked, setIsUnlocked] = useState(isUnlockedInitial)
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
-    const { isPlaying } = useAudio()
+    const { isPlaying, updateMetadataUnlocked } = useAudio()
     const { showToast, showConfirm, showAuthGate } = useNotify()
 
     // 🧬 SYNC STATE WITH PARENT RE-FETCH
@@ -42,6 +42,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                 const result = await unlockSample(sampleId)
                 if (result.success) {
                     setIsUnlocked(true)
+                    updateMetadataUnlocked(sampleId)
                     setNeedsConfirm(false)
                     showToast('SAMPLE ACQUIRED', 'success')
                     window.dispatchEvent(new Event('refresh-credits'))
@@ -71,30 +72,35 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
             onClick={handleAction}
             disabled={isProcessing}
             className={`
-                group relative flex items-center justify-center p-3 rounded-xl transition-all duration-300
+                group relative flex items-center justify-center p-3 rounded-md transition-all duration-300 min-w-[70px]
                 ${isUnlocked 
-                    ? 'bg-white/5 hover:bg-white text-white hover:text-black border border-white/10' 
-                    : 'bg-white/5 hover:bg-white text-white/40 hover:text-black border border-white/5 hover:border-white shadow-[0_0_20px_rgba(255,255,255,0)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]'
+                    ? 'bg-white/5 hover:bg-studio-neon text-white hover:text-black border border-white/10' 
+                    : needsConfirm || isProcessing
+                        ? 'bg-black text-studio-neon border-2 border-studio-neon shadow-[0_0_20px_#a6e22e33]'
+                        : 'bg-white/5 hover:bg-white text-white/40 hover:text-black border border-white/5 hover:border-white'
                 }
                 active:scale-95
-                disabled:opacity-50 disabled:cursor-wait
+                disabled:opacity-80 disabled:cursor-wait
             `}
             title={isUnlocked ? 'Download Sample' : `Unlock for ${creditCost} Credits`}
         >
-            <div className="relative z-10">
+            <div className="relative z-10 flex items-center justify-center">
                 {isProcessing ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-studio-yellow" />
+                    <div className="flex items-center gap-2 px-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span className="text-[8px] font-black uppercase tracking-widest">UNLOCKING...</span>
+                    </div>
                 ) : (isUnlocked || creditCost === 0) ? (
-                    <Download className={`h-4 w-4 ${isPlaying ? 'animate-bounce' : ''} text-white`} />
+                    <Download className={`h-4 w-4 ${isPlaying ? 'animate-bounce' : ''} text-white group-hover:text-black transition-colors`} />
                 ) : needsConfirm ? (
-                    <div className="flex items-center gap-2 px-2 animate-pulse">
-                         <span className="text-[9px] font-black uppercase tracking-widest text-studio-yellow">CONFIRM?</span>
-                         <ArrowRight className="h-3 w-3 text-studio-yellow" />
+                    <div className="flex items-center gap-2 px-2">
+                         <span className="text-[9px] font-black uppercase tracking-widest">CONFIRM?</span>
+                         <ArrowRight className="h-3 w-3" />
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 px-1">
-                        <Diamond className="h-3 w-3 fill-white text-white opacity-40" />
-                        <span className="text-[10px] font-black uppercase tracking-tight text-white/40 group-hover:text-white transition-colors">
+                        <Diamond className="h-3 w-3 fill-white text-white opacity-40 group-hover:opacity-100 group-hover:fill-black group-hover:text-black transition-all" />
+                        <span className="text-[10px] font-black uppercase tracking-tight text-white/40 group-hover:text-black transition-colors">
                             {creditCost}
                         </span>
                     </div>
@@ -104,8 +110,8 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
             {/* 🧬 DYNAMIC BACKDROP */}
             <div className={`
                 absolute inset-0 transition-all duration-300
-                ${needsConfirm ? 'bg-studio-yellow/20' : 'bg-white/[0.03] group-hover:bg-white/10'}
-                ${isUnlocked ? 'bg-white/5' : ''}
+                ${needsConfirm || isProcessing ? 'bg-transparent' : 'bg-transparent group-hover:bg-transparent'}
+                ${isUnlocked ? '' : ''}
             `} />
 
             {/* Premium Glow for Locked Items */}

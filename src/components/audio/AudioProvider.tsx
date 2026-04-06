@@ -34,6 +34,7 @@ type AudioContextType = {
   setIsLoading: (val: boolean) => void
   stop: () => void
   setPlaylist: (list: AudioMetadata[]) => void
+  updateMetadataUnlocked: (id: string) => void
   next: () => void
   prev: () => void
 }
@@ -43,6 +44,15 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined)
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [activeMetadata, setActiveMetadata] = useState<AudioMetadata | null>(null)
+
+  const updateMetadataUnlocked = (id: string) => {
+    // 1. Update Active Metadata
+    if (activeId === id && activeMetadata) {
+        setActiveMetadata({ ...activeMetadata, isUnlocked: true })
+    }
+    // 2. Update Playlist (to prevent future plays of the same sample showing locked)
+    setPlaylist(prev => prev.map(item => item.id === id ? { ...item, isUnlocked: true } : item))
+  }
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -309,7 +319,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         <AudioContext.Provider value={{ 
             activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
             isLooping, volume, playlist, play, pause, seek, setVolume, toggleLoop, 
-            setIsLoading, stop, setPlaylist, next, prev 
+            setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev 
         }}>
             {children}
         </AudioContext.Provider>

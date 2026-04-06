@@ -47,17 +47,25 @@ export function GlobalPlayer() {
           
           {/* Header Strip - COMPACT ON MOBILE */}
           <div className="bg-white/5 border-b border-white/5 px-4 md:px-6 py-1 flex justify-between items-center text-[7px] md:text-[8px] font-bold tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-40">
-             <div className="flex items-center gap-2 md:gap-4">
-                <span className="hidden xs:inline">[ MASTER_BUS_LIVE ]</span>
+             <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+                <span className="hidden xs:inline shrink-0">[ MASTER_BUS_LIVE ]</span>
                 {isLoading ? (
                     <span className="text-studio-neon animate-pulse">[ BUFFERING ]</span>
+                ) : activeMetadata?.isUnlocked ? (
+                    <span className="text-studio-neon animate-pulse">● MASTER_SIGNAL_ACTIVE :: 24-BIT_LOSSLESS</span>
                 ) : (
-                    <span className="text-studio-neon animate-pulse">● SIGNAL_ACTIVE</span>
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <span className="text-spider-red animate-pulse">● PREVIEW_SIG_ACTIVE</span>
+                        <div className="hidden sm:block h-2 w-px bg-white/20" />
+                        <span className="hidden sm:inline italic text-white/40 truncate">
+                            WATERMARKED_PREVIEW // UNLOCK_TO_REMOVE_SIGNAL_NOISE
+                        </span>
+                    </div>
                 )}
              </div>
-             <div className="flex items-center gap-4">
+             <div className="flex items-center gap-4 shrink-0">
                 <span className="hidden md:inline">BUFFER_OK :: 128_SAMPLES</span>
-                <span>VOL: {(volume * 100).toFixed(0)}%</span>
+                <span className="text-studio-neon">VOL: {(volume * 100).toFixed(0)}%</span>
              </div>
           </div>
 
@@ -132,9 +140,9 @@ export function GlobalPlayer() {
                 {/* 📊 ANALYSER_GRID (Desktop & Tablet) */}
                 <div className="flex-grow flex flex-col gap-1">
                     <div className="relative h-6 group">
-                        <div className="absolute inset-0 bg-white/5 border border-white/5 flex items-center">
-                            <div className="flex items-end gap-[1px] h-full w-full opacity-10 absolute inset-0 pointer-events-none">
-                                <DAWVisualizer color="#a6e22e" bars={60} height={20} />
+                        <div className="absolute inset-0 bg-white/5 border border-white/5 flex items-center overflow-hidden">
+                            <div className="flex items-end gap-[1px] h-full w-full opacity-10 absolute inset-0 pointer-events-none scale-y-150">
+                                <DAWVisualizer color={activeMetadata?.isUnlocked ? "#a6e22e" : "#ff4d4d"} bars={80} height={20} />
                             </div>
                             <input
                                 type="range" min="0" max={duration || 100} step="0.1" value={currentTime}
@@ -180,7 +188,18 @@ export function GlobalPlayer() {
             </div>
 
             {/* 🎚️ MASTER_IO (Desktop & Mobile Sync) */}
-            <div className="flex items-center gap-2 md:gap-4 shrink-0 transition-all">
+            <div className="flex items-center gap-4 md:gap-6 shrink-0 transition-all border-l border-white/5 pl-6">
+                {/* 🔊 VOLUME_SIGNAL_BUS */}
+                <div className="hidden md:flex items-center gap-3 w-28 group relative">
+                    <Volume2 size={12} className="text-white/20 group-hover:text-studio-neon transition-colors" />
+                    <input 
+                        type="range" min="0" max="1" step="0.01" 
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="w-full h-1 bg-white/10 appearance-none rounded-full cursor-pointer accent-studio-neon"
+                    />
+                </div>
+
                 {activeId && (
                     <div className="flex items-center gap-2">
                         <DownloadButton 
