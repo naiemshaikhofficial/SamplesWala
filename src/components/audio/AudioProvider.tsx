@@ -208,38 +208,36 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     try {
         // 🧪 PHASE 1: CHECK LOCAL REPOSITORY (VAULT_CACHE)
         const cachedBlob = await getCachedAudio(id);
+        let blob: Blob;
+
         if (cachedBlob) {
             console.log(`[VAULT_CACHE] Local signal found for node ${id}. Bypassing network fetch.`);
-            const localUrl = URL.createObjectURL(cachedBlob);
-            audioRef.current.src = localUrl;
-            audioRef.current.play();
-            setIsLoading(false);
-            return;
-        }
+            blob = cachedBlob;
+        } else {
+            // 🌡️ PHASE 2: VAULT FETCH (API HANDSHAKE)
+            const token = await generatePreviewToken(id);
+            const finalUrl = `/api/audio?id=${id}&token=${token}`;
+            
+            const response = await fetch(finalUrl);
+            blob = await response.blob();
 
-        // 🌡️ PHASE 2: VAULT FETCH (API HANDSHAKE)
-        const token = await generatePreviewToken(id);
-        const finalUrl = `/api/audio?id=${id}&token=${token}`;
-        
-        const response = await fetch(finalUrl);
-        const blob = await response.blob();
-
-        // 💾 PHASE 3: SECURE PERSISTENCE
-        // Only cache watermarked previews (items that are NOT unlocked) for security
-        if (!metadata?.isUnlocked) {
-            await cacheAudio(id, blob);
+            // 💾 PHASE 3: SECURE PERSISTENCE
+            // Only cache watermarked previews (items that are NOT unlocked) for security
+            if (!metadata?.isUnlocked) {
+                await cacheAudio(id, blob);
+            }
         }
 
         const objectUrl = URL.createObjectURL(blob);
         
-        // 🛡️ REVOCTION_PROTOCOL: DESTROY URL AFTER HANDSHAKE
-        // We listen for the 'canplay' event which triggers once the browser has enough data.
+        // 🛡️ REVOCATION_PROTOCOL: DESTROY URL AFTER HANDSHAKE
+        // We listen for the 'loadedmetadata' event which triggers once the browser has established the signal chain.
         // Revoking the URL immediately after this makes the 'blob:...' URL un-navigable and un-sharable.
         const revokeListener = () => {
             URL.revokeObjectURL(objectUrl);
-            audioRef.current?.removeEventListener('canplay', revokeListener);
+            audioRef.current?.removeEventListener('loadedmetadata', revokeListener);
         };
-        audioRef.current.addEventListener('canplay', revokeListener);
+        audioRef.current.addEventListener('loadedmetadata', revokeListener);
 
         audioRef.current.src = objectUrl;
         audioRef.current.volume = userVolumeRef.current;
@@ -248,9 +246,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
             playPromise.catch((error) => {
-                if (error.name !== 'AbortError') console.error("Playback failed:", error);
+                if (error.name !== 'AbortError') console.error("SIGNAL_REJECTED:", error);
             });
         }
+        setIsLoading(false);
     } catch (e) {
         console.error("Token generation or setup failed:", e);
         setIsLoading(false);

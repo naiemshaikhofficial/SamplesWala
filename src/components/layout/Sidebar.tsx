@@ -71,24 +71,45 @@ export function Sidebar() {
   const [searchVal, setSearchVal] = useState(currentSearch);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [creditCount, setCreditCount] = useState<number | null>(null);
   const supabase = createClient();
 
-  // 🛡️ AUTH_SIGNAL MONITORING
+  // 🛡️ AUTH_SIGNAL & CREDIT TELEMETRY
   useEffect(() => {
+    const fetchCredits = async (uid: string) => {
+        const { data } = await supabase.from('user_accounts').select('credits').eq('user_id', uid).single();
+        if (data) setCreditCount(data.credits);
+    }
+
     const checkUser = async () => {
         const { data: { user: currentUser } } = await supabase.auth.getUser();
         setUser(currentUser);
+        if (currentUser) fetchCredits(currentUser.id);
     }
     checkUser();
 
+    // Live Credit Mirroring
+    const accountSubscription = supabase
+        .channel('public:user_accounts')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_accounts' }, (payload: any) => {
+            if (user && payload.new.user_id === user.id) {
+                setCreditCount(payload.new.credits);
+            }
+        })
+        .subscribe();
+
     const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) fetchCredits(currentUser.id);
+        else setCreditCount(null);
     });
 
     return () => {
         authListener.subscription.unsubscribe();
+        supabase.removeChannel(accountSubscription);
     }
-  }, [supabase]);
+  }, [supabase, user?.id]);
 
   // Fetch Categories from DB
   useEffect(() => {
@@ -237,12 +258,12 @@ export function Sidebar() {
             <div className="space-y-1">
                 {isOpen && (
                 <div className="px-2 py-1 flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Your_Library</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">System_Health</span>
                     <div className="h-px flex-1 bg-white/5"></div>
                 </div>
                 )}
                 {[
-                    { id: 'library', label: 'Samples_Wala', icon: <Folder className="w-3 h-3" />, href: '/library' },
+                    { id: 'library', label: 'Your_Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
                     { id: 'profile', label: 'My_Account', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
                 ].map((item) => (
                     <Link
@@ -256,6 +277,23 @@ export function Sidebar() {
                         </div>
                     </Link>
                 ))}
+
+                {/* 🧧 LIVE_CREDIT_METER */}
+                {user && (
+                    <div className={`p-2 transition-all ${!isOpen ? 'bg-studio-yellow/5 border-b-2 border-studio-yellow/20' : ''}`}>
+                         <div className={`flex items-center gap-3 p-2 bg-studio-yellow/5 border-2 border-studio-yellow/10 rounded-sm group hover:border-studio-yellow/40 transition-all ${!isOpen ? 'border-none bg-transparent justify-center' : ''}`}>
+                            <Key size={12} className="text-studio-yellow animate-pulse" />
+                            {isOpen ? (
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black text-studio-yellow leading-none uppercase">Credit_Balance</span>
+                                    <span className="text-[8px] font-black text-white/40 mt-1 uppercase tracking-widest">{creditCount !== null ? `${creditCount} TOKENS` : 'FETCHING...'}</span>
+                                </div>
+                            ) : (
+                                <span className="text-[10px] font-black text-studio-yellow">{creditCount}</span>
+                            )}
+                         </div>
+                    </div>
+                )}
             </div>
         </div>
 
