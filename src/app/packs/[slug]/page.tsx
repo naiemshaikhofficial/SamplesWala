@@ -12,9 +12,9 @@ import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { getRelatedPacks } from '@/app/browse/actions'
 
-export default async function PackPage({ params }: { params: { slug: string } }) {
+export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
   const supabase = await createClient()
-  const { slug } = await (params as any)
+  const { slug } = await params
   const { data: { user } } = await supabase.auth.getUser()
   
   const { data: pack } = await supabase.from('sample_packs').select('*, categories(*)').eq('slug', slug).single()
