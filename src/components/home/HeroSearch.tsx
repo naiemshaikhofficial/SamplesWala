@@ -33,7 +33,7 @@ export function HeroSearch({ onSearchChange }: { onSearchChange?: (val: string) 
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="SEARCH SAMPLES..."
+            placeholder="SEARCH_THE_CATALOG :: BROWSE_SAMPLES..."
             className="w-full bg-black/40 backdrop-blur-3xl border-2 border-white/10 h-16 md:h-24 px-12 md:px-20 text-[10px] md:text-md font-black uppercase tracking-[0.2em] md:tracking-[0.4em] outline-none focus:border-white transition-all placeholder:text-white/10 text-center"
         />
         <button type="submit" className="absolute right-6 md:right-8 top-1/2 -translate-y-1/2 h-10 w-10 md:h-14 md:w-14 bg-white text-black flex items-center justify-center hover:invert transition-all">

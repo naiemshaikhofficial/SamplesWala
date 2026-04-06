@@ -32,7 +32,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-[80] w-full bg-studio-grey text-white border-b-4 border-black shadow-2xl">
+    <header className="fixed top-0 left-0 lg:left-64 right-0 z-[80] bg-studio-grey text-white border-b-4 border-black shadow-2xl">
       
       {/* 🎹 TOP NAVIGATION (Hidden on Mobile) */}
       <div className="hidden md:flex bg-black/80 px-6 py-2.5 items-center justify-between border-b border-white/5">

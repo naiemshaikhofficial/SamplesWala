@@ -39,11 +39,11 @@ export default function RootLayout({
             <Suspense fallback={null}>
                 <Sidebar />
             </Suspense>
-            <div className="flex-1 flex flex-col min-h-screen lg:pl-64 transition-all duration-500 pb-20 lg:pb-0">
+            <div className="flex-1 flex flex-col min-h-screen lg:pl-64 transition-all duration-500 pb-20 lg:pb-0 relative">
               <Suspense fallback={null}>
                   <Header />
               </Suspense>
-              <main className="flex-grow relative">
+              <main className="flex-grow relative pt-[260px] md:pt-[200px] lg:pt-[180px] xl:pt-[120px]">
                 {children}
               </main>
               <Footer />

@@ -64,31 +64,34 @@ export function CreditCounter() {
   return (
     <button 
       onClick={showTopUpModal}
-      className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/30 transition-all group overflow-hidden relative cursor-pointer active:scale-95"
+      className="flex items-center gap-4 px-4 py-2 bg-[#1a1a1a] border-2 border-white/5 hover:border-studio-neon transition-all group relative overflow-hidden active:scale-95 shadow-2xl"
     >
-      {/* Premium Glow Aura */}
-      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-700 ${planName === 'Producer' ? 'bg-studio-yellow/10' : 'bg-studio-yellow/10'}`} />
-      
       {/* 🎰 Real-time Counter UI */}
       <div className="flex items-center gap-4 relative z-10">
         <div className="flex items-center gap-2">
-            <Diamond className={`h-3.5 w-3.5 fill-studio-yellow text-studio-yellow animate-pulse`} />
-            <span className="text-[10px] font-black uppercase tracking-tighter text-white flex items-center gap-1.5">
-                {credits}
-                <span className="text-[8px] text-white/30 tracking-widest font-normal italic lowercase">SCR</span>
-            </span>
+            <div className="h-6 w-6 flex items-center justify-center bg-black border border-white/10 text-studio-neon group-hover:bg-studio-neon group-hover:text-black transition-all">
+                <Zap className="h-3 w-3 fill-current" />
+            </div>
+            <div className="flex flex-col items-start leading-none gap-1">
+                <span className="text-[12px] font-black uppercase tracking-tighter text-white">
+                    {credits}
+                </span>
+                <span className="text-[6px] font-black uppercase tracking-[0.2em] text-white/20">CREDITS</span>
+            </div>
         </div>
 
         {planName && (
-            <div className="flex items-center gap-1 pl-3 border-l border-white/10 text-studio-yellow">
-                <div className={`h-1 w-1 rounded-full animate-ping bg-studio-yellow`} />
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">{planName}</span>
+            <div className="flex flex-col items-end gap-1 pl-4 border-l border-white/10">
+                <span className="text-[10px] font-black uppercase tracking-tighter text-studio-yellow italic">
+                    {planName}
+                </span>
+                <span className="text-[6px] font-black uppercase tracking-[0.2em] text-white/10">PRODUCER_RANK</span>
             </div>
         )}
       </div>
       
-      {/* Success Sparkle Effect */}
-      <div key={credits} className="absolute inset-0 bg-white/10 animate-ping opacity-0 pointer-events-none" />
+      {/* Mechanical Signal (Hover) */}
+      <div className="absolute right-0 top-0 h-full w-[2px] bg-studio-neon scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-500" />
     </button>
   )
 }

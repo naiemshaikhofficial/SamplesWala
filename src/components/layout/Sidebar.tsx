@@ -76,7 +76,7 @@ export function Sidebar() {
                 <Search size={12} className="text-white/40" />
                 <input 
                   type="text" 
-                  placeholder="SEARCH_BROWSER..." 
+                  placeholder="SEARCH_CATALOG :: INPUT_REQUEST..." 
                   className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none"
                 />
             </div>

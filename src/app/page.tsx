@@ -13,12 +13,22 @@ import { Suspense } from 'react'
 export default async function Home() {
   const supabase = await createClient()
   
-  // 📀 Fetch Latest Packs
-  const { data: latestPacks } = await supabase
+  // 📀 Fetch Latest Packs with Relational Fallback
+  let { data: latestPacks } = await supabase
     .from('sample_packs')
     .select('*, categories(name)')
     .order('created_at', { ascending: false })
     .limit(4)
+
+  // Secondary Scan if primary fails or returns no relational data
+  if (!latestPacks || latestPacks.length === 0) {
+      const { data: secondScan } = await supabase
+        .from('sample_packs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(4)
+      latestPacks = secondScan;
+  }
 
   // 💿 AUTOMATIC POPULARITY ENGINE
   const topSamples = await getTopPopularSounds(12)
