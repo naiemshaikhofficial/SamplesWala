@@ -102,6 +102,7 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                                         bpm={sample.bpm}
                                         audioKey={sample.key}
                                         isUnlocked={isUnlocked}
+                                        creditCost={sample.credit_cost}
                                     />
                                 </div>
                                 

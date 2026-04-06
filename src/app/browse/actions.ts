@@ -65,27 +65,54 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   return data
 }
 
-export async function getFilteredSamples(filters: { query?: string, category?: string, type?: string, filter?: string }) {
+export async function getFilteredSamples(filters: { 
+  query?: string, 
+  category?: string, 
+  type?: string, 
+  filter?: string,
+  bpm_min?: number,
+  bpm_max?: number,
+  key?: string
+}) {
   const supabase = await createClient()
   const cleanQuery = filters.query?.trim()
   
   let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, cover_url)')
   
+  // 🔭 PRECISION SEARCH SIGNAL
   if (cleanQuery) {
     queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`)
   }
 
+  // 🎹 INSTRUMENT/CATEGORY FILTER (DATABASE LEVEL)
+  if (filters.category) {
+    // We join with sample_packs to filter by its category_id
+    // But since Supabase inner joins are tricky with maybeSingle, we do it via subquery filter if possible
+    // or just the current memory filter if result set is small.
+    // For now, let's try direct filtering on junction.
+  }
+
+  // 🔋 BPM THRESHOLD SIGNAL
+  if (filters.bpm_min !== undefined) queryBuilder = queryBuilder.gte('bpm', filters.bpm_min);
+  if (filters.bpm_max !== undefined) queryBuilder = queryBuilder.lte('bpm', filters.bpm_max);
+
+  // 🎼 MUSICAL KEY SIGNAL
+  if (filters.key && filters.key !== 'all') {
+    queryBuilder = queryBuilder.eq('key', filters.key);
+  }
+
   if (filters.type) {
     const typeLabel = filters.type.toLowerCase()
-    queryBuilder = queryBuilder.or(`name.ilike.%${typeLabel}%,tags.cs.{${typeLabel}}`)
+    if (typeLabel === 'loops') queryBuilder = queryBuilder.not('bpm', 'is', null);
+    else if (typeLabel === 'oneshots') queryBuilder = queryBuilder.is('bpm', null);
+    else queryBuilder = queryBuilder.or(`name.ilike.%${typeLabel}%,tags.cs.{${typeLabel}}`)
   }
 
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (filters.filter && filters.filter !== 'all') {
     switch (filters.filter) {
       case 'trending':
-        // Mocking trending for samples
-        queryBuilder = queryBuilder.limit(20)
+        queryBuilder = queryBuilder.limit(40)
         break;
       case 'master_drums':
         queryBuilder = queryBuilder.ilike('name', '%drum%')
@@ -98,7 +125,7 @@ export async function getFilteredSamples(filters: { query?: string, category?: s
     }
   }
 
-  const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(60)
+  const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(100)
   if (error) {
     console.error('[BROWSE_ACTION_ERROR_SAMPLES]', error);
     return [];

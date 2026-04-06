@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp, Loader2, SkipBack, SkipForward } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DAWVisualizer } from '@/components/ui/DAWVisualizer'
+import { DownloadButton } from './DownloadButton'
 
 import { useSidebar } from '../layout/SidebarContext'
 
@@ -178,8 +179,17 @@ export function GlobalPlayer() {
                 </div>
             </div>
 
-            {/* 🎚️ MASTER_IO (Desktop Only) */}
-            <div className="hidden md:flex items-center gap-4 shrink-0">
+            {/* 🎚️ MASTER_IO (Desktop & Mobile Sync) */}
+            <div className="flex items-center gap-2 md:gap-4 shrink-0 transition-all">
+                {activeId && (
+                    <div className="flex items-center gap-2">
+                        <DownloadButton 
+                            sampleId={activeId} 
+                            isUnlockedInitial={activeMetadata?.isUnlocked || false}
+                            creditCost={activeMetadata?.creditCost || 1} 
+                        />
+                    </div>
+                )}
                 <button onClick={() => stop()} className="h-10 w-10 border border-white/10 hover:bg-studio-neon hover:text-black transition-all group flex items-center justify-center">
                     <X size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>

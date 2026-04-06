@@ -11,7 +11,8 @@ type AudioMetadata = {
     coverUrl?: string | null, 
     bpm?: number | null, 
     audioKey?: string | null, 
-    isUnlocked?: boolean 
+    isUnlocked?: boolean,
+    creditCost?: number | null
 }
 
 type AudioContextType = {
@@ -184,7 +185,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (audioRef.current) audioRef.current.volume = val
   }
 
-  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean }) => {
+  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) => {
     if (!audioRef.current) return
     
     if (activeId === id) {

@@ -11,6 +11,7 @@ export function PlayButton({
   bpm = null,
   audioKey = null,
   isUnlocked = false,
+  creditCost = null,
   lightMode = false
 }: { 
   id: string, 
@@ -21,6 +22,7 @@ export function PlayButton({
   bpm?: number | null,
   audioKey?: string | null,
   isUnlocked?: boolean,
+  creditCost?: number | null,
   lightMode?: boolean
 }) {
   const { activeId, isPlaying, isLoading, play } = useAudio()
@@ -29,7 +31,7 @@ export function PlayButton({
 
   return (
     <button 
-      onClick={(e) => { e.preventDefault(); play(id, url, { id, url, name, packName, coverUrl, bpm, audioKey, isUnlocked }); }}
+      onClick={(e) => { e.preventDefault(); play(id, url, { id, url, name, packName, coverUrl, bpm, audioKey, isUnlocked, creditCost }); }}
       className={`
         h-10 w-10 flex items-center justify-center rounded-full bg-white text-black transition-all hover:scale-110 active:scale-95
         ${isActive && isPlaying ? 'ring-4 ring-white/20' : ''}
