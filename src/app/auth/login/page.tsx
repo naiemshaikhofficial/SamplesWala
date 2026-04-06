@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import React, { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck } from 'lucide-react'
 import { login } from '../actions'
 import { useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
   return (
     <Suspense fallback={
-        <div className="min-h-screen bg-[#020202] flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-white/20" />
+        <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-studio-yellow/20" />
         </div>
     }>
         <LoginForm />
@@ -24,6 +24,14 @@ function LoginForm() {
   
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
+  const [systemTime, setSystemTime] = useState('')
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+        setSystemTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -37,129 +45,166 @@ function LoginForm() {
             setError(result.error)
         }
     } catch (err: any) {
-        setError("Login failed. Check your credentials.")
+        setError("AUTHENTICATION_FAILED: CHECK_CREDENTIALS")
     } finally {
         setIsPending(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white flex flex-col relative overflow-hidden">
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full animate-pulse" />
-      <div className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-yellow-500/10 blur-[180px] rounded-full animate-pulse delay-1000" />
-
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col relative overflow-hidden font-mono">
+      {/* 🏁 SCANLINE & GRID OVERLAY */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.02] pointer-events-none" />
+      
+      {/* Industrial Hardware Accents */}
+      <div className="absolute top-10 left-10 hidden xl:block opacity-20">
+         <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em]">
+            <Cpu size={14} className="text-studio-yellow" />
+            <span>CORE_SIGNAL: ACTIVE</span>
+            <span className="text-white/20">::</span>
+            <span className="text-studio-yellow animate-pulse">{systemTime}</span>
+         </div>
+      </div>
 
       <div className="flex-1 flex items-center justify-center container mx-auto px-4 relative z-10">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex p-4 rounded-3xl bg-white/[0.03] border border-white/5 mb-6">
-               <LogIn className="h-8 w-8 text-emerald-400" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 italic leading-tight">Welcome Back</h1>
-            <p className="text-white/40 text-sm">Access your library and fresh credits. Keep the rhythm going.</p>
-          </div>
-
-          {/* Google Login (TOP) */}
-          <button 
-            onClick={async () => {
-              const supabase = (await import('@/lib/supabase/client')).createClient()
-              await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                  redirectTo: `${window.location.origin}/auth/callback?next=${redirectPath}`,
-                },
-              })
-            }}
-            className="w-full flex items-center justify-center gap-4 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all font-bold uppercase tracking-widest text-xs mb-8"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z"
-              />
-            </svg>
-            Continue with Google
-          </button>
-
-          <div className="flex items-center gap-4 mb-8 text-white/10">
-            <div className="h-[1px] flex-1 bg-current" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]">OR LOGIN WITH EMAIL</span>
-            <div className="h-[1px] flex-1 bg-current" />
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <input type="hidden" name="redirect" value={redirectPath} />
-            {error && (
-                <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs animate-shake">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    {error}
+        <div className="w-full max-w-lg">
+          {/* Main Terminal Frame */}
+          <div className="border-4 border-black bg-[#0a0a0a] shadow-[0_0_80px_rgba(0,0,0,1)] relative">
+            {/* Top Bar */}
+            <div className="bg-black p-3 flex justify-between items-center border-b border-white/5">
+                <div className="flex gap-1.5">
+                    <div className="w-2.5 h-2.5 bg-red-500/40 rounded-full" />
+                    <div className="w-2.5 h-2.5 bg-studio-yellow/40 rounded-full" />
+                    <div className="w-2.5 h-2.5 bg-studio-neon/40 rounded-full" />
                 </div>
-            )}
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">SECURE_LOGIN_V5.10</span>
+            </div>
 
-            <div className="relative group">
-               <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
-               <input 
-                 name="email"
-                 type="email" 
-                 placeholder="Producer Email" 
-                 className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/5 rounded-2xl focus:border-emerald-500/50 focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20"
-                 required
-               />
+            <div className="p-8 md:p-12">
+                {/* Header */}
+                <div className="mb-10 flex flex-col items-center">
+                    <div className="relative mb-6">
+                        <div className="absolute -inset-4 bg-studio-yellow/5 blur-2xl rounded-full" />
+                        <div className="w-20 h-20 bg-black border-2 border-studio-yellow/20 flex items-center justify-center relative transform rotate-45 shadow-[0_0_30px_rgba(234,179,8,0.05)]">
+                           <Key className="h-8 w-8 text-studio-yellow -rotate-45" />
+                        </div>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter italic leading-none text-center">
+                        Welcome<br /><span className="text-studio-yellow shadow-studio-neon">Back</span>
+                    </h1>
+                </div>
+
+                {/* Google Login (Simple Style) */}
+                <button 
+                    onClick={async () => {
+                        const supabase = (await import('@/lib/supabase/client')).createClient()
+                        await supabase.auth.signInWithOAuth({
+                            provider: 'google',
+                            options: {
+                                redirectTo: `${window.location.origin}/auth/callback?next=${redirectPath}`,
+                            },
+                        })
+                    }}
+                    className="w-full flex items-center justify-center gap-4 py-5 bg-white/2 border-2 border-white/5 hover:bg-white/5 hover:border-white/10 transition-all font-black uppercase tracking-[0.2em] text-[10px] mb-8 group"
+                >
+                    <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" />
+                    </svg>
+                    Continue with Google
+                </button>
+
+                <div className="flex items-center gap-4 mb-8 text-white/5">
+                    <div className="h-px flex-1 bg-current" />
+                    <span className="text-[8px] font-black uppercase tracking-[0.5em]">OR LOGIN WITH EMAIL</span>
+                    <div className="h-px flex-1 bg-current" />
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <input type="hidden" name="redirect" value={redirectPath} />
+                    {error && (
+                        <div className="flex items-center gap-3 p-4 bg-red-500/10 border-l-4 border-red-500 text-red-500 font-black text-[10px] uppercase tracking-widest animate-shake">
+                            <AlertCircle className="h-4 w-4 shrink-0" />
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 ml-1">Email Address:</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/10 group-focus-within:text-studio-yellow transition-colors" />
+                            <input 
+                                name="email"
+                                type="email" 
+                                placeholder="Enter your email" 
+                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                required
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 ml-1">Password:</label>
+                        <div className="relative group">
+                            <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/10 group-focus-within:text-studio-yellow transition-colors" />
+                            <input 
+                                name="password"
+                                type="password" 
+                                placeholder="Enter your password" 
+                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between px-1">
+                        <Link href="/auth/forgot-password" title="Recover Access" className="text-[9px] uppercase font-black tracking-widest text-white/20 hover:text-studio-yellow transition-colors border-b border-transparent hover:border-studio-yellow pb-0.5">Forgot Password?</Link>
+                        <Link href="/auth/signup" className="text-[9px] uppercase font-black tracking-widest text-studio-yellow/60 hover:text-studio-yellow transition-colors flex items-center gap-2 border-b border-transparent hover:border-studio-yellow pb-0.5">
+                            New here? Sign Up <Sparkles className="h-3 w-3" />
+                        </Link>
+                    </div>
+
+                    <button 
+                        disabled={isPending}
+                        className="w-full py-6 bg-studio-yellow text-black font-black uppercase tracking-[0.4em] text-xs flex items-center justify-center gap-4 hover:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-wait shadow-[0_0_50px_rgba(234,179,8,0.2)]"
+                    >
+                        {isPending ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin text-black" />
+                                <span>Logging in...</span>
+                            </>
+                        ) : (
+                            <>
+                                <ShieldCheck className="h-5 w-5" />
+                                <span>Login</span>
+                            </>
+                        )}
+                    </button>
+                </form>
             </div>
             
-            <div className="relative group">
-               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
-               <input 
-                 name="password"
-                 type="password" 
-                 placeholder="Password" 
-                 className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/5 rounded-2xl focus:border-emerald-500/50 focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20"
-                 required
-               />
+            {/* Footer Status */}
+            <div className="bg-black/40 p-4 border-t border-white/5 flex justify-between items-center px-8">
+                <div className="flex items-center gap-3">
+                    <Disc className="w-3 h-3 text-studio-yellow animate-spin-slow" />
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">SAMPLES_WALA_SECURE_GATEWAY</span>
+                </div>
+                <div className="flex gap-4">
+                    <div className="h-1 w-8 bg-studio-yellow/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-studio-yellow w-1/2 animate-pulse" />
+                    </div>
+                </div>
             </div>
+          </div>
 
-            <div className="flex items-center justify-between px-2">
-               <Link href="/auth/forgot-password" title="Recover Access" className="text-[10px] uppercase font-black tracking-widest text-white/20 hover:text-white transition-colors">Forgot?</Link>
-               <Link href="/auth/signup" className="text-[10px] uppercase font-black tracking-widest text-emerald-400/60 hover:text-emerald-400 transition-colors flex items-center gap-2">
-                  New here? Join the studio <Sparkles className="h-3 w-3" />
-               </Link>
-            </div>
-
-            <button 
-              disabled={isPending}
-              className="w-full py-5 bg-white text-black font-black uppercase tracking-widest text-sm rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-wait"
-            >
-               {isPending ? (
-                   <>
-                     <Loader2 className="h-4 w-4 animate-spin text-black" />
-                     <span>Authenticating...</span>
-                   </>
-               ) : (
-                   <span>Login</span>
-               )}
-            </button>
-          </form>
-
-          {/* Footer Info */}
-          <div className="mt-12 text-center">
-             <p className="text-[10px] uppercase font-black tracking-widest text-white/10 italic">
-                Samples Wala • Premium Creative Assets
-             </p>
+          {/* Exterior Info */}
+          <div className="mt-8 flex justify-between items-center px-4 opacity-30 text-[8px] font-black uppercase tracking-[0.5em] italic">
+             <span>PROTOCOL: DAW-SECURE-V5</span>
+             <span>© 2026 SAMPLES WALA</span>
           </div>
         </div>
       </div>

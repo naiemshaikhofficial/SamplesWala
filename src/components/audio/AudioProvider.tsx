@@ -231,6 +231,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
 
         const objectUrl = URL.createObjectURL(blob);
+        
+        // 🛡️ REVOCTION_PROTOCOL: DESTROY URL AFTER HANDSHAKE
+        // We listen for the 'canplay' event which triggers once the browser has enough data.
+        // Revoking the URL immediately after this makes the 'blob:...' URL un-navigable and un-sharable.
+        const revokeListener = () => {
+            URL.revokeObjectURL(objectUrl);
+            audioRef.current?.removeEventListener('canplay', revokeListener);
+        };
+        audioRef.current.addEventListener('canplay', revokeListener);
+
         audioRef.current.src = objectUrl;
         audioRef.current.volume = userVolumeRef.current;
         audioRef.current.load();

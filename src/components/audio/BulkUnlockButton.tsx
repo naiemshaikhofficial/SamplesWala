@@ -37,10 +37,15 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
     <button 
       onClick={handleBulkUnlock}
       disabled={loading}
-      className="h-14 px-10 rounded-full bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-white/90 active:scale-95 transition-all shadow-xl shadow-white/10 flex items-center gap-2"
+      className={`
+        h-14 px-10 border-2 border-studio-yellow/40 bg-black/80 text-white font-black text-[10px] uppercase tracking-widest 
+        hover:bg-studio-yellow hover:text-black hover:border-studio-yellow hover:shadow-[0_0_30px_rgba(234,179,8,0.3)] 
+        active:scale-[0.98] transition-all group flex items-center justify-center gap-3 relative overflow-hidden rounded-sm
+      `}
     >
-      <Zap className="h-4 w-4 fill-black" />
-      Unlock Full Pack ({cost} Credits)
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
+      <Zap className={`h-4 w-4 ${loading ? 'animate-pulse' : 'group-hover:fill-current'}`} />
+      <span>{loading ? 'CALCULATING...' : `ACTIVATE_FULL_NODE (${cost} CREDITS)`}</span>
     </button>
   )
 }

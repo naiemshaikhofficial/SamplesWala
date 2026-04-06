@@ -13,37 +13,21 @@ export async function getSecureDownloadUrl(targetId: string, isIndividualSample:
 
   let hasAccess = false;
 
-  if (isIndividualSample) {
-    // 🛡️ VERIFY SAMPLE OWNERSHIP
-    const { data: unlock } = await supabase
-      .from('unlocked_samples')
-      .select('id')
-      .eq('sample_id', targetId)
-      .eq('user_id', user.id)
-      .maybeSingle()
-    
-    hasAccess = !!unlock
-  } else {
-    // 🛡️ VERIFY PACK OWNERSHIP
-    const { data: unlock } = await supabase
-      .from('unlocked_packs')
-      .select('id')
-      .eq('pack_id', targetId)
-      .eq('user_id', user.id)
-      .maybeSingle()
-    
-    hasAccess = !!unlock
+  // 🛡️ UNIVERSAL VAULT VERIFICATION Protocol
+  const { data: vaultRecord } = await supabase
+    .from('user_vault')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('item_id', targetId)
+    .eq('item_type', isIndividualSample ? 'sample' : 'pack')
+    .maybeSingle()
+  
+  hasAccess = !!vaultRecord
 
-    if (!hasAccess) {
-       const { data: purchase } = await supabase
-          .from('purchases')
-          .select('id')
-          .eq('product_id', targetId)
-          .eq('user_id', user.id)
-          .maybeSingle()
-       
-       hasAccess = !!purchase
-    }
+  if (!hasAccess && !isIndividualSample) {
+    // 🔍 Legacy/Alternate Purchase Check
+    const { data: legacy } = await supabase.from('unlocked_packs').select('id').eq('pack_id', targetId).eq('user_id', user.id).maybeSingle()
+    hasAccess = !!legacy
   }
 
   if (!hasAccess) throw new Error("Access Denied: Product Not Owned")

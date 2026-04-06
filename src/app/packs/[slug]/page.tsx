@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database } from 'lucide-react'
 import Link from 'next/link'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
@@ -73,6 +73,13 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
         }
     }
   }
+
+  // 🧪 DETECTION_PROTOCOL: IDENTIFY IF THIS IS A PREMIUM ARTIFACT (DRIVE / STEMS / MIDI)
+  const hasPremiumArtifacts = pack.description?.toLowerCase().includes('stems') || 
+                            pack.description?.toLowerCase().includes('midi') || 
+                            pack.description?.toLowerCase().includes('drive') ||
+                            pack.full_pack_download_url?.toLowerCase().includes('drive') ||
+                            pack.full_pack_download_url?.toLowerCase().includes('dropbox');
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono">
@@ -159,34 +166,83 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                   </div>
               </div>
 
-              <div className="flex-[1.8] bg-white text-black p-8 md:p-14 relative overflow-hidden group border-b-[16px] lg:border-b-0 lg:border-r-[24px] border-studio-yellow">
+              <div className="flex-[1.8] bg-[#0a0a0a] border-4 border-studio-yellow p-8 md:p-14 relative overflow-hidden group shadow-[0_0_100px_rgba(234,179,8,0.1)] rounded-sm">
+                  {/* 🔩 DECOR SCREWS */}
+                  <div className="absolute top-3 left-3 w-4 h-4 rounded-full bg-studio-yellow/20 shadow-inner border border-black flex items-center justify-center">
+                      <div className="w-3 h-[1px] bg-black/40 rotate-45" />
+                  </div>
+                  <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-studio-yellow/20 shadow-inner border border-black flex items-center justify-center">
+                      <div className="w-3 h-[1px] bg-black/40 -rotate-45" />
+                  </div>
+                  <div className="absolute bottom-3 left-3 w-4 h-4 rounded-full bg-studio-yellow/20 shadow-inner border border-black flex items-center justify-center">
+                      <div className="w-3 h-[1px] bg-black/40 -rotate-45" />
+                  </div>
+                  <div className="absolute bottom-3 right-3 w-4 h-4 rounded-full bg-studio-yellow/20 shadow-inner border border-black flex items-center justify-center">
+                      <div className="w-3 h-[1px] bg-black/40 rotate-45" />
+                  </div>
+
                   <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none group-hover:rotate-180 transition-transform duration-[3s]">
-                      <Disc className="h-64 w-64" />
+                      <Disc className="h-64 w-64 text-studio-yellow" />
                   </div>
 
                   <div className="relative z-10">
-                      <div className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] mb-8 md:mb-12 italic text-black/40">[ FULL_ACCESS_PROTOCOL ]</div>
-                      <h3 className="text-4xl md:text-8xl font-black uppercase tracking-tighter mb-8 md:mb-12 italic leading-[0.8] md:leading-[0.8]">
-                        The Full<br />Artifact
-                      </h3>
+                      <div className="text-[10px] font-black uppercase tracking-[0.5em] mb-12 italic text-studio-yellow flex items-center gap-4">
+                         <Zap className="h-4 w-4 animate-pulse" /> [ FULL_ACCESS_PROTOCOL ]
+                      </div>
                       
-                      <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 mt-12 pt-8 md:pt-12 border-t border-black/10">
-                         {isFullPackUnlocked ? (
-                                <div className="w-full flex flex-col sm:flex-row items-center gap-6">
-                                    <div className="px-8 md:px-10 py-4 md:py-5 bg-black text-white font-black uppercase tracking-widest text-[10px] md:text-[11px] flex items-center justify-center gap-4">
-                                        <ShieldCheck className="h-5 w-5 text-studio-neon" /> ACCESS_GRANTED
+                      <div className="grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 md:gap-12">
+                          <div className="flex flex-col justify-center min-w-0">
+                             <h3 className="text-4xl lg:text-5xl xl:text-6xl font-extrabold uppercase tracking-tighter mb-6 md:mb-8 italic leading-[0.9] text-white">
+                                The Full<br /><span className="text-studio-yellow">Sample Pack</span>
+                             </h3>
+                             <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-white/40 leading-relaxed max-w-sm">
+                                UNLOCK EVERYTHING: THIS UPGRADE GANTS INSTANT ACCESS TO EVERY SAMPLE {hasPremiumArtifacts ? "+ DRIVE EXCLUSIVES" : ""} IN THIS PACK.
+                             </p>
+                          </div>
+
+                          <div className="space-y-4 pt-4 min-w-0 w-full overflow-hidden">
+                             <span className="text-[9px] font-black uppercase tracking-widest text-[#fff]/20 border-b border-white/5 pb-2 block italic text-left">PACK_CONTENTS:</span>
+                             <div className="grid grid-cols-1 gap-2">
+                                {[
+                                    { icon: <Layers size={12}/>, label: 'Full Multitrack Stems', active: hasPremiumArtifacts },
+                                    { icon: <Music4 size={12}/>, label: 'Master MIDI Sequences', active: hasPremiumArtifacts },
+                                    { icon: <Zap size={12}/>, label: 'Lifetime License', active: true },
+                                    { icon: <Database size={12}/>, label: 'High-Quality 24-bit WAV', active: true }
+                                ].map((m, i) => (
+                                    <div key={i} className={`flex items-center gap-3 text-[9px] font-bold uppercase tracking-tight p-3 border transition-all min-w-0 ${m.active ? 'text-white/60 bg-white/5 border-white/5' : 'text-white/10 bg-white/2 border-white/2 opacity-30'}`}>
+                                        <div className={m.active ? "text-studio-yellow shrink-0" : "text-white/10 shrink-0"}>{m.icon}</div>
+                                        <span className="truncate flex-1">{m.label}</span>
                                     </div>
-                                    <SecureDownloadButton packId={pack.id} />
+                                ))}
+                             </div>
+                          </div>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row items-center gap-6 mt-12 pt-10 border-t border-white/10">
+                         {isFullPackUnlocked ? (
+                                <div className="w-full grid grid-cols-1 md:grid-cols-[1.2fr_1fr] items-center gap-6 md:gap-8">
+                                    <div className="h-14 px-8 bg-studio-yellow text-black font-black uppercase tracking-[0.4em] text-[10px] flex items-center justify-center gap-3 shadow-[0_0_50px_rgba(234,179,8,0.2)] rounded-sm">
+                                        <ShieldCheck className="h-5 w-5" /> ACCESS_GRANTED
+                                    </div>
+                                    <div className="flex-1 w-full scale-100">
+                                        <SecureDownloadButton packId={pack.id} />
+                                    </div>
                                 </div>
                          ) : (
-                            <div className="w-full flex gap-4 md:gap-6 flex-wrap">
-                                <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-                                <SubscribeButton 
-                                    planId={pack.id} 
-                                    planName={`BUY: ₹${pack.price_inr}`} 
-                                    mode="sample_pack"
-                                    isFeatured
-                                />
+                            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+                                <div className="flex flex-col gap-3">
+                                     <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
+                                     <span className="text-[8px] text-white/20 uppercase tracking-widest italic text-center">PAY_WITH_CREDITS</span>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <SubscribeButton 
+                                        planId={pack.id} 
+                                        planName={`BUY_NOW: ₹${pack.price_inr}`} 
+                                        mode="sample_pack"
+                                        isFeatured
+                                    />
+                                    <span className="text-[8px] text-white/20 uppercase tracking-widest italic text-center">INSTANT_DELIVERY</span>
+                                </div>
                             </div>
                          )}
                       </div>

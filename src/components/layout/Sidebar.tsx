@@ -70,7 +70,25 @@ export function Sidebar() {
   const { isOpen, toggle } = useSidebar();
   const [searchVal, setSearchVal] = useState(currentSearch);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
   const supabase = createClient();
+
+  // 🛡️ AUTH_SIGNAL MONITORING
+  useEffect(() => {
+    const checkUser = async () => {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        setUser(currentUser);
+    }
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+        setUser(session?.user ?? null);
+    });
+
+    return () => {
+        authListener.subscription.unsubscribe();
+    }
+  }, [supabase]);
 
   // Fetch Categories from DB
   useEffect(() => {
@@ -219,13 +237,13 @@ export function Sidebar() {
             <div className="space-y-1">
                 {isOpen && (
                 <div className="px-2 py-1 flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">User_Archive</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Your_Library</span>
                     <div className="h-px flex-1 bg-white/5"></div>
                 </div>
                 )}
                 {[
-                    { id: 'library', label: 'My_Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
-                    { id: 'profile', label: 'User_Node', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
+                    { id: 'library', label: 'Samples_Wala', icon: <Folder className="w-3 h-3" />, href: '/library' },
+                    { id: 'profile', label: 'My_Account', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
                 ].map((item) => (
                     <Link
                         key={item.id}
@@ -241,33 +259,44 @@ export function Sidebar() {
             </div>
         </div>
 
-        {/* Console Health Monitor */}
-        <div className={`p-4 bg-black/40 border-t border-black space-y-3 transition-all duration-300 ${!isOpen ? 'opacity-0 h-0 p-0 overflow-hidden' : ''}`}>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Power className="w-3 h-3 text-studio-neon" />
-                <span className="text-[8px] font-black uppercase tracking-widest text-white/60">MASTER_IO</span>
-              </div>
-              <span className="text-[8px] font-black text-studio-neon opacity-70">ACTIVE</span>
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-[7px] font-black text-white/30">
-                <span>CPU_LOAD</span>
-                <span>12%</span>
-              </div>
-              <div className="h-1 bg-white/5 overflow-hidden">
-                <div className="h-full bg-studio-neon w-[12%]" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-[7px] font-black text-white/30">
-                <span>MEM_UNIT</span>
-                <span>2.4GB</span>
-              </div>
-              <div className="h-1 bg-white/5 overflow-hidden">
-                <div className="h-full bg-studio-yellow w-[35%]" />
-              </div>
-            </div>
+        {/* 🛡️ AUTH_TERMINAL_RACK */}
+        <div className={`p-4 mt-auto border-t border-black bg-black/20 flex flex-col gap-2 transition-all duration-300 ${!isOpen ? 'px-1' : ''}`}>
+            {user ? (
+                <button 
+                    onClick={async () => {
+                        if (window.confirm("Are you sure you want to LOGOUT?")) {
+                            const { error } = await supabase.auth.signOut();
+                            if (error) console.error("SHUTDOWN_ERROR:", error);
+                            router.refresh();
+                            router.push('/auth/login');
+                        }
+                    }}
+                    title="LOGOUT"
+                    className={`w-full flex items-center justify-center py-4 bg-red-950/20 border-2 border-red-900/30 hover:bg-red-600 hover:text-black hover:border-red-400 transition-all group rounded-sm shadow-[0_0_30px_rgba(153,27,27,0.1)]`}
+                >
+                    <Power className={`w-5 h-5 transition-transform group-hover:scale-110`} />
+                    {isOpen && <span className="ml-3 text-[10px] font-black uppercase tracking-[0.2em]">LOGOUT</span>}
+                </button>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    <Link 
+                        href="/auth/login"
+                        title="LOGIN"
+                        className={`w-full flex items-center justify-center py-3 bg-studio-neon/10 border-2 border-studio-neon/20 hover:bg-studio-neon hover:text-black transition-all group rounded-sm`}
+                    >
+                        <Key className={`w-4 h-4 transition-transform group-hover:rotate-45`} />
+                        {isOpen && <span className="ml-2 text-[10px] font-black uppercase tracking-[0.2em]">LOGIN</span>}
+                    </Link>
+                    <Link 
+                        href="/auth//signup"
+                        title="SIGNUP"
+                        className={`w-full flex items-center justify-center py-3 bg-white/5 border border-white/10 hover:bg-white hover:text-black transition-all group rounded-sm`}
+                    >
+                        <UserCheck className={`w-4 h-4 transition-transform group-hover:scale-110`} />
+                        {isOpen && <span className="ml-2 text-[10px] font-black uppercase tracking-[0.2em]">SIGNUP</span>}
+                    </Link>
+                </div>
+            )}
         </div>
     </aside>
   )

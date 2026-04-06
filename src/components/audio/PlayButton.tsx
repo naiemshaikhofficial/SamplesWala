@@ -29,7 +29,7 @@ export function PlayButton({
 
   return (
     <button 
-      onClick={(e) => { e.preventDefault(); play(id, url, { name, packName, coverUrl, bpm, audioKey, isUnlocked }); }}
+      onClick={(e) => { e.preventDefault(); play(id, url, { id, url, name, packName, coverUrl, bpm, audioKey, isUnlocked }); }}
       className={`
         h-10 w-10 flex items-center justify-center rounded-full bg-white text-black transition-all hover:scale-110 active:scale-95
         ${isActive && isPlaying ? 'ring-4 ring-white/20' : ''}
