@@ -49,9 +49,6 @@ function LoginForm() {
       <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full animate-pulse" />
       <div className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-yellow-500/10 blur-[180px] rounded-full animate-pulse delay-1000" />
 
-      <Link href="/" className="absolute top-12 left-12 inline-flex items-center text-sm text-white/40 hover:text-white transition-all group z-50">
-        <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to Samples Wala
-      </Link>
 
       <div className="flex-1 flex items-center justify-center container mx-auto px-4 relative z-10">
         <div className="w-full max-w-md">
@@ -61,7 +58,7 @@ function LoginForm() {
                <LogIn className="h-8 w-8 text-emerald-400" />
             </div>
             <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter mb-4 italic leading-tight">Welcome Back</h1>
-            <p className="text-white/40 text-sm">Access your library and fresh credits. Don't lose the rhythm.</p>
+            <p className="text-white/40 text-sm">Access your library and fresh credits. Keep the rhythm going.</p>
           </div>
 
           {/* Google Login (TOP) */}
@@ -139,7 +136,7 @@ function LoginForm() {
             <div className="flex items-center justify-between px-2">
                <Link href="/auth/forgot-password" title="Recover Access" className="text-[10px] uppercase font-black tracking-widest text-white/20 hover:text-white transition-colors">Forgot?</Link>
                <Link href="/auth/signup" className="text-[10px] uppercase font-black tracking-widest text-emerald-400/60 hover:text-emerald-400 transition-colors flex items-center gap-2">
-                  New? Join the club <Sparkles className="h-3 w-3" />
+                  New here? Join the studio <Sparkles className="h-3 w-3" />
                </Link>
             </div>
 
@@ -153,7 +150,7 @@ function LoginForm() {
                      <span>Authenticating...</span>
                    </>
                ) : (
-                   <span>Sign In</span>
+                   <span>Login</span>
                )}
             </button>
           </form>

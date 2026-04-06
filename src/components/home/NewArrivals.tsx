@@ -42,7 +42,7 @@ export function NewArrivals({ packs }: { packs: Pack[] }) {
                     <h2 className="text-5xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4">NEW<br />COLLECTIONS</h2>
                 </div>
                 <Link href="/browse" className="text-[10px] md:text-xs font-black uppercase tracking-widest border-b-2 border-white pb-2 md:pb-4 hover:opacity-50 transition-all self-start md:self-auto">
-                    Search all singular sounds
+                    Discover All Sounds
                 </Link>
             </div>
 

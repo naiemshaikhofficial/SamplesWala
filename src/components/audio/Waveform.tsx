@@ -42,10 +42,10 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       className="relative h-14 w-full flex items-center justify-center gap-[4px] overflow-hidden select-none group cursor-pointer transition-all duration-700"
     >
       
-      {/* Subtle Glow Aura behind active bars */}
+      {/* Subtle Analog Aura (No Glow) */}
       {isActive && isPlaying && (
           <div 
-            className="absolute inset-y-0 left-0 bg-white/[0.03] blur-3xl pointer-events-none transition-all duration-500"
+            className="absolute inset-y-0 left-0 bg-white/[0.05] pointer-events-none transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
       )}
@@ -69,15 +69,11 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
             className="w-[2px] rounded-full transition-all duration-100"
             style={{ 
               height: `${realTimeHeight}%`,
-              // Color Logic: Bright white for past, Dim gray for upcoming
+              // Color Logic: Sharp white for past, Clinical dark gray for upcoming
               backgroundColor: isPast 
                 ? (isActive ? '#fff' : 'rgba(255,255,255,0.7)') 
-                : 'rgba(255,255,255,0.15)',
-              // Add a soft glow to the leading edge bar
-              boxShadow: (isActive && isPlaying && isPast && Math.abs(barPos - progress) < 3) 
-                ? '0 0 15px rgba(255,255,255,1)' 
-                : 'none',
-              transform: isActive && isPlaying ? `scaleY(${1 + energyValue * 0.3})` : 'scaleY(1)',
+                : 'rgba(255,255,255,0.1)',
+              transform: isActive && isPlaying ? `scaleY(${1 + energyValue * 0.4})` : 'scaleY(1)',
               opacity: isPast ? 1 : 0.4
             }}
           />

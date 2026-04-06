@@ -23,7 +23,7 @@ export function Footer() {
                 </Link>
                 <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/20 leading-relaxed max-w-[240px] mx-auto md:mx-0">
                     ESTABLISHED 2024. MUMBAI. <br/>
-                    HIGH-PERFORMANCE AUDIO ARTIFACTS FOR MODERN PRODUCTION AGENTS.
+                    PREMIUM AUDIO SAMPLES FOR MODERN MUSIC PRODUCERS.
                 </p>
             </div>
             
@@ -40,35 +40,32 @@ export function Footer() {
             </div>
           </div>
 
-          {/* 💿 DISCOVERY PORTALS */}
           <div className="space-y-6 md:space-y-10 text-center md:text-left pt-8 md:pt-0 border-t border-white/5 md:border-t-0">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 underline decoration-white/20 underline-offset-8">Discovery</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 underline decoration-white/20 underline-offset-8">Explore</h3>
             <ul className="space-y-4 text-[11px] font-black uppercase tracking-widest">
-              <li><Link href="/browse" className="text-white/40 hover:text-white transition-colors">Digital Vault</Link></li>
-              <li><Link href="/packs" className="text-white/40 hover:text-white transition-colors">Master Collections</Link></li>
-              <li><Link href="/browse?mode=samples" className="text-white/40 hover:text-white transition-colors">Singular Sounds</Link></li>
-              <li><Link href="/pricing" className="text-white/40 hover:text-white transition-colors">Membership Access</Link></li>
+              <li><Link href="/browse" className="text-white/40 hover:text-white transition-colors">Browse Sounds</Link></li>
+              <li><Link href="/packs" className="text-white/40 hover:text-white transition-colors">Sample Packs</Link></li>
+              <li><Link href="/browse?mode=samples" className="text-white/40 hover:text-white transition-colors">Top Samples</Link></li>
+              <li><Link href="/pricing" className="text-white/40 hover:text-white transition-colors">Pricing & Plans</Link></li>
             </ul>
           </div>
 
-          {/* ⚡ ACCOUNT AGENT */}
           <div className="space-y-6 md:space-y-10 text-center md:text-left pt-8 md:pt-0 border-t border-white/5 md:border-t-0">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 underline decoration-white/20 underline-offset-8">Agent Hub</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 underline decoration-white/20 underline-offset-8">Account</h3>
             <ul className="space-y-4 text-[11px] font-black uppercase tracking-widest">
-              <li><Link href="/library" className="text-white/40 hover:text-white transition-colors">My Secured Sounds</Link></li>
-              <li><Link href="/profile" className="text-white/40 hover:text-white transition-colors">Security Profile</Link></li>
-              <li><Link href="/license" className="text-white/40 hover:text-white transition-colors">Licensing Terminal</Link></li>
-              <li><Link href="/terms" className="text-white/40 hover:text-white transition-colors">Production Registry</Link></li>
+              <li><Link href="/library" className="text-white/40 hover:text-white transition-colors">My Library</Link></li>
+              <li><Link href="/profile" className="text-white/40 hover:text-white transition-colors">My Profile</Link></li>
+              <li><Link href="/license" className="text-white/40 hover:text-white transition-colors">Licenses</Link></li>
+              <li><Link href="/terms" className="text-white/40 hover:text-white transition-colors">Terms of Service</Link></li>
             </ul>
           </div>
 
-          {/* 💳 SECURE TRANSMISSION */}
           <div className="space-y-6 md:space-y-10 text-center md:text-left pt-8 md:pt-0 border-t border-white/5 md:border-t-0">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 underline decoration-white/20 underline-offset-8">Transmission</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10 underline decoration-white/20 underline-offset-8">Newsletter</h3>
             <div className="bg-white/5 border border-white/10 p-6 space-y-4 group hover:bg-white transition-all duration-700">
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/30 group-hover:text-black/40 block text-left">Signal Center</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/30 group-hover:text-black/40 block text-left">Updates</span>
                 <p className="text-[10px] font-bold text-white/60 group-hover:text-black leading-relaxed text-left">
-                    SUBSCRIBE FOR FREE MONTHLY ARTIFACT DROPS AND EXCLUSIVE SIGNAL ACCESS.
+                    SUBSCRIBE FOR FREE MONTHLY SAMPLE PACKS AND EXCLUSIVE DEALS.
                 </p>
                 <div className="flex gap-2">
                     <input 
@@ -76,7 +73,7 @@ export function Footer() {
                         placeholder="EMAIL ADDRESS" 
                         className="flex-1 bg-transparent border-b border-white/20 group-hover:border-black/20 text-[10px] font-black group-hover:text-black focus:outline-none transition-all placeholder:text-white/10 group-hover:placeholder:text-black/10" 
                     />
-                    <button className="h-8 px-4 bg-white text-black group-hover:bg-black group-hover:text-white text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap">Submit</button>
+                    <button className="h-8 px-4 bg-white text-black group-hover:bg-black group-hover:text-white text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap">Subscribe</button>
                 </div>
             </div>
           </div>
@@ -94,9 +91,9 @@ export function Footer() {
           </div>
           
           <div className="flex flex-wrap justify-center gap-6 md:gap-10 text-[9px] font-black uppercase tracking-widest text-white/40">
-            <Link href="/privacy" className="hover:text-white transition-all underline decoration-transparent hover:decoration-white underline-offset-4">Privacy Pipeline</Link>
-            <Link href="/refund" className="hover:text-white transition-all underline decoration-transparent hover:decoration-white underline-offset-4">Refund Protocol</Link>
-            <Link href="/terms" className="hover:text-white transition-all underline decoration-transparent hover:decoration-white underline-offset-4">TOS Registry</Link>
+            <Link href="/privacy" className="hover:text-white transition-all underline decoration-transparent hover:decoration-white underline-offset-4">Privacy Policy</Link>
+            <Link href="/refund" className="hover:text-white transition-all underline decoration-transparent hover:decoration-white underline-offset-4">Refund Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-all underline decoration-transparent hover:decoration-white underline-offset-4">Terms of Service</Link>
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { Music, Search, User, Menu } from 'lucide-react'
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
+import { TextScramble } from '@/components/ui/TextScramble'
 
 export async function Header() {
   const supabase = await createClient()
@@ -27,10 +28,19 @@ export async function Header() {
             />
           </Link>
           
-          <nav className="hidden lg:flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.2em]">
-            <Link href="/browse" className="text-white/40 hover:text-white transition-all hover:bg-white hover:text-black py-10 px-4">Browse</Link>
-            <Link href="/packs" className="text-white/40 hover:text-white transition-all hover:bg-white hover:text-black py-10 px-4">Collections</Link>
-            <Link href="/pricing" className="text-white/40 hover:text-white transition-all hover:bg-white hover:text-black py-10 px-4">Access</Link>
+          <nav className="hidden lg:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.3em]">
+            <Link href="/browse" className="text-white/30 hover:text-white transition-all py-8 px-2 relative group/link">
+                <TextScramble text="Sounds" autostart={false} />
+                <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-white group-hover/link:w-full transition-all duration-500" />
+            </Link>
+            <Link href="/packs" className="text-white/30 hover:text-white transition-all py-8 px-2 relative group/link">
+                <TextScramble text="Packs" autostart={false} />
+                <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-white group-hover/link:w-full transition-all duration-500" />
+            </Link>
+            <Link href="/pricing" className="text-white/30 hover:text-white transition-all py-8 px-2 relative group/link">
+                <TextScramble text="Access" autostart={false} />
+                <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-white group-hover/link:w-full transition-all duration-500" />
+            </Link>
           </nav>
         </div>
 
@@ -39,7 +49,7 @@ export async function Header() {
               {user && (
                   <Link href="/library" className="group flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 hover:bg-white hover:text-black transition-all">
                       <Music className="h-3 w-3" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">My Sounds</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-inherit">My Library</span>
                   </Link>
               )}
               {user && <CreditCounter />}

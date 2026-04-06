@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { AnimatedHeroLogo } from './AnimatedHeroLogo'
 import { HeroSearch } from './HeroSearch'
 
+import { TextScramble } from '@/components/ui/TextScramble'
+
 export function AdaptiveHero() {
   const [query, setQuery] = useState('')
 
@@ -20,24 +22,31 @@ export function AdaptiveHero() {
     return 'default'
   }, [query])
 
-  // 🎨 FILTER CONFIG
+  // 🎨 FILTER CONFIG (Professional Studio Grade)
   const getFilter = () => {
     switch(vibe) {
-      case 'vibrant': return 'grayscale(0) hue-rotate(45deg) brightness(1.1)'
-      case 'aggressive': return 'grayscale(1) sepia(1) hue-rotate(-50deg) saturate(5) brightness(0.8)'
-      case 'sufi': return 'grayscale(0.5) sepia(1) brightness(0.9) saturate(0.8)'
-      case 'future': return 'grayscale(0) hue-rotate(180deg) brightness(1.2)'
-      default: return 'grayscale(1) brightness(0.6)'
+      case 'vibrant': return 'saturate(1.4) contrast(1.1)'
+      case 'aggressive': return 'grayscale(1) contrast(1.5) brightness(0.8)'
+      case 'sufi': return 'sepia(0.3) brightness(0.9) contrast(0.9)'
+      case 'future': return 'hue-rotate(180deg) saturate(1.2)'
+      default: return 'grayscale(1) brightness(0.5)'
     }
   }
 
   return (
-    <section className="min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-20 relative overflow-hidden py-20 md:py-0 transition-colors duration-1000">
-        {/* 🖼️ ADAPTIVE BACKDROP */}
+    <section className="min-h-[80vh] md:min-h-screen flex flex-col items-center justify-center px-4 md:px-20 relative overflow-hidden py-20 md:py-0 transition-colors duration-1000 bg-black">
+        {/* 🖼️ ADAPTIVE BACKDROP (Rhythmic Reveal) */}
         <motion.div 
-            initial={false}
-            animate={{ filter: getFilter() }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ 
+                filter: getFilter(),
+                scale: 1,
+                opacity: 1
+            }}
+            transition={{ 
+                duration: 2, 
+                ease: [0.16, 1, 0.3, 1] 
+            }}
             className="absolute inset-0 z-0 pointer-events-none"
         >
             <Image 
@@ -45,52 +54,75 @@ export function AdaptiveHero() {
                 alt="Mumbai Studio" 
                 fill 
                 sizes="100vw"
-                className="object-cover"
+                className="object-cover opacity-60"
                 priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         </motion.div>
 
-        {/* 🌬️ ADAPTIVE DEVANAGARI MARQUEE */}
-        <div className="absolute top-1/2 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.03] pointer-events-none z-0 -translate-y-1/2">
+        {/* 🌬️ ADAPTIVE DEVANAGARI MARQUEE (Musician Focus) */}
+        <div className="absolute top-1/2 left-0 w-full overflow-hidden whitespace-nowrap opacity-[0.02] pointer-events-none z-0 -translate-y-1/2">
             <motion.div 
                 animate={{ 
-                    x: ["0%", "-50%"],
-                    color: vibe === 'vibrant' ? '#ff00ff' : '#ffffff' 
+                    x: ["0%", "-50%"]
                 }}
                 transition={{ 
-                    x: { repeat: Infinity, duration: 40, ease: "linear" },
-                    color: { duration: 2 }
+                    x: { repeat: Infinity, duration: 60, ease: "linear" }
                 }}
-                className="text-[20rem] font-bold uppercase inline-block italic"
+                className="text-[25rem] font-black uppercase inline-block italic tracking-tighter"
             >
                 सैंपल्स वाला सैंपल्स वाला सैंपल्स वाला सैंपल्स वाला
             </motion.div>
         </div>
 
         <div className="relative z-10 w-full max-w-7xl flex flex-col items-center text-center">
-            <motion.span 
-                animate={{ opacity: [0.2, 0.4, 0.2] }}
-                transition={{ repeat: Infinity, duration: 4 }}
-                className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-8 md:mb-12 block"
-            >
-                MODERN HERITAGE / {vibe === 'default' ? 'मुम्बई साउंड' : vibe.toUpperCase()}
-            </motion.span>
+            <div className="flex items-center gap-4 mb-8 md:mb-12">
+                <div className="h-px w-8 bg-white/20" />
+                <TextScramble 
+                    key={vibe}
+                    text={`MODERN HERITAGE / ${vibe === 'default' ? 'मुम्बई साउंड' : vibe.toUpperCase()}`}
+                    className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.6em] text-white/60 block"
+                    duration={1200}
+                />
+                <div className="h-px w-8 bg-white/20" />
+            </div>
             
             <AnimatedHeroLogo />
             
-            <div className="w-full max-w-4xl mb-12">
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-4xl mb-12"
+            >
                <HeroSearch onSearchChange={setQuery} />
-            </div>
+            </motion.div>
 
-            <p className="max-w-2xl text-lg md:text-3xl font-medium tracking-tight leading-snug mb-12 md:mb-16 opacity-60 px-4 md:px-0">
+            <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                transition={{ duration: 1, delay: 0.8 }}
+                className="max-w-2xl text-lg md:text-3xl font-medium tracking-tight leading-snug mb-12 md:mb-16 px-4 md:px-0"
+            >
                 Crafting the future of Indian music. Cinematic, high-contrast, and 
-                profoundly local. Premium sounds for the high-end producer.
-            </p>
+                profoundly local. Premium samples for digital music producers.
+            </motion.p>
 
-            <Link href="/browse" className="mt-12 md:mt-16 group flex items-center gap-4 md:gap-6 px-10 md:px-16 py-6 md:py-8 bg-white/5 text-white font-black uppercase tracking-widest text-[9px] md:text-[10px] hover:bg-white hover:text-black transition-all border border-white/10 shrink-0 mx-4 md:mx-0">
-                EXPLORE ALL COLLECTIONS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
-            </Link>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 1 }}
+            >
+                <Link href="/browse" className="relative group overflow-hidden flex items-center gap-8 px-16 py-8 bg-white text-black font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0">
+                    <span className="relative z-10 flex items-center gap-4">
+                        DISCOVER ALL SOUNDS <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                    </span>
+                    <div className="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                    <span className="absolute inset-0 flex items-center justify-center gap-4 text-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20">
+                        START CREATING NOW <ArrowRight className="h-4 w-4" />
+                    </span>
+                </Link>
+            </motion.div>
         </div>
     </section>
   )

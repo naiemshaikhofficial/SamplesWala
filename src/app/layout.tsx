@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   description: 'High-performance, royalty-free audio samples, loops, and sample packs for modern music producers.',
 }
 
+import { SignalScan } from '@/components/ui/SignalScan'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,7 +30,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-black`}>
+        <SignalScan />
         <ClientProviders>
           <div className="flex flex-col min-h-screen">
             <Header />
