@@ -85,7 +85,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                 <div className="flex flex-col gap-1">
                     {melodies > 0 && (
                         <div className="flex items-center justify-between text-xs font-bold">
-                            <span className="text-emerald-400">Melodies</span>
+                            <span className="text-studio-yellow">Melodies</span>
                             <span>{melodies}</span>
                         </div>
                     )}
@@ -206,12 +206,14 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
            Sample Browser
         </h2>
         <div className="border border-white/10 rounded-[2.5rem] overflow-hidden bg-white/[0.01] backdrop-blur-3xl shadow-2xl">
-            <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-6 border-b border-white/10 text-[10px] uppercase font-black tracking-widest text-white/20 bg-white/5">
+            <div className="hidden md:grid grid-cols-12 gap-3 px-8 py-4 border-b border-white/10 text-[9px] uppercase font-black tracking-widest text-white/20 bg-white/5">
                 <div className="col-span-1">Play</div>
-                <div className="col-span-4 text-white/30 italic">Collection Item</div>
-                <div className="col-span-2 text-white/30">Metadata</div>
-                <div className="col-span-3 text-center">Interactive Spectral</div>
-                <div className="col-span-2 text-right">Access</div>
+                <div className="col-span-3 text-white/30 italic">Collection Item</div>
+                <div className="col-span-1">BPM</div>
+                <div className="col-span-1">Key</div>
+                <div className="col-span-2">Type</div>
+                <div className="col-span-3 text-center">Spectral Signature</div>
+                <div className="col-span-1 text-right">Access</div>
             </div>
 
             <div className="divide-y divide-white/5">
@@ -277,7 +279,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                     
                     <div className="hidden md:block col-span-2 font-mono text-[10px] text-white/40 group-hover:text-white/60 transition-colors">
                         <span className="text-white/20">{sample.bpm ? `${sample.bpm}BPM / ${sample.key || 'NO KEY'}` : 'NO SYNC'}</span>
-                        <div className="text-[7px] font-black uppercase tracking-widest text-emerald-400 mt-1">
+                        <div className="text-[7px] font-black uppercase tracking-widest text-studio-yellow mt-1">
                             {sample.bpm && sample.key ? 'MELODY' : (sample.bpm ? 'LOOP' : 'ONE-SHOT')}
                         </div>
                     </div>

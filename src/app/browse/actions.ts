@@ -4,7 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 export async function getAllCategories() {
   const supabase = await createClient()
   const { data, error } = await supabase.from('categories').select('*').order('name')
-  if (error) throw error
+  if (error) {
+    console.error('[BROWSE_ACTION_ERROR]', error);
+    return [];
+  }
   return data
 }
 
@@ -23,8 +26,24 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
     queryBuilder = queryBuilder.eq('category_id', filters.category)
   }
   
-  const { data, error } = await queryBuilder.order('created_at', { ascending: false })
-  if (error) throw error
+  // 🧬 TECHNICAL FALLBACK: Try with join first, then without if relationship is missing
+  let { data, error } = await queryBuilder.order('created_at', { ascending: false })
+  
+  if (error && error.code === 'PGRST200') {
+    console.warn('[REPAIRING_RELATIONAL_SIGNATURE] Categories relationship missing. Falling back...');
+    const fallbackQuery = supabase.from('sample_packs').select('*')
+    const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false })
+    if (fallbackError) {
+        console.error('[BROWSE_ACTION_CRITICAL_FAILURE]', fallbackError);
+        return [];
+    }
+    return fallbackData;
+  }
+
+  if (error) {
+    console.error('[BROWSE_ACTION_ERROR]', error);
+    return [];
+  }
   return data
 }
 
@@ -45,7 +64,10 @@ export async function getFilteredSamples(filters: { query?: string, category?: s
   }
 
   const { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(60)
-  if (error) throw error
+  if (error) {
+    console.error('[BROWSE_ACTION_ERROR_SAMPLES]', error);
+    return [];
+  }
 
   let processedData = data;
 
@@ -60,10 +82,14 @@ export async function getRelatedPacks(currentPackId: string, categoryId: string)
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('sample_packs')
-    .select('*, categories(name)')
+    .select('*')
     .eq('category_id', categoryId)
     .neq('id', currentPackId)
     .limit(4)
-  if (error) throw error
+  
+  if (error) {
+    console.error('[BROWSE_ACTION_ERROR]', error);
+    return [];
+  }
   return data
 }

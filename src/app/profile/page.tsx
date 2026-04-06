@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { User, CreditCard, Clock, ShieldCheck, ArrowRight, Music, Disc } from 'lucide-react'
+import { User, CreditCard, Clock, ShieldCheck, ArrowRight, Music, Disc, MapPin } from 'lucide-react'
+import { BillingSettings } from '@/components/profile/BillingSettings'
 
 export default async function ProfilePage() {
     const supabase = await createClient()
@@ -14,8 +15,7 @@ export default async function ProfilePage() {
         .from('user_subscriptions')
         .select('*, subscription_plans(*)')
         .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single()
+        .maybeSingle()
 
     const { data: purchases } = await supabase
         .from('purchases')
@@ -57,7 +57,7 @@ export default async function ProfilePage() {
                                     <h2 className="text-6xl font-black italic tracking-tighter">{activeSub?.current_credits || 0}</h2>
                                     <span className="text-xs font-black uppercase tracking-[0.3em] text-white/40">Credits Available</span>
                                 </div>
-                                <Link href="/pricing" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-emerald-400 transition-colors">
+                                <Link href="/pricing" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-studio-yellow transition-colors">
                                     Top up artifact balance <ArrowRight className="h-3 w-3" />
                                 </Link>
                              </div>
@@ -65,17 +65,20 @@ export default async function ProfilePage() {
                              <div className="p-10 border border-white/10 bg-white/[0.02] space-y-6">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-white/20 block">Membership Status</span>
                                 <div className="flex items-center gap-4">
-                                    <ShieldCheck className={`h-8 w-8 ${activeSub ? 'text-emerald-400' : 'text-white/10'}`} />
+                                    <ShieldCheck className={`h-8 w-8 ${activeSub?.plan_id ? 'text-studio-yellow' : 'text-white/10'}`} />
                                     <div>
                                         <h2 className="text-2xl font-black uppercase tracking-tighter">{activeSub?.subscription_plans?.name || 'FREE AGENT'}</h2>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-white/20">{activeSub ? 'ACCESS SECURED' : 'UNRESTRICTED ACCESS NEEDED'}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-white/20">{activeSub?.plan_id ? 'ACCESS SECURED' : 'UNRESTRICTED ACCESS NEEDED'}</span>
                                     </div>
                                 </div>
-                                <Link href="/pricing" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-emerald-400 transition-colors">
+                                <Link href="/pricing" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-studio-yellow transition-colors">
                                     Manage Artifact Access <ArrowRight className="h-3 w-3" />
                                 </Link>
                              </div>
                         </div>
+
+                        {/* 🏛️ 3. BILLING & COMPLIANCE HUD */}
+                        <BillingSettings initialData={activeSub} userId={user.id} />
 
                         {/* 📜 TRANSACTION LOG */}
                         <div className="space-y-8">

@@ -51,24 +51,24 @@ export function MobileMenu({ user }: { user: any }) {
             <nav className="flex-1 space-y-8">
                <div className="space-y-4">
                   <span className="text-[9px] font-black uppercase tracking-widest text-white/10 block mb-4">Discovery — खोजें</span>
-                  <Link href="/browse" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-emerald-400 block transition-all">Sounds</Link>
-                  <Link href="/packs" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-emerald-400 block transition-all">Packs</Link>
-                  <Link href="/pricing" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-emerald-400 block transition-all">Pricing</Link>
+                  <Link href="/browse" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-studio-yellow block transition-all">Sounds</Link>
+                  <Link href="/packs" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-studio-yellow block transition-all">Packs</Link>
+                  <Link href="/pricing" onClick={() => setIsOpen(false)} className="text-4xl font-black uppercase tracking-tighter italic hover:text-studio-yellow block transition-all">Pricing</Link>
                </div>
 
                <div className="pt-8 space-y-4 border-t border-white/5">
                   <span className="text-[9px] font-black uppercase tracking-widest text-white/10 block mb-4">Agent Base — एजेंट</span>
                   {user ? (
                     <>
-                        <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase tracking-widest hover:text-emerald-400 transition-all">
+                        <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase tracking-widest hover:text-studio-yellow transition-all">
                              <User className="h-5 w-5" /> Security Profile
                         </Link>
-                        <Link href="/library" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase tracking-widest hover:text-emerald-400 transition-all">
+                        <Link href="/library" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase tracking-widest hover:text-studio-yellow transition-all">
                              <Music className="h-5 w-5" /> My Secured Sounds
                         </Link>
                     </>
                   ) : (
-                    <Link href="/auth/login" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase tracking-widest hover:text-emerald-400 transition-all">
+                    <Link href="/auth/login" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-black uppercase tracking-widest hover:text-studio-yellow transition-all">
                          <Zap className="h-5 w-5" /> Disconnected Signal: Login
                     </Link>
                   )}

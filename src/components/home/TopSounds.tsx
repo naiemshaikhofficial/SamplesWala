@@ -202,7 +202,7 @@ export function TopSounds() {
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 z-30 scale-90 group-hover:scale-100 pointer-events-none">
                           <button 
                             onClick={(e) => { e.stopPropagation(); handlePlay(sound); }}
-                            className={`h-16 w-16 rounded-full flex items-center justify-center transition-all shadow-[0_0_50px_rgba(255,255,255,0.4)] ${isCurrent && isPlaying ? 'bg-emerald-500' : 'bg-white text-black'} pointer-events-auto`}
+                            className={`h-16 w-16 rounded-full flex items-center justify-center transition-all shadow-[0_0_50px_rgba(255,255,255,0.4)] ${isCurrent && isPlaying ? 'bg-spidey-red' : 'bg-white text-black'} pointer-events-auto`}
                           >
                               {isCurrent && isPlaying ? (
                                   <div className="flex gap-1 items-end h-4">
@@ -217,7 +217,7 @@ export function TopSounds() {
                       </div>
 
                       <div className="absolute bottom-0 left-0 right-0 p-6 z-50 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                          <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-1 group-hover:text-emerald-400 transition-colors">
+                          <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-1 group-hover:text-studio-yellow transition-colors">
                               {sound.name}
                           </h3>
                           <div className="flex items-center gap-2 text-[10px] text-white/40 uppercase font-black tracking-widest leading-none">
@@ -230,7 +230,7 @@ export function TopSounds() {
                           
                           <div className="flex items-center gap-4 mt-6 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 relative z-40">
                               {isUnlocked ? (
-                                <button className="flex h-10 items-center gap-2 bg-emerald-500 text-black px-6 hover:bg-white transition-all group/btn pointer-events-auto">
+                                <button className="flex h-10 items-center gap-2 bg-studio-yellow text-black px-6 hover:bg-white transition-all group/btn pointer-events-auto">
                                     <Check size={14} />
                                     <span className="text-[9px] font-black uppercase tracking-widest italic">In Library</span>
                                 </button>
@@ -238,7 +238,7 @@ export function TopSounds() {
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); handleUnlock(sound); }}
                                     disabled={isUnlocking === sound.id}
-                                    className="flex h-10 items-center justify-center bg-white text-black px-6 hover:bg-emerald-500 hover:text-white transition-all group/unlock min-w-[140px] pointer-events-auto relative z-50"
+                                    className="flex h-10 items-center justify-center bg-white text-black px-6 hover:bg-spidey-red hover:text-white transition-all group/unlock min-w-[140px] pointer-events-auto relative z-50"
                                 >
                                     {isUnlocking === sound.id ? (
                                         <Activity className="h-4 w-4 animate-spin" />

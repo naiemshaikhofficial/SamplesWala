@@ -93,7 +93,7 @@ export function GlobalPlayer() {
                     </button>
                     <button 
                         onClick={toggleLoop} 
-                        className={`h-12 w-12 flex items-center justify-center transition-all ${isLooping ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/10' : 'bg-white/5 text-white hover:bg-white/10'}`}
+                        className={`h-12 w-12 flex items-center justify-center transition-all ${isLooping ? 'bg-studio-yellow text-black ring-4 ring-studio-yellow/20' : 'bg-white/5 text-white hover:bg-white/10'}`}
                         title="Toggle Loop"
                     >
                         <Repeat className={`h-5 w-5 ${isLooping ? 'animate-pulse' : ''}`} />
@@ -165,7 +165,7 @@ export function GlobalPlayer() {
                         <div key={i} className={`h-4 w-1 bg-white ${isPlaying ? 'animate-pulse' : 'opacity-20'}`} style={{ animationDelay: `${i * 0.1}s` }} />
                     ))}
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Signal Lock</span>
+                <span className="text-[8px] font-black uppercase tracking-widest text-spidey-red">Signal Lock</span>
             </div>
             
             <button onClick={() => setIsVisible(false)} className="h-10 w-10 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all">

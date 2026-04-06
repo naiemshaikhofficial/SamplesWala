@@ -95,13 +95,11 @@ export function Header() {
             {user ? (
                 <div className="flex items-center gap-3 md:gap-4 h-full">
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/40 hidden sm:block">
-                        {user.email?.split('@')[0]}
+                        {user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
                     </span>
-                    <form action={signOut} className="h-full">
-                        <button className="h-full w-10 flex items-center justify-center border border-white/10 hover:bg-white hover:text-black transition-all">
-                            <User className="h-4 w-4" />
-                        </button>
-                    </form>
+                    <Link href="/profile" className="h-full w-10 flex items-center justify-center border border-white/10 hover:bg-white hover:text-black transition-all">
+                        <User className="h-4 w-4" />
+                    </Link>
                 </div>
             ) : (
                 <Link href="/auth/login" className="h-full px-4 md:px-8 flex items-center justify-center bg-white text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white border border-white transition-all overflow-hidden relative group">

@@ -1,0 +1,133 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import Razorpay from 'razorpay'
+import crypto from 'crypto'
+import { revalidatePath } from 'next/cache'
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_KEY_SECRET!
+})
+
+/**
+ * 🎫 Redeem Promotional Coupon Protocol
+ */
+export async function redeemCoupon(code: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Authentication required')
+
+    // 🔬 Secure RPC Redemption
+    const { data: bonus, error } = await supabase.rpc('redeem_coupon', {
+        u_id: user.id,
+        c_code: code.toUpperCase()
+    })
+
+    if (error) {
+        if (error.message.includes('INVALID_OR_EXPIRED_CODE')) {
+            throw new Error('This Studio Signature (Coupon) is invalid or has expired.')
+        }
+        throw new Error(error.message)
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true, bonusCredits: bonus }
+}
+
+/**
+ * 💳 Create Razorpay Order Protocol
+ */
+export async function createTopUpOrder(amountCredits: number) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Authentication required')
+
+    // 1 Credit = 1 INR
+    const amountInPaise = amountCredits * 100 
+
+    const options = {
+        amount: amountInPaise,
+        currency: "INR",
+        receipt: `receipt_topup_${Date.now()}`,
+        notes: {
+            userId: user.id,
+            credits: amountCredits
+        }
+    }
+
+    try {
+        const order = await razorpay.orders.create(options)
+        
+        // Log Pending Order to DB for Traceability
+        await supabase.from('credit_orders').insert({
+            user_id: user.id,
+            amount_inr: amountCredits,
+            credits_awarded: amountCredits,
+            order_id: order.id,
+            status: 'pending'
+        })
+
+        return { 
+            orderId: order.id, 
+            amount: order.amount,
+            currency: order.currency,
+            key: process.env.RAZORPAY_KEY_ID
+        }
+    } catch (err: any) {
+        throw new Error(`Failed to initiate payment: ${err.message}`)
+    }
+}
+
+/**
+ * 🔐 Verify Razorpay Signature & Award Credits
+ */
+export async function verifyPayment(payload: {
+    razorpay_order_id: string,
+    razorpay_payment_id: string,
+    razorpay_signature: string
+}) {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = payload
+    const body = razorpay_order_id + "|" + razorpay_payment_id
+
+    const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .update(body.toString())
+        .digest('hex')
+
+    if (expectedSignature !== razorpay_signature) {
+        throw new Error('CRYPTOGRAPHIC SIGNATURE MISMATCH: Payment verification failed.')
+    }
+
+    const supabase = await createClient()
+    
+    // 1. Fetch Order to identify credits
+    const { data: order } = await supabase
+        .from('credit_orders')
+        .select('*')
+        .eq('order_id', razorpay_order_id)
+        .single()
+
+    if (!order) throw new Error('Transaction record not found in vault.')
+    if (order.status === 'paid') return { success: true, alreadyProcessed: true }
+
+    // 2. Start Secure Injection Transaction
+    // A: Mark order as Paid
+    const { error: updateError } = await supabase
+        .from('credit_orders')
+        .update({ status: 'paid', payment_id: razorpay_payment_id })
+        .eq('order_id', razorpay_order_id)
+
+    if (updateError) throw updateError
+
+    // B: Inject Credits via Secure RPC
+    const { error: creditError } = await supabase.rpc('add_credits_pro', {
+        user_id_input: order.user_id,
+        amount_to_add: order.credits_awarded
+    })
+
+    if (creditError) throw creditError
+
+    revalidatePath('/', 'layout')
+    return { success: true }
+}

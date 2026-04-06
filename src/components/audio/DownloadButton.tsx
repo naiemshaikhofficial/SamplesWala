@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Download, Lock, Loader2, Sparkles } from 'lucide-react'
+import { Download, Lock, Loader2, Sparkles, Diamond, ArrowRight } from 'lucide-react'
 import { useAudio } from './AudioProvider'
 import { unlockSample, getDownloadUrl } from '@/app/packs/[slug]/actions'
 
@@ -16,26 +16,30 @@ type DownloadButtonProps = {
 export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: DownloadButtonProps) {
     const [isUnlocked, setIsUnlocked] = useState(isUnlockedInitial)
     const [isProcessing, setIsProcessing] = useState(false)
+    const [needsConfirm, setNeedsConfirm] = useState(false)
     const { isPlaying } = useAudio()
     const { showToast, showConfirm, showAuthGate } = useNotify()
 
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
+        
+        if (!isUnlocked && !needsConfirm) {
+            setNeedsConfirm(true)
+            setTimeout(() => setNeedsConfirm(false), 3000)
+            return
+        }
+
         setIsProcessing(true)
 
         try {
             if (!isUnlocked) {
-                // 💳 Flow 1: Unlock using 1 credit
-                const confirmed = await showConfirm(`Spend ${creditCost} credits to unlock this sound permanently?`)
-                if (!confirmed) {
-                    setIsProcessing(false) // Reset loading state
-                    return
-                }
-
+                // 💳 Flow 1: Unlock using credits
                 const result = await unlockSample(sampleId)
                 if (result.success) {
                     setIsUnlocked(true)
-                    showToast('SAMPLE UNLOCKED', 'success')
+                    setNeedsConfirm(false)
+                    showToast('SAMPLE ACQUIRED', 'success')
+                    window.dispatchEvent(new Event('refresh-credits'))
                 }
             } else {
                 // 📥 Flow 2: Download unlocked sample
@@ -72,20 +76,32 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
             `}
             title={isUnlocked ? 'Download Sample' : `Unlock for ${creditCost} Credits`}
         >
-            <div className="relative">
+            <div className="relative z-10">
                 {isProcessing ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-studio-yellow" />
                 ) : (isUnlocked || creditCost === 0) ? (
-                    <Download className={`h-5 w-5 ${isPlaying ? 'animate-bounce' : ''}`} />
+                    <Download className={`h-4 w-4 ${isPlaying ? 'animate-bounce' : ''} text-white`} />
+                ) : needsConfirm ? (
+                    <div className="flex items-center gap-2 px-2 animate-pulse">
+                         <span className="text-[9px] font-black uppercase tracking-widest text-studio-yellow">CONFIRM?</span>
+                         <ArrowRight className="h-3 w-3 text-studio-yellow" />
+                    </div>
                 ) : (
-                    <div className="flex items-center gap-3 px-1">
-                        <Lock className="h-4 w-4" />
-                        <span className="text-[10px] uppercase font-black tracking-widest bg-white/5 px-2 py-0.5 rounded-full group-hover:bg-black/10 group-hover:text-black">
-                            {creditCost} Credit{creditCost !== 1 ? 's' : ''}
+                    <div className="flex items-center gap-2 px-1">
+                        <Diamond className="h-3 w-3 fill-white text-white opacity-40" />
+                        <span className="text-[10px] font-black uppercase tracking-tight text-white/40 group-hover:text-white transition-colors">
+                            {creditCost}
                         </span>
                     </div>
                 )}
             </div>
+
+            {/* 🧬 DYNAMIC BACKDROP */}
+            <div className={`
+                absolute inset-0 transition-all duration-300
+                ${needsConfirm ? 'bg-studio-yellow/20' : 'bg-white/[0.03] group-hover:bg-white/10'}
+                ${isUnlocked ? 'bg-white/5' : ''}
+            `} />
 
             {/* Premium Glow for Locked Items */}
             {!isUnlocked && !isProcessing && (

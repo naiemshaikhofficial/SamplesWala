@@ -68,6 +68,9 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   
+  --color-studio-yellow: #FFE200;
+  --color-spidey-red: #ED1D24;
+
   --radius-lg: 0px;
   --radius-md: 0px;
   --radius-sm: 0px;
