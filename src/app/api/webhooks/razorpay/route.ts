@@ -73,17 +73,18 @@ export async function POST(req: Request) {
                 } else if (type === 'subscription') {
                     const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
                     if (plan) {
-                        // Activate Membership
+                        // 🧬 VAULT ANCHOR: Activate Membership & Link Razorpay Node
                         await supabase.from('user_accounts').upsert({
                             user_id: userId,
                             plan_id: plan.id,
+                            razorpay_subscription_id: payment?.subscription_id || notes.subscription_id,
                             next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
                         }, { onConflict: 'user_id' })
 
                         await supabase.rpc('add_credits', { u_id: userId, amount: plan.credits_per_month })
                         await supabase.from('credit_orders').insert({
                             user_id: userId,
-                            order_id: payment.order_id,
+                            order_id: payment.order_id || payment.subscription_id,
                             payment_id: payment.id,
                             amount_inr: payment.amount / 100,
                             credits_awarded: plan.credits_per_month,
@@ -115,6 +116,19 @@ export async function POST(req: Request) {
                         status: 'paid',
                         raw_response: event
                     })
+                }
+                break;
+
+            case 'subscription.authenticated':
+            case 'subscription.activated':
+                // 📡 MANDATE SYNC: Ensure the subscription link is persistent
+                const activeSub = event.payload.subscription.entity
+                const subNotes = activeSub.notes || {}
+                if (subNotes.user_id) {
+                    await supabase.from('user_accounts').update({ 
+                        razorpay_subscription_id: activeSub.id,
+                        plan_id: subNotes.plan_id
+                    }).eq('user_id', subNotes.user_id)
                 }
                 break;
 

@@ -65,6 +65,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   return (
     <NotificationContext.Provider value={{ showToast, showConfirm, showAuthGate, showTopUpModal }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+      ` }} />
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       {children}
       
@@ -224,7 +234,7 @@ import { useRouter } from 'next/navigation'
 // 🎰 CREDIT TOP-UP TERMINAL (1:1 INR MODEL)
 function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const router = useRouter()
-    const [amount, setAmount] = useState<number>(1)
+    const [amount, setAmount] = useState<number>(50)
     const [coupon, setCoupon] = useState('')
     const [isRedeeming, setIsRedeeming] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -320,6 +330,12 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     }
 
     const handlePurchase = async () => {
+        if (amount < 50) {
+            setAmount(50)
+            showToast('PLEASE ENTER AT LEAST 50 CREDITS', 'warning')
+            return
+        }
+
         if (typeof window === 'undefined' || !(window as any).Razorpay) {
             showToast('PAYMENT ENGINE NOT READY. TRY AGAIN IN 2s.', 'error')
             return
@@ -418,7 +434,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
             >
                 <div className="flex justify-between items-start mb-8">
                    <div>
-                        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-studio-yellow mb-2 italic">[ {step === 'billing' ? 'IDENTITY_VERIFICATION' : 'SCR_TERMINAL'} ]</div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-studio-yellow mb-2 italic">[ {step === 'billing' ? 'BILLING_INFO' : 'STORE_CREDITS'} ]</div>
                         <h2 className="text-4xl font-black uppercase tracking-tighter leading-none italic">{step === 'billing' ? 'BILLING\nINFO' : 'ADD\nCREDITS.'}</h2>
                    </div>
                    <button onClick={onClose} className="p-4 hover:bg-white/5 transition-all">
@@ -486,7 +502,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                             disabled={loading}
                             className="h-20 w-full bg-white text-black flex items-center justify-center font-black uppercase tracking-[0.3em] text-xs hover:invert transition-all"
                         >
-                            {loading ? <Zap className="h-6 w-6 animate-spin" /> : "SECURE IDENTITY"}
+                            {loading ? <Zap className="h-6 w-6 animate-spin" /> : "CONTINUE TO PAYMENT"}
                         </button>
                     </div>
                 ) : (
@@ -516,12 +532,23 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         <div className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-black text-[10px]">CUSTOM</div>
                         <input 
                             type="number"
-                            value={amount}
-                            onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                            value={amount || ''}
+                            onChange={(e) => setAmount(parseInt(e.target.value) || 0)}
+                            onBlur={() => {
+                                if (amount > 0 && amount < 50) {
+                                    setAmount(50);
+                                    showToast('MINIMUM 50 CREDITS REQUIRED', 'warning');
+                                }
+                            }}
                             className="w-full bg-black border border-white/10 h-14 pl-24 pr-8 text-lg font-black uppercase text-white focus:border-studio-yellow focus:outline-none transition-all"
                         />
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 text-white/40 text-[9px] font-black uppercase">₹ INR</div>
                     </div>
+                    {amount > 0 && amount < 50 && (
+                        <p className="text-[8px] font-black uppercase tracking-widest text-red-500 mt-2 ml-2 animate-pulse">
+                            * MINIMUM 50 CREDITS REQUIRED
+                        </p>
+                    )}
                 </div>
 
                 {/* 🧧 PROMOTION CODE PROTOCOL */}
@@ -564,7 +591,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         ) : (
                             <>
                                 <Zap className="h-5 w-5 fill-black" />
-                                <span className="text-[12px] font-black uppercase tracking-[0.3em]">INITIATE PROTOCOL</span>
+                                <span className="text-[12px] font-black uppercase tracking-[0.3em]">PROCEED TO PURCHASE</span>
                             </>
                         )}
                     </button>
@@ -576,7 +603,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         onClick={() => setStep('billing')}
                         className="text-[8px] font-black uppercase tracking-widest text-white/10 hover:text-white transition-colors"
                     >
-                        [ EDIT_BILLING_SIGNATURE ]
+                        [ EDIT_BILLING_INFO ]
                     </button>
                 </div>
                     </>
