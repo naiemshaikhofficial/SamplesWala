@@ -2,170 +2,198 @@
 import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 import Image from 'next/image'
-import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp } from 'lucide-react'
+import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DAWVisualizer } from '@/components/ui/DAWVisualizer'
 
 import { useSidebar } from '../layout/SidebarContext'
 
 export function GlobalPlayer() {
-  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume } = useAudio()
+  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume, stop } = useAudio()
   const { isOpen } = useSidebar()
   const [isVisible, setIsVisible] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
 
+  // 🧬 SYNC VISIBILITY WITH SIGNAL
   useEffect(() => {
-    if (activeId) setIsVisible(true)
+    if (activeId) {
+        setIsVisible(true)
+    } else {
+        const timer = setTimeout(() => setIsVisible(false), 500)
+        return () => clearTimeout(timer)
+    }
   }, [activeId])
 
-  if (!isVisible || !activeId) return null
+  if (!isVisible) return null
 
   const formatTime = (time: number) => {
     const mins = Math.floor(time / 60)
     const secs = Math.floor(time % 60)
-    return `${mins}:${secs.toString().padStart(2, '0')}`
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
   return (
-    <div className={`fixed bottom-[74px] lg:bottom-0 left-0 right-0 z-[100] bg-black border-t-2 border-white/20 lg:border-white transition-all duration-300 animate-in slide-in-from-bottom duration-500 backdrop-blur-xl ${isOpen ? 'lg:pl-80' : 'lg:pl-20'}`}>
-      
-      {/* 🔮 ANTI-PIRACY SECURITY BANNER (Hidden on mobile for space) */}
-      {!activeMetadata?.isUnlocked && (
-          <div className="hidden md:flex bg-white text-black h-8 items-center justify-between px-6 md:px-20 overflow-hidden relative group/banner">
-              <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                       <Activity size={10} className="animate-pulse" />
-                       <span className="text-[9px] font-black uppercase tracking-[0.2em] italic">[ PREVIEW_MODE_ACTIVE ]</span>
-                  </div>
-                  <span className="hidden md:inline text-[8px] font-bold uppercase tracking-widest text-black/60">
-                      LOW QUALITY AUDIO WITH WATERMARK. UNLOCK TO DOWNLOAD FULL HIGH-QUALITY WAV.
-                  </span>
-              </div>
-          </div>
-      )}
-
-      {/* 🎰 THE RACK HEADER */}
-      <div className="flex flex-col lg:flex-row h-auto lg:h-24 items-center px-4 md:px-20 py-3 lg:py-0 gap-4 lg:gap-12 w-full">
-        
-        {/* 📀 TRACK INFO (Primary on Mobile) */}
-        <div className="flex items-center justify-between lg:justify-start gap-4 lg:gap-6 w-full lg:w-auto lg:min-w-[350px] relative group">
-          <div className="flex items-center gap-4 flex-1">
-              <div className="h-12 w-12 md:h-16 md:w-16 bg-white/5 flex items-center justify-center shrink-0 border border-white/10 relative overflow-hidden rounded-sm">
-                {activeMetadata?.coverUrl ? (
-                    <Image src={activeMetadata.coverUrl} alt={activeMetadata.name} fill className="object-cover" />
+    <AnimatePresence>
+      {activeId && (
+        <motion.div 
+          initial={{ y: 200, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 200, opacity: 0 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+          className={`fixed bottom-[74px] lg:bottom-0 left-0 right-0 z-[100] bg-black border-t-2 border-white/20 font-mono select-none overflow-hidden ${isOpen ? 'lg:pl-80' : 'lg:pl-20'}`}
+        >
+          {/* ⚡ DOS SCANLINE OVERLAY */}
+          <div className="absolute inset-0 pointer-events-none z-10 opacity-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+          
+          {/* Header Strip */}
+          <div className="bg-white/5 border-b border-white/5 px-6 py-1 flex justify-between items-center text-[8px] font-bold tracking-[0.3em] uppercase opacity-40">
+             <div className="flex items-center gap-4">
+                <span>[ MASTER_BUS_LIVE ]</span>
+                {isLoading ? (
+                    <span className="text-studio-neon animate-pulse">[ BUFFER_LOADING ]</span>
                 ) : (
-                    <Music className="h-6 w-6 text-white/10" />
+                    <span className="text-studio-neon animate-pulse">● AUDIO_ENCODED</span>
                 )}
-              </div>
-              <div className="overflow-hidden flex-1">
-                 <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/40 block mb-0.5 truncate italic">
-                    {activeMetadata?.packName || "Previewing Artifact"}
-                 </span>
-                 <h4 className="text-[14px] md:text-xl font-black uppercase tracking-tighter truncate leading-none text-white/90">
-                    {activeMetadata?.name || "Global Link Active"}
-                 </h4>
-                 
-                 {/* 🧊 REACTIVE SPECTRUM (GLOBAL VISUALIZER) - Heavy DAW Animation */}
-                 <div className="hidden md:flex items-end gap-[1px] h-4 mt-2 opacity-40 group-hover:opacity-100 transition-opacity">
-                    {isPlaying ? (
-                        <DAWVisualizer color="#a6e22e" bars={30} height={16} />
+             </div>
+             <div className="flex items-center gap-4">
+                <span>BUFFER_OK :: 128_SAMPLES</span>
+                <span>VOL_GAIN: {(volume * 100).toFixed(0)}%</span>
+             </div>
+          </div>
+
+          <div className="flex flex-col lg:flex-row h-auto lg:h-20 items-center px-4 md:px-10 py-3 lg:py-0 gap-4 lg:gap-8 w-full relative z-20">
+            
+            {/* 📟 DOS TRACK DISPLAY */}
+            <div className="flex items-center gap-4 w-full lg:w-96">
+                <div className="h-12 w-12 bg-black border border-white/20 relative group overflow-hidden shrink-0">
+                    {activeMetadata?.coverUrl ? (
+                        <Image src={activeMetadata.coverUrl} alt={activeMetadata.name} fill className="object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                     ) : (
-                        <div className="h-[2px] w-full bg-white/10 animate-pulse mt-2" />
+                        <Music className="h-4 w-4 text-white/20 absolute center" />
                     )}
-                 </div>
-              </div>
-          </div>
-
-          {/* 🕹️ COMPACT TRANSPORT (Mobile Only Right Side) */}
-          <div className="flex lg:hidden items-center gap-3">
-               <button onClick={() => isPlaying ? pause() : play(activeId, '')} className="h-10 w-10 bg-white text-black flex items-center justify-center rounded-full">
-                    {isPlaying ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current ml-0.5" />}
-               </button>
-               <button onClick={() => setIsVisible(false)} className="h-10 w-10 flex items-center justify-center text-white/20">
-                    <X className="h-5 w-5" />
-               </button>
-          </div>
-        </div>
-
-        {/* 🎚️ ANALOG CONTROLS (Mainly Hidden on Small Viewports) */}
-        <div className="hidden lg:flex flex-grow flex flex-col gap-4">
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                    <button onClick={() => isPlaying ? pause() : play(activeId, '')} className="h-12 w-12 bg-white text-black flex items-center justify-center hover:invert transition-all shrink-0">
-                        {isPlaying ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 fill-current ml-1" />}
-                    </button>
-                    <button onClick={toggleLoop} className={`h-12 w-12 flex items-center justify-center transition-all ${isLooping ? 'bg-studio-yellow text-black' : 'bg-white/5 text-white hover:bg-white/10'}`}>
-                        <Repeat className={`h-5 w-5 ${isLooping ? 'animate-pulse' : ''}`} />
-                    </button>
+                    {/* Retro Grid on Cover */}
+                    <div className="absolute inset-0 step-grid opacity-20 pointer-events-none" />
                 </div>
                 
-                <div className="flex-grow group relative h-8 flex items-center">
-                    <input
-                        type="range"
-                        min="0"
-                        max={duration || 100}
-                        step="0.1"
-                        value={currentTime}
-                        onChange={(e) => seek(parseFloat(e.target.value))}
-                        className="w-full accent-white bg-white/10 h-[2px] appearance-none cursor-pointer group-hover:h-1"
-                    />
-                </div>
-
-                <div className="flex items-center gap-6 border-l border-white/10 pl-6 h-8 shrink-0">
-                   <div className="flex flex-col">
-                      <span className="text-[8px] font-black uppercase text-white/30 tracking-widest leading-none">Key</span>
-                      <span className="text-[14px] font-black uppercase text-white leading-none mt-1 italic tracking-tighter">{activeMetadata?.audioKey || "—"}</span>
-                   </div>
-                   <div className="flex flex-col border-l border-white/10 pl-6">
-                      <span className="text-[8px] font-black uppercase text-white/30 tracking-widest leading-none">BPM</span>
-                      <span className="text-[14px] font-black uppercase text-white leading-none mt-1 italic tracking-tighter">{activeMetadata?.bpm || "—"}</span>
-                   </div>
-                </div>
-
-                <div className="flex items-center gap-4 text-[10px] font-black tabular-nums tracking-widest border-l border-white/10 pl-6 h-8 shrink-0">
-                    <span>{formatTime(currentTime)}</span>
-                    <span className="text-white/20">/</span>
-                    <span>{formatTime(duration)}</span>
+                <div className="flex-1 overflow-hidden">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="h-2 w-2 bg-studio-neon rounded-full animate-pulse shadow-[0_0_10px_#a6e22e]" />
+                        <span className="text-[10px] font-black text-studio-neon tracking-widest truncate uppercase italic">
+                            {activeMetadata?.packName || "EXTERNAL_ARTIFACT"}
+                        </span>
+                    </div>
+                    <h4 className="text-[14px] md:text-lg font-black tracking-tighter truncate leading-none text-white selection:bg-studio-neon selection:text-black uppercase">
+                        {activeMetadata?.name || "SIGNAL_UNNAMED"}
+                    </h4>
                 </div>
             </div>
-        </div>
 
-        {/* 🛡️ MOBILE PROGRESS (Shown on Mobile) */}
-        <div className="lg:hidden w-full px-2">
-             <input
-                type="range"
-                min="0"
-                max={duration || 100}
-                step="0.1"
-                value={currentTime}
-                onChange={(e) => seek(parseFloat(e.target.value))}
-                className="w-full accent-studio-neon bg-white/10 h-1 md:h-1.5 appearance-none rounded-full"
-            />
-        </div>
+            {/* 🕹️ TRANSPORT & MIXER (TERMINAL STYLE) */}
+            <div className="flex-grow flex items-center gap-6">
+                <div className="flex items-center p-1 bg-white/5 border border-white/10">
+                    <button 
+                        onClick={() => isPlaying ? pause() : play(activeId, '')} 
+                        className="h-10 w-10 flex items-center justify-center hover:bg-white hover:text-black transition-all"
+                        disabled={isLoading}
+                        title={isLoading ? "BUFFERING" : isPlaying ? "PAUSE" : "EXECUTE_PLAY"}
+                    >
+                        {isLoading ? (
+                            <Loader2 size={18} className="animate-spin text-studio-neon" />
+                        ) : isPlaying ? (
+                            <Pause size={18} fill="currentColor" />
+                        ) : (
+                            <Play size={18} fill="currentColor" className="ml-1" />
+                        )}
+                    </button>
+                    <button 
+                        onClick={toggleLoop} 
+                        className={`h-10 w-10 flex items-center justify-center transition-all ${isLooping ? 'bg-studio-neon text-black font-black' : 'hover:bg-white/10'}`}
+                    >
+                        <Repeat size={14} className={isLooping ? 'animate-pulse' : ''} />
+                    </button>
+                </div>
 
-        {/* 🛡️ RACK STATUS & VOLUME (Desktop Only) */}
-        <div className="hidden xxl:flex items-center gap-8 border-l border-white/10 pl-12 h-12">
-            <div className="relative group/vol flex items-center gap-4">
-                <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="h-10 w-10 flex items-center justify-center hover:bg-white hover:text-black transition-all">
-                    {volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                {/* 📊 CORE PROGRESS :: ANALYSER_GRID */}
+                <div className="flex-grow flex flex-col gap-1">
+                    <div className="flex justify-between items-end text-[7px] font-black tracking-[0.2em] text-white/20 uppercase mb-1">
+                        <span>L_CH :: ANALYTICS</span>
+                        <span>0%</span>
+                        <span>50%</span>
+                        <span>100%</span>
+                        <span>R_CH :: ANALYTICS</span>
+                    </div>
+                    <div className="relative h-6 group">
+                        <div className="absolute inset-0 bg-white/5 border border-white/5 flex items-center">
+                            {/* Static Visualizer Bars */}
+                            <div className="flex items-end gap-[1px] h-full w-full opacity-20 absolute inset-0 pointer-events-none">
+                                <DAWVisualizer color="#a6e22e" bars={60} height={20} />
+                            </div>
+                            
+                            <input
+                                type="range"
+                                min="0"
+                                max={duration || 100}
+                                step="0.1"
+                                value={currentTime}
+                                onChange={(e) => seek(parseFloat(e.target.value))}
+                                className="w-full h-full opacity-0 cursor-crosshair relative z-20"
+                            />
+                            {/* Custom Tracker Bar */}
+                            <div 
+                                className="absolute top-0 left-0 h-full bg-studio-neon/30 border-r-2 border-studio-neon pointer-events-none transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(166,226,46,0.2)]"
+                                style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 🏷️ METADATA_TAGS HUD */}
+                <div className="hidden xl:flex items-center gap-6 px-6 border-l border-white/5 h-10">
+                    {activeMetadata?.bpm && (
+                        <div className="flex flex-col items-center">
+                            <span className="text-[7px] font-black text-white/30 uppercase tracking-widest mb-1">TEMPO</span>
+                            <span className="text-[14px] font-black italic text-studio-yellow leading-none">{activeMetadata.bpm}</span>
+                        </div>
+                    )}
+                    
+                    {activeMetadata?.audioKey && (
+                        <div className={`flex flex-col items-center border-white/10 pl-6 ${activeMetadata?.bpm ? 'border-l' : ''}`}>
+                            <span className="text-[7px] font-black text-white/30 uppercase tracking-widest mb-1">KEY</span>
+                            <span className="text-[14px] font-black italic text-white leading-none">{activeMetadata.audioKey}</span>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col items-center border-l border-white/10 pl-6">
+                        <span className="text-[7px] font-black text-white/30 uppercase tracking-widest mb-1">TIMESTAMP</span>
+                        <span className="text-[14px] font-black italic text-white leading-none tabular-nums">{formatTime(currentTime)}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 🎚️ MASTER_IO_CTRL */}
+            <div className="hidden lg:flex items-center gap-4 shrink-0">
+                <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center gap-2">
+                         <Volume2 size={12} className="text-white/20" />
+                         <div className="w-24 h-1.5 bg-black border border-white/20 relative overflow-hidden group/vol">
+                            <input 
+                                type="range" min="0" max="1" step="0.01" value={volume}
+                                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                            />
+                            <div className="absolute top-0 left-0 h-full bg-white transition-all ease-out" style={{ width: `${volume * 100}%` }} />
+                         </div>
+                    </div>
+                    <span className="text-[6px] font-black text-white/10 tracking-[0.5em] uppercase">MASTER_BUS_VOL</span>
+                </div>
+                
+                <button onClick={() => stop()} className="h-10 w-10 border border-white/10 hover:bg-studio-neon hover:text-black transition-all group">
+                    <X size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
-                <div className="w-24 h-8 flex items-center">
-                    <input 
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={volume}
-                        onChange={(e) => setVolume(parseFloat(e.target.value))}
-                        className="w-full h-1 bg-white/10 accent-white appearance-none cursor-crosshair group-hover/vol:h-2 transition-all"
-                    />
-                </div>
             </div>
-            <button onClick={() => setIsVisible(false)} className="h-10 w-10 border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition-all">
-                <X className="h-4 w-4" />
-            </button>
-        </div>
-      </div>
-    </div>
+
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

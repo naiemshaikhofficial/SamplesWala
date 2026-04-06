@@ -18,6 +18,7 @@ type AudioContextType = {
   setVolume: (val: number) => void
   toggleLoop: () => void
   setIsLoading: (val: boolean) => void
+  stop: () => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -212,6 +213,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const stop = () => {
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+    }
+    setActiveId(null);
+    setActiveMetadata(null);
+    setCurrentTime(0);
+    setSpectrum(new Array(40).fill(0));
+    // Assuming stopWatermark is available in scope
+    if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
+  }
+
   const toggleLoop = () => {
     if (audioRef.current) {
         const next = !isLooping;
@@ -221,7 +235,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, isLooping, volume, play, pause, seek, setVolume, toggleLoop, setIsLoading }}>
+    <AudioContext.Provider value={{ activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, isLooping, volume, play, pause, seek, setVolume, toggleLoop, setIsLoading, stop }}>
       {children}
     </AudioContext.Provider>
   )
