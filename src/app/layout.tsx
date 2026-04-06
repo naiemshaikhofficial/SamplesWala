@@ -8,6 +8,7 @@ import { ClientProviders } from '@/components/ClientProviders'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { SignalScan } from '@/components/ui/SignalScan'
+import { Suspense } from 'react'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,15 +36,21 @@ export default function RootLayout({
         <SignalScan />
         <ClientProviders>
           <div className="flex min-h-screen relative overflow-x-hidden">
-            <Sidebar />
+            <Suspense fallback={null}>
+                <Sidebar />
+            </Suspense>
             <div className="flex-1 flex flex-col min-h-screen lg:pl-64 transition-all duration-500 pb-20 lg:pb-0">
-              <Header />
+              <Suspense fallback={null}>
+                  <Header />
+              </Suspense>
               <main className="flex-grow relative">
                 {children}
               </main>
               <Footer />
               <GlobalPlayer />
-              <BottomNav />
+              <Suspense fallback={null}>
+                  <BottomNav />
+              </Suspense>
             </div>
           </div>
         </ClientProviders>

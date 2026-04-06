@@ -8,6 +8,7 @@ import { NewArrivals } from "@/components/home/NewArrivals";
 import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
+import { Suspense } from 'react'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -35,13 +36,15 @@ export default async function Home() {
     <div className="min-h-screen bg-studio-charcoal text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono step-grid transition-all duration-300">
         
         {/* 🏆 MASTER DASHBOARD HERO */}
-        <AdaptiveHero />
+        <Suspense fallback={<div className="h-screen bg-black" />}>
+            <AdaptiveHero />
+        </Suspense>
 
         {/* 💿 CHANNEL RACK: NEW SIGNALS */}
         <div className="px-6 md:px-20 py-24 border-y-8 border-black bg-studio-grey/30 relative">
             <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-neon opacity-20">
                 <div className="w-4 h-4 border-2 border-studio-neon animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Channel_Rack::New_Arrivals</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Marketplace_Unit :: New_Arrivals</span>
             </div>
             <NewArrivals packs={latestPacks || []} />
         </div>
@@ -103,10 +106,12 @@ export default async function Home() {
                 <span className="text-[10px] font-black uppercase tracking-[0.5em]">Playlist::Top_Signatures</span>
             </div>
             <div className="max-w-[2000px] mx-auto">
-                <TopSounds 
-                    samples={topSamples || []} 
-                    unlockedSampleIds={Array.from(unlockedSampleIds)}
-                />
+                <Suspense fallback={<div className="h-96 bg-black" />}>
+                    <TopSounds 
+                        samples={topSamples || []} 
+                        unlockedSampleIds={Array.from(unlockedSampleIds)}
+                    />
+                </Suspense>
             </div>
         </div>
 
