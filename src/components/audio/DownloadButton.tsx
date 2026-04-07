@@ -99,7 +99,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 px-1">
-                        <Diamond className="h-3 w-3 fill-white text-white opacity-40 group-hover:opacity-100 group-hover:fill-black group-hover:text-black transition-all" />
+                        <Lock className="h-3 w-3 opacity-40 group-hover:opacity-100 transition-all" />
                         <span className="text-[10px] font-black uppercase tracking-tight text-white/40 group-hover:text-black transition-colors">
                             {creditCost}
                         </span>

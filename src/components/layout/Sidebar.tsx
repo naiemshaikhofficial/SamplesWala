@@ -295,7 +295,7 @@ export function Sidebar() {
                         {isOpen && <span className="ml-2 text-[10px] font-black uppercase tracking-[0.2em]">LOGIN</span>}
                     </Link>
                     <Link 
-                        href="/auth//signup"
+                        href="/auth/signup"
                         title="SIGNUP"
                         className={`w-full flex items-center justify-center py-3 bg-white/5 border border-white/10 hover:bg-white hover:text-black transition-all group rounded-sm`}
                     >

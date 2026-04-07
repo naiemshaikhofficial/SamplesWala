@@ -13,9 +13,10 @@ export default async function LibraryPage() {
 
   if (!user) {
     redirect('/auth/login')
+    return null; // Explicit termination for server-side safety
   }
 
-  // 1. Fetch USER_VAULT Entries
+  // 1. Fetch USER_VAULT Entries (Surgical Safety)
   const { data: vaultItems } = await supabase
     .from('user_vault')
     .select('*')

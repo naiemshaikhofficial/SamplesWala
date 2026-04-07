@@ -55,6 +55,14 @@ export default async function PricingPage() {
           </p>
         </div>
 
+        {/* 🛡️ DATA_AVAILABILITY_GAURD (Surgical check for plan presence) */}
+        {(!plans || plans.length === 0) && (
+            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-sm bg-black/20 text-white/10 uppercase font-black tracking-widest mb-32">
+                <Database className="h-12 w-12 mb-6 animate-pulse" />
+                Commerce Signal Lost: Plans not found in database.
+            </div>
+        )}
+
         {/* 💎 1. SUBSCRIPTION PLANS SECTION */}
         <div className="mb-32 md:mb-48">
             <div className="flex items-center gap-4 mb-12 md:mb-16 text-white/10 group px-2">
@@ -66,13 +74,13 @@ export default async function PricingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 max-w-[1600px] mx-auto">
             {plans?.map((plan) => {
                 const visuals = planVisuals[plan.name] || planVisuals['Starter'];
-                const isActive = activeSub?.plan_id === plan.id
+                const isActive = (activeSub?.plan_id && activeSub.plan_id === plan.id)
                 const isUpgrade = plan.price_inr > (activeSub?.subscription_plans?.price_inr || 0)
                 const isLower = plan.price_inr < (activeSub?.subscription_plans?.price_inr || 0)
                 
                 // Fallback features if not synced yet (though SQL adds them)
                 const features = plan.features || [
-                    `${plan.credits_per_month} Monthly Credits`,
+                    `${plan.credits_per_month || 0} Monthly Credits`,
                     `${plan.name} License Rights`,
                     'Access to Exclusive Packs'
                 ]
