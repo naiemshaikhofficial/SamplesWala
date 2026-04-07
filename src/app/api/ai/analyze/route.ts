@@ -18,7 +18,9 @@ export async function POST(req: Request) {
             .eq('user_id', user?.id)
             .single()
             
-        if (!adminRecord && !user?.email?.includes('naiem')) {
+        const isAuthorized = !!adminRecord || user?.email?.includes('naiem') || user?.email?.includes('sampleswala') || user?.email?.includes('beatswala');
+
+        if (!isAuthorized) {
             return NextResponse.json({ error: 'UNAUTHORIZED_ACCESS_DENIED' }, { status: 403 })
         }
 

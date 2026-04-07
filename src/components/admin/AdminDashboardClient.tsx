@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { 
   LayoutDashboard, Package, Music, Users, ArrowUpRight, TrendingUp, 
   PlusCircle, ShieldCheck, Zap, Activity, HardDrive, Cpu, 
-  Terminal, Settings, Search, Disc, SlidersHorizontal, Lock
+  Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -17,6 +17,7 @@ export default function AdminDashboardClient({
   const router = useRouter()
   const [isScanning, setIsScanning] = useState(false)
   const [activeTab, setActiveTab] = useState('DASHBOARD')
+  const [scanProgress, setScanProgress] = useState({ current: 0, total: 0, status: 'IDLE' })
 
   // 🧪 REALTIME_SIMULATOR: Just for visual flair
   const [cpuUsage, setCpuUsage] = useState(12)
@@ -28,28 +29,61 @@ export default function AdminDashboardClient({
   }, [])
 
   const handleScanAi = async () => {
-    if (!confirm('PROTOCOL_INIT :: Confirm Autonomous AI Scan?')) return
+    if (!confirm('PROTOCOL_INIT :: Confirm Autonomous AI Scan for all unprocessed sounds?')) return
+    
     setIsScanning(true)
+    setScanProgress({ current: 0, total: unprocessedAiCount, status: 'INITIALIZING' })
+
     try {
-        const res = await fetch('/api/ai/analyze', {
-            method: 'POST',
-            body: JSON.stringify({ scanAll: true })
-        })
-        const data = await res.json()
-        if (data.success) {
-            router.refresh()
-        } else {
-            alert(`SYSTEM_ERROR :: ${data.error}`)
+        // 1. Fetch the list of unprocessed sample IDs
+        const resList = await fetch('/api/ai/get-unprocessed')
+        const { data: unprocessedIds } = await resList.json()
+
+        if (!unprocessedIds || unprocessedIds.length === 0) {
+            setScanProgress({ current: 0, total: 0, status: 'COMPLETED' })
+            setIsScanning(false)
+            return
         }
-    } catch (e) {
-        alert('CONNECTION_FAILED :: CORE_OFFLINE')
-    } finally {
+
+        setScanProgress(prev => ({ ...prev, total: unprocessedIds.length, status: 'PROCESSING_SIGNAL' }))
+
+        // 2. Sequential Processing Loop
+        let completed = 0;
+        for (const sample of unprocessedIds) {
+            try {
+                const res = await fetch('/api/ai/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sampleId: sample.id })
+                })
+                
+                if (!res.ok) {
+                    const errData = await res.json()
+                    throw new Error(errData.error || 'CHUNK_FAILURE')
+                }
+
+                completed++
+                setScanProgress(prev => ({ ...prev, current: completed }))
+            } catch (err) {
+                console.error(`SCAN_ERROR at Sample ${sample.id} ::`, err)
+                // Continue scanning others even if one fails
+            }
+        }
+
+        setScanProgress(prev => ({ ...prev, status: 'SYNC_COMPLETE' }))
+        router.refresh()
+        setTimeout(() => setIsScanning(false), 3000)
+
+    } catch (e: any) {
+        alert(`CRITICAL_FAILURE :: ${e.message}`)
         setIsScanning(false)
     }
   }
 
   // 🛡️ SECURITY OVERLAY
-  if (!isAdminFromDb && !userEmail.includes('naiem')) {
+  const isAuthorized = isAdminFromDb || userEmail?.includes('naiem') || userEmail?.includes('sampleswala') || userEmail?.includes('beatswala');
+
+  if (!isAuthorized) {
     return (
         <div className="h-screen bg-black flex flex-col items-center justify-center space-y-8 font-mono">
             <Lock className="w-20 h-20 text-spider-red animate-pulse" />
@@ -137,13 +171,32 @@ export default function AdminDashboardClient({
             </div>
 
             <div className="flex flex-wrap items-center gap-6">
-                <button 
-                  onClick={handleScanAi}
-                  disabled={isScanning}
-                  className={`px-12 py-5 border-2 border-studio-neon text-studio-neon font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 transition-all relative overflow-hidden ${isScanning ? 'animate-pulse opacity-50 bg-studio-neon/10' : 'hover:bg-studio-neon hover:text-black shadow-[0_0_30px_rgba(166,226,46,0.1)]'}`}
-                >
-                    <Zap className={`h-4 w-4 ${isScanning ? 'animate-bounce' : ''}`} /> {isScanning ? 'AI_PROCESSING_SEQUENCE...' : 'START AI_SCAN'}
-                </button>
+                <div className="flex flex-col items-end gap-2">
+                    {isScanning && (
+                        <div className="text-[9px] font-bold text-studio-neon uppercase tracking-widest animate-pulse mb-2">
+                            {scanProgress.status} :: {scanProgress.current}/{scanProgress.total} 
+                            ({Math.round((scanProgress.current / scanProgress.total) * 100)}%)
+                            {scanProgress.total > 0 && ` ~ Est ${Math.max(0, (scanProgress.total - scanProgress.current) * 1.5)}s remaining`}
+                        </div>
+                    )}
+                    <button 
+                    onClick={handleScanAi}
+                    disabled={isScanning}
+                    className={`px-12 py-5 border-2 border-studio-neon text-studio-neon font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 transition-all relative overflow-hidden ${isScanning ? 'opacity-100 bg-studio-neon/10' : 'hover:bg-studio-neon hover:text-black shadow-[0_0_30px_rgba(166,226,46,0.1)]'}`}
+                    >
+                        {isScanning ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-studio-neon" />
+                        ) : (
+                            <Zap className="h-4 w-4" />
+                        )}
+                        {isScanning ? 'SCAN_ACTIVE' : 'START AI_SCAN'}
+                        
+                        {/* 📊 PROGRESS BAR (Inside Button) */}
+                        {isScanning && (
+                            <div className="absolute bottom-0 left-0 h-1 bg-studio-neon transition-all duration-500" style={{ width: `${(scanProgress.current / scanProgress.total) * 100}%` }} />
+                        )}
+                    </button>
+                </div>
                 <button className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 hover:-translate-y-2 transition-all shadow-2xl border-r-8 border-studio-yellow">
                     <PlusCircle className="h-4 w-4" /> NEW_ARTIFACT
                 </button>
@@ -155,7 +208,7 @@ export default function AdminDashboardClient({
             {[
                 { label: 'Signal Collection', value: packsCount, icon: Package, color: 'text-white' },
                 { label: 'Artifact Density', value: samplesCount, icon: Music, color: 'text-white' },
-                { label: 'AI Resolution', value: unprocessedAiCount, icon: Activity, color: unprocessedAiCount > 0 ? 'text-studio-neon' : 'text-white/20', accent: true },
+                { label: 'AI Resolution', value: unprocessedAiCount, icon: Activity, color: unprocessedAiCount > 0 ? (isScanning ? 'text-studio-yellow animate-pulse' : 'text-studio-neon') : 'text-white/20', accent: true },
                 { label: 'Acquisition Yield', value: recentPurchases?.length, icon: TrendingUp, color: 'text-[#00FF00]' }
             ].map((stat, i) => (
                 <div key={i} className={`p-10 border border-white/5 bg-black/40 backdrop-blur-3xl group hover:border-studio-neon transition-all relative overflow-hidden ${stat.accent ? 'border-studio-neon/20' : ''}`}>
