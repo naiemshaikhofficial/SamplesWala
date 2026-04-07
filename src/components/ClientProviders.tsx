@@ -5,16 +5,20 @@ import { CurrencyProvider } from '@/components/CurrencyProvider'
 
 import { SidebarProvider } from '@/components/layout/SidebarContext'
 
+import { CacheProvider } from '@/components/providers/CacheProvider'
+
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
-    <NotificationProvider>
-      <CurrencyProvider>
-        <SidebarProvider>
-          <AudioProvider>
-            {children}
-          </AudioProvider>
-        </SidebarProvider>
-      </CurrencyProvider>
-    </NotificationProvider>
+    <CacheProvider>
+      <NotificationProvider>
+        <CurrencyProvider>
+          <SidebarProvider>
+            <AudioProvider>
+              {children}
+            </AudioProvider>
+          </SidebarProvider>
+        </CurrencyProvider>
+      </NotificationProvider>
+    </CacheProvider>
   )
 }

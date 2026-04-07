@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react'
 import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 import { getCachedAudio, cacheAudio } from '@/lib/audio/cache'
+import { getVibeSuggestions } from '@/app/api/vibe/actions'
 
 type AudioMetadata = { 
     id: string, 
@@ -35,6 +36,7 @@ type AudioContextType = {
   stop: () => void
   setPlaylist: (list: AudioMetadata[]) => void
   updateMetadataUnlocked: (id: string) => void
+  vibeSuggestions: any[]
   next: () => void
   prev: () => void
   user: any | null
@@ -45,6 +47,13 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined)
 export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [activeMetadata, setActiveMetadata] = useState<AudioMetadata | null>(null)
+  const [vibeSuggestions, setVibeSuggestions] = useState<any[]>([])
+
+  useEffect(() => {
+    if (activeId) {
+        getVibeSuggestions(activeId).then(setVibeSuggestions)
+    }
+  }, [activeId])
 
   const updateMetadataUnlocked = (id: string) => {
     // 1. Update Active Metadata
@@ -343,7 +352,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return (
         <AudioContext.Provider value={{ 
             activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
-            isLooping, volume, playlist, play, pause, seek, setVolume, toggleLoop, 
+            isLooping, volume, playlist, vibeSuggestions, play, pause, seek, setVolume, toggleLoop, 
             setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev, user
         }}>
             {children}

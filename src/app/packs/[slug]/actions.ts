@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import jwt from 'jsonwebtoken'
 import { revalidatePath } from 'next/cache'
 
@@ -29,11 +30,12 @@ export async function generateDownloadToken(sampleId: string) {
 /** 💳 THE NEW MINIMALIST UNLOCK SYSTEM (2-Table Strategy) **/
 export async function unlockSample(sampleId: string) {
     const supabase = await createClient()
+    const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    // 1. Get Sample Details (to know the cost)
-    const { data: sample } = await supabase.from('samples').select('name, credit_cost, pack_id').eq('id', sampleId).single()
+    // 1. Get Sample Details (Admin Signal for Verification)
+    const { data: sample } = await adminClient.from('samples').select('name, credit_cost, pack_id').eq('id', sampleId).single()
     const cost = sample?.credit_cost || 1
 
     // 2. CHECK & DEDUCT (Single RPC Call to process_unlock)
@@ -44,8 +46,8 @@ export async function unlockSample(sampleId: string) {
 
     if (deductError) throw new Error('Insufficient credits or account missing.')
 
-    // 3. SECURE IN VAULT (Unified ownership & history log)
-    const { error: vaultError } = await supabase
+    // 3. SECURE IN VAULT (Admin Signal for Registry)
+    const { error: vaultError } = await adminClient
         .from('user_vault')
         .insert({
             user_id: user.id,
@@ -70,15 +72,16 @@ export async function unlockSample(sampleId: string) {
 /** 📥 DOWNLOAD FLOW (Checking the Vault) **/
 export async function getDownloadUrl(sampleId: string) {
     const supabase = await createClient()
+    const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    // 1. Get sample info to find its parent pack
-    const { data: sample } = await supabase.from('samples').select('name, pack_id').eq('id', sampleId).single()
+    // 1. Get sample info with Admin Signal
+    const { data: sample } = await adminClient.from('samples').select('name, pack_id').eq('id', sampleId).single()
     if (!sample) throw new Error('Sound artifact not found in master registry.')
 
-    // 2. VAULT CHECK: Does user own the Sample OR the whole Pack in user_vault?
-    const { data: vaultItems } = await supabase.from('user_vault')
+    // 2. VAULT CHECK (Admin Signal for Registry)
+    const { data: vaultItems } = await adminClient.from('user_vault')
         .select('item_id, item_type')
         .eq('user_id', user.id)
 
@@ -103,10 +106,11 @@ export async function getDownloadUrl(sampleId: string) {
 /** 🎰 BULK UNLOCK (Purchasing full packs into user_vault) **/
 export async function unlockFullPack(packId: string) {
     const supabase = await createClient()
+    const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    const { data: pack } = await supabase.from('sample_packs').select('*').eq('id', packId).single()
+    const { data: pack } = await adminClient.from('sample_packs').select('*').eq('id', packId).single()
     if (!pack) throw new Error('Pack not found')
 
     const cost = pack.bundle_credit_cost || 50
@@ -119,8 +123,8 @@ export async function unlockFullPack(packId: string) {
 
     if (deductError) throw new Error('Transaction Failed: Insufficient credits.')
 
-    // 2. Register Ownership in user_vault
-    const { error: vaultError } = await supabase.from('user_vault').insert({
+    // 2. Register Ownership in user_vault (Admin Signal)
+    const { error: vaultError } = await adminClient.from('user_vault').insert({
         user_id: user.id,
         item_id: packId,
         item_type: 'pack',

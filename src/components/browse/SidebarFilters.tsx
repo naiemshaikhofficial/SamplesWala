@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
-    Layers, Activity, Keyboard, Timer, X, Sparkles, 
+    Layers, Activity, Keyboard, Timer, X, Sparkles, ArrowRight,
     Filter as FilterIcon, SlidersHorizontal, ChevronDown,
     ShieldCheck, UserCheck, Search, Disc, Settings2, Mic2
 } from 'lucide-react'
@@ -57,10 +57,95 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
         setIsMobileOpen(false)
     }
 
-    // 🎹 SHARED FILTER SECTIONS
+    // 🎹 KEY SIGNATURE TERMINAL
+    const KeySelector = () => (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-l-2 border-studio-neon pl-3">
+                KEY SIGNATURE
+            </div>
+            <div className="grid grid-cols-4 gap-1">
+                {musicalKeys.map(key => (
+                    <button
+                        key={key}
+                        onClick={() => updateFilters({ key: currentKey === key ? null : key })}
+                        className={`py-3 text-[10px] font-bold border transition-all ${
+                            currentKey === key 
+                            ? 'bg-studio-neon text-black border-studio-neon shadow-[0_0_10px_rgba(166,226,46,0.2)]' 
+                            : 'bg-black/40 text-white/40 border-white/5 hover:border-white/20'
+                        }`}
+                    >
+                        {key}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+
+    // 🎭 STYLE & GENRE MATRIX
+    const GenreSelector = () => (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-l-2 border-studio-neon pl-3">
+                STUDIO STYLE
+            </div>
+            <div className="flex flex-wrap gap-2">
+                {genres.map(genre => (
+                    <button
+                        key={genre}
+                        onClick={() => updateFilters({ genre: currentGenre === genre ? null : genre })}
+                        className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest border transition-all ${
+                            currentGenre === genre 
+                            ? 'bg-white text-black border-white' 
+                            : 'bg-black/60 text-white/30 border-white/5 hover:border-white/20'
+                        }`}
+                    >
+                        {genre}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+
+    // 🏎️ BPM RANGE INPUTS
+    const BPMControls = () => (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-l-2 border-studio-neon pl-3">
+                BPM THRESHOLD
+            </div>
+            <div className="flex items-center gap-2">
+                <input 
+                    type="number" 
+                    placeholder="MIN" 
+                    value={bpmMin}
+                    onChange={(e) => setBpmMin(e.target.value)}
+                    className="w-full bg-black/80 border border-white/5 p-3 text-[10px] font-black focus:border-studio-neon outline-none"
+                />
+                <div className="w-4 h-[2px] bg-white/10" />
+                <input 
+                    type="number" 
+                    placeholder="MAX" 
+                    value={bpmMax}
+                    onChange={(e) => setBpmMax(e.target.value)}
+                    className="w-full bg-black/80 border border-white/5 p-3 text-[10px] font-black focus:border-studio-neon outline-none"
+                />
+                <button 
+                   onClick={() => updateFilters({ bpm_min: bpmMin, bpm_max: bpmMax })}
+                   className="bg-studio-neon text-black p-3"
+                >
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    )
     const FilterSections = () => (
         <div className="space-y-12 pb-24 md:pb-0">
+            {/* KEY SIGNATURE */}
+            <KeySelector />
+
             {/* GENRE */}
+            <GenreSelector />
+
+            {/* BPM */}
+            <BPMControls />
             <div className="space-y-4">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
                     <Sparkles size={14} className="text-studio-neon" /> GENRE

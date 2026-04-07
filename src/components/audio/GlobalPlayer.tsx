@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAudio } from './AudioProvider'
 import Image from 'next/image'
-import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp, Loader2, SkipBack, SkipForward, Download } from 'lucide-react'
+import { Play, Pause, X, Music, Activity, Repeat, Volume2, VolumeX, Volume1, ChevronUp, Loader2, SkipBack, SkipForward, Download, Sparkles, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DAWVisualizer } from '@/components/ui/DAWVisualizer'
 import { DownloadButton } from './DownloadButton'
@@ -10,8 +10,9 @@ import { DownloadButton } from './DownloadButton'
 import { useSidebar } from '../layout/SidebarContext'
 
 export function GlobalPlayer() {
-  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume, stop, next, prev, playlist } = useAudio()
+  const { activeId, activeMetadata, isPlaying, play, pause, currentTime, duration, seek, isLoading, spectrum, isLooping, toggleLoop, volume, setVolume, stop, next, prev, playlist, vibeSuggestions } = useAudio()
   const { isOpen } = useSidebar()
+  const [showVibes, setShowVibes] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
 
   // 🧬 SYNC VISIBILITY WITH SIGNAL
@@ -161,15 +162,25 @@ export function GlobalPlayer() {
                         />
                     </div>
 
-                    {activeId && (
-                        <div className="scale-110 md:scale-100">
-                             <DownloadButton 
-                                sampleId={activeId} 
-                                isUnlockedInitial={activeMetadata?.isUnlocked || false}
-                                creditCost={activeMetadata?.creditCost || 1} 
-                            />
-                        </div>
-                    )}
+                    <div className="flex items-center gap-4 border-l border-white/5 pl-6">
+                        <button 
+                            onClick={() => setShowVibes(!showVibes)}
+                            className={`p-3 rounded-sm transition-all ${showVibes ? 'bg-studio-neon text-black shadow-[0_0_15px_rgba(166,226,46,0.3)]' : 'text-white/20 hover:text-white hover:bg-white/5'}`}
+                            title="Find Similar Sounds"
+                        >
+                            <Sparkles size={18} />
+                        </button>
+
+                        {activeId && (
+                            <div className="scale-110 md:scale-100">
+                                <DownloadButton 
+                                    sampleId={activeId} 
+                                    isUnlockedInitial={activeMetadata?.isUnlocked || false}
+                                    creditCost={activeMetadata?.creditCost || 1} 
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     <button onClick={() => stop()} className="h-10 w-10 flex items-center justify-center group-hover:rotate-90 transition-transform">
                         <X size={20} className="text-white/20 hover:text-studio-yellow transition-colors" />
@@ -187,6 +198,72 @@ export function GlobalPlayer() {
                 <div className="absolute top-0 left-0 h-full bg-studio-neon transition-all duration-100 shadow-[0_0_10px_#a6e22e]" style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
             </div>
           </div>
+
+          <AnimatePresence>
+            {showVibes && vibeSuggestions && vibeSuggestions.length > 0 && (
+                <motion.div 
+                    initial={{ height: 0 }}
+                    animate={{ height: 'auto' }}
+                    exit={{ height: 0 }}
+                    className="bg-black border-b border-white/5 overflow-hidden"
+                >
+                    <div className="p-6 md:p-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-4">
+                                <Sparkles className="w-4 h-4 text-studio-neon animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">SIMILAR_VIBES_INTAKE</span>
+                            </div>
+                            <button onClick={() => setShowVibes(false)} className="text-white/20 hover:text-white"><X size={16} /></button>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            {vibeSuggestions.map((s, i) => (
+                                <motion.div 
+                                    key={s.id}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.1 }}
+                                    onClick={() => play(s.id, s.url, { 
+                                        id: s.id, 
+                                        name: s.name, 
+                                        packName: s.sample_packs?.name, 
+                                        coverUrl: s.sample_packs?.cover_url, 
+                                        bpm: s.bpm, 
+                                        audioKey: s.key,
+                                        isUnlocked: false // Reset for new sound
+                                    })}
+                                    className="group relative bg-white/5 p-4 border border-white/5 hover:border-studio-neon transition-all cursor-pointer overflow-hidden"
+                                >
+                                     <div className="flex flex-col gap-3">
+                                         <div className="relative aspect-square overflow-hidden bg-black/40">
+                                            <Image 
+                                                src={s.sample_packs?.cover_url || '/placeholder.png'} 
+                                                alt={s.name} 
+                                                fill 
+                                                className="object-cover group-hover:scale-110 transition-transform duration-500 opacity-60 group-hover:opacity-100"
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Play size={20} fill="#a6e22e" className="text-studio-neon" />
+                                            </div>
+                                         </div>
+                                         <div className="min-w-0">
+                                            <h4 className="text-[10px] font-black text-white truncate uppercase mb-1">{s.name}</h4>
+                                            <div className="flex items-center gap-2 text-[8px] font-black text-white/30 uppercase tracking-widest italic">
+                                                <span>{s.bpm || 'VAR'}</span>
+                                                <div className="w-1 h-1 rounded-full bg-white/10" />
+                                                <span>{s.key || 'C MIN'}</span>
+                                            </div>
+                                         </div>
+                                     </div>
+                                     <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                         <Plus size={12} className="text-studio-neon" />
+                                     </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

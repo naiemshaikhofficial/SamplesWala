@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database } from 'lucide-react'
@@ -15,11 +16,12 @@ import { getRelatedPacks } from '@/app/browse/actions'
 
 export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
   const supabase = await createClient()
+  const adminClient = getAdminClient()
   const { slug } = await params
   const { data: { user } } = await supabase.auth.getUser()
   
-  // 🎹 ENHANCED FETCH WITH RELATIONAL FALLBACK
-  let { data: pack, error } = await supabase
+  // 🎹 ENHANCED FETCH WITH RELATIONAL FALLBACK (Admin Signal)
+  let { data: pack, error } = await adminClient
     .from('sample_packs')
     .select('*, categories(name, id)')
     .eq('slug', slug)
@@ -27,7 +29,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
 
   // Fallback for cases where foreign keys are descriptive but missing in schema cache
   if (!pack || error) {
-    const { data: fallbackPack } = await supabase
+    const { data: fallbackPack } = await adminClient
         .from('sample_packs')
         .select('*')
         .eq('slug', slug)
@@ -37,7 +39,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
 
   if (!pack) notFound()
   
-  const { data: samples } = await supabase
+  const { data: samples } = await adminClient
     .from('samples')
     .select('id, name, bpm, key, credit_cost, pack_id, created_at, type, ai_genre')
     .eq('pack_id', pack.id)
@@ -50,6 +52,9 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   const melodies = samples?.filter(s => s.bpm && s.key).length || 0
   const loops = samples?.filter(s => s.bpm && !s.key).length || 0
   const oneShots = samples?.filter(s => !s.bpm).length || 0
+  
+  // 💹 Master Credit Summation Engine
+  const totalIndividualCredits = samples?.reduce((sum, s) => sum + (s.credit_cost || 1), 0) || 0
 
   let unlockedSampleIds: Set<string> = new Set()
   let isFullPackUnlocked = false;
@@ -164,10 +169,14 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                           Precision extraction mode. Unlock specific frequencies for your project using individual credits.
                       </p>
                   </div>
-                  <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/10 flex flex-col gap-6">
+                  <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/10 flex flex-col gap-6 text-left">
                       <div>
-                          <div className="text-3xl md:text-4xl font-black italic mb-2 tracking-tighter text-studio-neon">1 CREDIT</div>
-                          <div className="text-[9px] font-black uppercase tracking-widest text-white/20">PER INDIVIDUAL SAMPLE</div>
+                          <div className="text-3xl md:text-5xl font-black italic mb-2 tracking-tighter text-studio-neon leading-none">
+                              {totalIndividualCredits} CREDITS
+                          </div>
+                          <div className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 mt-4 leading-relaxed">
+                              TOTAL VALUE OF ALL INDIVIDUAL SAMPLES
+                          </div>
                       </div>
                       <Link href="/pricing" className="h-12 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white hover:text-black transition-all">
                           Get Credits Now

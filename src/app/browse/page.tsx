@@ -7,7 +7,7 @@ import {
   Volume2, Mic2, Settings2, Sparkles, Filter, Activity, Cpu, Layout, 
   Maximize2, MoveVertical, Timer, Terminal, Layers, Monitor, SlidersHorizontal, 
   Keyboard, X, Minus, Square, Folder, Database, HardDrive, Cpu as CpuIcon, 
-  Cable, Cloud, Save, Key, UserCheck, FileJson 
+  Cloud, Save, Key, UserCheck, FileJson 
 } from 'lucide-react'
 import Image from 'next/image'
 import { PriceDisplay } from '@/components/PriceDisplay'
@@ -16,6 +16,8 @@ import { DownloadButton } from '@/components/audio/DownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 
 import { SidebarFilters } from '@/components/browse/SidebarFilters'
+import { SampleList } from '@/components/browse/SampleList'
+import { Cable } from 'lucide-react'
 
 export default async function BrowsePage({
   searchParams,
@@ -147,49 +149,7 @@ export default async function BrowsePage({
 
             {/* Individual Sounds List */}
             {samples && samples.length > 0 && (
-                <div className="space-y-12">
-                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/10">
-                        <Cable size={12} className="text-studio-neon" /> Individual Sounds
-                    </div>
-                    <div className="divide-y-2 divide-black border-2 border-black bg-[#111]">
-                        {samples.map((sample: any, idx: number) => {
-                             const isUnlocked = unlockedSampleIds.has(sample.id);
-                             return (
-                                <div key={sample.id} className="group flex flex-col md:flex-row items-center gap-8 px-8 py-6 hover:bg-white/[0.02] transition-all">
-                                    <div className="flex items-center gap-8 w-full md:w-1/3">
-                                        <PlayButton 
-                                            id={sample.id} 
-                                            url={sample.audio_url} 
-                                            name={sample.name}
-                                            packName={sample.sample_packs?.name}
-                                            bpm={sample.bpm}
-                                            audioKey={sample.key}
-                                            isUnlocked={isUnlocked}
-                                            creditCost={sample.credit_cost}
-                                        />
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-black uppercase tracking-tighter truncate group-hover:text-studio-neon transition-colors">{sample.name}</span>
-                                            <div className="flex gap-4 mt-2 text-[8px] font-black text-white/20 uppercase tracking-widest">
-                                                <span>{sample.bpm ? `${sample.bpm} BPM` : 'FX'}</span>
-                                                <span className="text-studio-neon">{sample.key || ''}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 w-full h-10 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100">
-                                        <Waveform id={sample.id} active={true} />
-                                    </div>
-                                    <div className="flex justify-end gap-6 w-full md:w-32">
-                                        <DownloadButton 
-                                            sampleId={sample.id} 
-                                            isUnlockedInitial={isUnlocked} 
-                                            creditCost={sample.credit_cost}
-                                        />
-                                    </div>
-                                </div>
-                             )
-                        })}
-                    </div>
-                </div>
+                <SampleList samples={samples} unlockedSampleIds={unlockedSampleIds} />
             )}
 
             {hasNoResults && (
