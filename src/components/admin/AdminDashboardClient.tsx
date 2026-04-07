@@ -12,8 +12,9 @@ import {
   LayoutDashboard, Package, Music, Users, ArrowUpRight, TrendingUp, 
   PlusCircle, ShieldCheck, Zap, Activity, HardDrive, Cpu, 
   Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2, Key,
-  ChevronLeft
+  ChevronLeft, Volume1, Volume2
 } from 'lucide-react'
+import { PlayButton } from '@/components/audio/PlayButton'
 import { useState, useEffect } from 'react'
 
 export default function AdminDashboardClient({ 
@@ -397,15 +398,19 @@ export default function AdminDashboardClient({
                             <input required value={newSound.name} onChange={e => setNewSound({ ...newSound, name: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">HQ File URL (Drive)</label>
-                            <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                            <label className="text-[10px] font-black uppercase text-white/40 tracking-widest">MP3 Preview URL (Stream)</label>
+                            <input required value={newSound.audio_url} onChange={e => setNewSound({ ...newSound, audio_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all placeholder:text-white/5" placeholder="https://drive.google.com/..." />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">MP3 Preview URL</label>
-                            <input required value={newSound.audio_url} onChange={e => setNewSound({ ...newSound, audio_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                            <label className="text-[10px] font-black uppercase text-white/40 tracking-widest">Master File URL (HQ Download)</label>
+                            <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all placeholder:text-white/5" placeholder="https://drive.google.com/..." />
                         </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">HQ File URL (Drive)</label>
+                        <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                     </div>
                     <div className="grid grid-cols-6 gap-6">
                         <div className="col-span-2 space-y-2">
@@ -517,11 +522,17 @@ export default function AdminDashboardClient({
                             <input required value={editingSound.download_url} onChange={e => setEditingSound({ ...editingSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">MP3 Preview URL</label>
+                            <label className="text-[10px] font-black uppercase text-white/40 tracking-widest">MP3 Preview URL (Stream)</label>
                             <input required value={editingSound.audio_url} onChange={e => setEditingSound({ ...editingSound, audio_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/40 tracking-widest">Master File URL (HQ Download)</label>
+                            <input required value={editingSound.download_url} onChange={e => setEditingSound({ ...editingSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Regional Genre</label>
                             <select required value={editingSound.ai_genre} onChange={e => setEditingSound({ ...editingSound, ai_genre: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
@@ -532,8 +543,6 @@ export default function AdminDashboardClient({
                                 <option>Percussive Instrument</option>
                             </select>
                         </div>
-                    </div>
-                    <div className="grid grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Type</label>
                             <select required value={editingSound.type} onChange={e => setEditingSound({ ...editingSound, type: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
@@ -541,9 +550,11 @@ export default function AdminDashboardClient({
                                 <option value="oneshot">Oneshot</option>
                             </select>
                         </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-8">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key (Opt)</label>
-                            <input value={editingSound.key || ''} onChange={e => setEditingSound({ ...editingSound, key: e.target.value.toUpperCase() })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="E.G. C# MINOR" />
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key</label>
+                            <input required value={editingSound.key || ''} onChange={e => setEditingSound({ ...editingSound, key: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">BPM</label>
@@ -803,6 +814,7 @@ export default function AdminDashboardClient({
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">BPM</th>
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Key</th>
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credits</th>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Signal Check</th>
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -825,6 +837,47 @@ export default function AdminDashboardClient({
                                                 <div className="flex items-center justify-center gap-3">
                                                     <Key className="h-3 w-3 text-studio-yellow" />
                                                     <span className="text-lg font-black italic tracking-tighter text-studio-yellow">{sound.credit_cost || 1}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-8">
+                                                <div className="flex items-center justify-center gap-6">
+                                                    {/* 🌊 PREVIEW_NODE (LQ) */}
+                                                    <div className="flex flex-col items-center gap-2 group">
+                                                        {sound.audio_url ? (
+                                                            <PlayButton 
+                                                                id={sound.id + '_lq'} 
+                                                                url={sound.audio_url} 
+                                                                name={`${sound.name} [LQ_PREVIEW]`} 
+                                                                packName={selectedPack.name}
+                                                                bpm={sound.bpm}
+                                                                audioKey={sound.key}
+                                                            />
+                                                        ) : (
+                                                            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/10">
+                                                                <Lock size={12} />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-[7px] font-black tracking-widest text-white/20 group-hover:text-studio-neon uppercase transition-colors">Low-Q</span>
+                                                    </div>
+
+                                                    {/* 💎 ORIGINAL_NODE (HQ) */}
+                                                    <div className="flex flex-col items-center gap-2 group">
+                                                        {sound.download_url ? (
+                                                            <PlayButton 
+                                                                id={sound.id + '_hq'} 
+                                                                url={sound.download_url} 
+                                                                name={`${sound.name} [HQ_MASTER]`} 
+                                                                packName={selectedPack.name}
+                                                                bpm={sound.bpm}
+                                                                audioKey={sound.key}
+                                                            />
+                                                        ) : (
+                                                            <div className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/10">
+                                                                <Lock size={12} />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-[7px] font-black tracking-widest text-white/20 group-hover:text-[#00FF00] uppercase transition-colors">Master</span>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="p-8 text-right flex items-center justify-end gap-2">

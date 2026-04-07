@@ -77,7 +77,10 @@ export async function GET(req: NextRequest) {
     let decoded: any;
     try {
         decoded = jwt.verify(token, JWT_SECRET);
-        if (decoded.sampleId !== id || !['preview', 'download'].includes(decoded.purpose)) {
+        const isAdminRequest = id.endsWith('_lq') || id.endsWith('_hq');
+        const isValidId = decoded.sampleId === id || (isAdminRequest && id.startsWith(decoded.sampleId));
+
+        if (!isValidId || !['preview', 'download'].includes(decoded.purpose)) {
             console.error("[AUDIO PROXY] Token Mismatch:", { decoded, id });
             return new NextResponse('Invalid Security Token', { status: 401 });
         }
@@ -104,14 +107,18 @@ export async function GET(req: NextRequest) {
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 
-    const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url, download_url, name').eq('id', id).single();
+    const isLq = id.endsWith('_lq');
+    const isHq = id.endsWith('_hq');
+    const cleanId = id.replace('_lq', '').replace('_hq', '');
+
+    const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url, download_url, name').eq('id', cleanId).single();
     if (dbError || !sample) {
         console.error("[AUDIO PROXY] DB Error:", dbError);
         return new NextResponse('Not found', { status: 404 });
     }
 
-    const isDownload = decoded.purpose === 'download';
-    const dbUrl = isDownload ? sample.download_url : sample.audio_url;
+    const isDownload = decoded.purpose === 'download' || isHq;
+    const dbUrl = (isHq || isDownload) ? sample.download_url : sample.audio_url;
     
     let finalUrl = dbUrl, cookie = '', fileId = '';
     const extractedId = getDriveFileId(dbUrl);

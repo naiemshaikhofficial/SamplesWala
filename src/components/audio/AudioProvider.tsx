@@ -195,8 +195,23 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (audioRef.current) audioRef.current.volume = val
   }
 
+  const resolveDriveSignal = (url: string) => {
+    if (!url) return '';
+    // 🚦 SIGNAL_RESOLUTION :: Transformer for Google Drive Nodes
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (fileIdMatch && fileIdMatch[1]) {
+            return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+        }
+    }
+    return url;
+  }
+
   const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) => {
     if (!audioRef.current) return
+    
+    // 🛰️ TRANSFORM_SIGNAL :: Resolve direct stream for admin/external nodes
+    const finalStreamUrl = resolveDriveSignal(url);
     
     if (activeId === id) {
       if (isPlaying) audioRef.current.pause();
@@ -221,29 +236,31 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const cachedBlob = await getCachedAudio(id);
         let blob: Blob;
 
-        if (cachedBlob) {
+        // 🛡️ ADMIN_SIGNAL_OVERRIDE :: Admin signals skip cache but use Proxy
+        const isAdminSignal = id.endsWith('_lq') || id.endsWith('_hq');
+
+        if (cachedBlob && !isAdminSignal) {
             console.log(`[VAULT_CACHE] Local signal found for node ${id}. Bypassing network fetch.`);
             blob = cachedBlob;
         } else {
             // 🌡️ PHASE 2: VAULT FETCH (API HANDSHAKE)
-            const token = await generatePreviewToken(id);
+            const cleanId = id.replace('_lq', '').replace('_hq', '');
+            const token = await generatePreviewToken(cleanId);
             const finalUrl = `/api/audio?id=${id}&token=${token}`;
             
+            console.log(`[SIGNAL_ROUTE] Fetching via Proxy: ${finalUrl}`);
             const response = await fetch(finalUrl);
+            if (!response.ok) throw new Error(`Proxy Fetch Failed: ${response.status}`);
             blob = await response.blob();
 
             // 💾 PHASE 3: SECURE PERSISTENCE
-            // Only cache watermarked previews (items that are NOT unlocked) for security
-            if (!metadata?.isUnlocked) {
+            if (!metadata?.isUnlocked && !isAdminSignal) {
                 await cacheAudio(id, blob);
             }
         }
 
         const objectUrl = URL.createObjectURL(blob);
         
-        // 🛡️ REVOCATION_PROTOCOL: DESTROY URL AFTER HANDSHAKE
-        // We listen for the 'loadedmetadata' event which triggers once the browser has established the signal chain.
-        // Revoking the URL immediately after this makes the 'blob:...' URL un-navigable and un-sharable.
         const revokeListener = () => {
             URL.revokeObjectURL(objectUrl);
             audioRef.current?.removeEventListener('loadedmetadata', revokeListener);
@@ -254,9 +271,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         audioRef.current.volume = userVolumeRef.current;
         audioRef.current.load();
         
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-            playPromise.catch((error) => {
+        const mainPlayPromise = audioRef.current.play();
+        if (mainPlayPromise !== undefined) {
+            mainPlayPromise.catch((error) => {
                 if (error.name !== 'AbortError') console.error("SIGNAL_REJECTED:", error);
             });
         }
