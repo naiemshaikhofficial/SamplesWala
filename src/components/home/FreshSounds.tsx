@@ -26,7 +26,7 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/60 px-4 py-1 self-start border-l-4 border-studio-neon">
-                        Signal Stream :: Live Intake
+                        NEW RELEASES
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
@@ -38,7 +38,7 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
 
                 <div className="flex items-center gap-12 bg-black/40 p-6 border border-white/5 backdrop-blur-md">
                      <div className="hidden md:flex flex-col items-end gap-1">
-                        <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">SIGNAL_STRENGTH</span>
+                        <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">LATEST_SOUNDS</span>
                         <div className="flex gap-1">
                             {[...Array(5)].map((_, i) => (
                                 <div key={i} className="w-4 h-1 bg-studio-neon" />
@@ -49,7 +49,7 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
                         href="/browse" 
                         className="group flex items-center gap-4 text-[12px] font-black uppercase tracking-widest hover:text-studio-neon transition-all"
                     >
-                        BROWSE_VAULT
+                        BROWSE_ALL
                         <div className="w-12 h-1 bg-white/10 group-hover:bg-studio-neon overflow-hidden">
                              <motion.div 
                                 className="w-full h-full bg-studio-neon"

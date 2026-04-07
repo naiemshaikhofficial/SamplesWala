@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import Link from "next/link";
 import { 
   ShieldCheck, Disc, Activity, Settings2, SlidersHorizontal, 
@@ -13,9 +14,10 @@ import { Suspense } from 'react'
 
 export default async function Home() {
   const supabase = await createClient()
+  const adminClient = getAdminClient()
   
-  // 📀 Fetch Latest Packs with Multilevel Failure Protection
-  let { data: latestPacks, error: packsError } = await supabase
+  // 📀 Fetch Latest Packs with Admin Signal (Bypass RLS)
+  let { data: latestPacks, error: packsError } = await adminClient
     .from('sample_packs')
     .select('*, categories(name)')
     .order('created_at', { ascending: false })
@@ -23,8 +25,7 @@ export default async function Home() {
 
   // Critical Fallback if the relationship query fails or returns empty
   if (packsError || !latestPacks || latestPacks.length === 0) {
-      if (packsError) console.warn('[SIGNAL_REPAIR] Packs relational fetch failed, using bypass:', packsError.message)
-      const { data: fallbackScan } = await supabase
+      const { data: fallbackScan } = await adminClient
         .from('sample_packs')
         .select('*')
         .order('created_at', { ascending: false })
@@ -35,16 +36,15 @@ export default async function Home() {
   // 💿 AUTOMATIC POPULARITY ENGINE
   const topSamples = await getTopPopularSounds(12)
 
-  // 📡 FRESH SOUNDS SIGNAL: Fetch newest individual samples with bypass
-  let { data: freshSounds, error: freshError } = await supabase
+  // 📡 FRESH SOUNDS SIGNAL: Fetch newest individual samples with Admin Signal
+  let { data: freshSounds, error: freshError } = await adminClient
     .from('samples')
     .select('*, sample_packs(name, slug, cover_url)')
     .order('created_at', { ascending: false })
     .limit(12)
 
   if (freshError || !freshSounds || freshSounds.length === 0) {
-      if (freshError) console.warn('[SIGNAL_REPAIR] Fresh sounds fetch failed join, using bypass:', freshError.message);
-      const { data: rawFresh } = await supabase.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
+      const { data: rawFresh } = await adminClient.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
       freshSounds = rawFresh as any;
   }
 
