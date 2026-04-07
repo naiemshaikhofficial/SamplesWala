@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { AIStudioAnalyser } from '@/lib/ai/analyser'
 
@@ -23,7 +24,10 @@ async function ensureAdmin() {
                         user.email?.includes('beatswala');
 
     if (!isAuthorized) throw new Error('UNAUTHORIZED_ACCESS')
-    return { supabase, user }
+    
+    // 🔑 ESCALATE PRIVILEGES :: Switch to Admin Client (Service Role) to bypass RLS
+    const adminClient = getAdminClient()
+    return { supabase: adminClient, user }
 }
 
 // 📦 PACK_CATALOG_ACTIONS

@@ -177,7 +177,7 @@ export default function AdminDashboardClient({
     e.preventDefault()
     setIsSubmitting(true)
     try {
-        const { id, created_at, ...updateData } = editingSound // Sanitization
+        const { id, created_at, key_type, ...updateData } = editingSound // Sanitization: Remove virtual fields
         await editSoundAction(id, updateData)
         setEditingSound(null)
         if (selectedPack) fetchPackSamples(selectedPack.id)
@@ -216,8 +216,9 @@ export default function AdminDashboardClient({
     setIsSubmitting(true)
     const finalKey = newSound.key.trim() ? `${newSound.key.trim()} ${newSound.key_type}` : null
     try {
+        const { key_type, ...cleanPayload } = newSound // Strip invalid columns
         const payload = { 
-            ...newSound, 
+            ...cleanPayload, 
             key: finalKey, 
             pack_id: selectedPack?.id || newSound.pack_id 
         }
@@ -407,10 +408,6 @@ export default function AdminDashboardClient({
                             <label className="text-[10px] font-black uppercase text-white/40 tracking-widest">Master File URL (HQ Download)</label>
                             <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all placeholder:text-white/5" placeholder="https://drive.google.com/..." />
                         </div>
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">HQ File URL (Drive)</label>
-                        <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                     </div>
                     <div className="grid grid-cols-6 gap-6">
                         <div className="col-span-2 space-y-2">
