@@ -117,7 +117,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       {/* 🛡️ GLOBAL CONFIRMATION MODAL */}
       <AnimatePresence>
         {confirmState?.isOpen && (
-          <div className="fixed inset-0 z-[210] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -160,7 +160,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       {/* 🧬 GLOBAL AUTH GATE (SIGNAL LOCKED) */}
       <AnimatePresence>
         {isAuthGateOpen && (
-            <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
                 <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -417,7 +417,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     }
 
     return (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

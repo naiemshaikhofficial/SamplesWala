@@ -41,7 +41,7 @@ export function Header() {
   }
 
   return (
-    <header className={`fixed top-0 right-0 z-[80] bg-studio-grey text-white border-b-4 border-black shadow-2xl transition-all duration-300 ${isOpen ? 'left-0 lg:left-64' : 'left-0 lg:left-20'}`}>
+    <header className={`fixed top-0 right-0 z-[500] bg-studio-grey text-white border-b-4 border-black shadow-2xl transition-all duration-300 pointer-events-auto ${isOpen ? 'left-0 lg:left-64' : 'left-0 lg:left-20'}`}>
       
       {/* 🎹 TOP NAVIGATION (Hidden on Mobile) */}
       <div className="hidden md:flex bg-black/80 px-6 py-2.5 items-center justify-between border-b border-white/5">
@@ -69,13 +69,9 @@ export function Header() {
         
         {/* 🎹 MOBILE LOGO & MENU TOGGLE */}
         <div className="flex items-center gap-3">
-            <button 
-              onClick={toggle}
-              className="flex lg:hidden h-9 w-9 items-center justify-center bg-black/40 border border-white/5 transition-all rounded-sm"
-              title="Toggle Sidebar"
-            >
-               <Menu size={18} className="text-white/60" />
-            </button>
+            <Suspense fallback={<div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />}>
+              <MobileMenu user={user} />
+            </Suspense>
             <Link href="/" className="group relative transition-all hover:scale-105 shrink-0">
                 <Image 
                   src="/Logo.png" 
@@ -124,7 +120,7 @@ export function Header() {
             {user ? (
                 <div className="flex items-center gap-2 md:gap-4">
                     <CreditCounter />
-                    <Link href="/profile" className="h-8 w-8 md:h-11 md:w-11 flex items-center justify-center studio-panel border border-white/10 hover:border-studio-neon transition-all bg-[#222]">
+                    <Link href="/profile" className="h-8 w-8 md:h-11 md:w-11 flex items-center justify-center studio-panel border border-white/10 hover:border-studio-neon transition-all bg-[#222] pointer-events-auto cursor-pointer">
                         <User className="h-4 w-4 text-white/40" />
                     </Link>
                 </div>
@@ -134,9 +130,6 @@ export function Header() {
                 </Link>
             )}
             <div className="hidden sm:block">
-            <Suspense fallback={<div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />}>
-              <MobileMenu user={user} />
-            </Suspense>
             </div>
         </div>
       </div>

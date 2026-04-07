@@ -84,7 +84,7 @@ export default async function BrowsePage({
         <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex items-center gap-8">
                 <div className="h-10 w-1 bg-studio-neon" />
-                <h1 className="text-4xl font-black uppercase tracking-tighter italic">Sounds_<span className="text-studio-neon">Library</span></h1>
+                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter italic">SOUNDS <span className="text-studio-neon">LIBRARY</span></h1>
             </div>
 
             <form action="/browse" className="relative w-full max-w-xl">

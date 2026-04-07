@@ -12,12 +12,12 @@ export function BottomNav() {
   const navItems = [
     { label: 'Home', href: '/', icon: <Layout className="w-5 h-5" /> },
     { label: 'Browse', href: '/browse', icon: <Search className="w-5 h-5" /> },
-    { label: 'Library', href: '/profile/library', icon: <Music className="w-5 h-5" /> },
+    { label: 'Library', href: 'library', icon: <Music className="w-5 h-5" /> },
     { label: 'User', href: '/profile', icon: <User className="w-5 h-5" /> },
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] bg-black border-t-2 border-white/5 px-6 py-4 pb-8 flex items-center justify-between backdrop-blur-xl">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-[510] bg-black border-t-2 border-white/5 px-6 py-4 pb-8 flex items-center justify-between backdrop-blur-xl">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (

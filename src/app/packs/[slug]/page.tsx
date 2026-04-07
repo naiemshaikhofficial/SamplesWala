@@ -86,7 +86,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                             pack.full_pack_download_url?.toLowerCase().includes('dropbox');
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono">
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono">
       <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-8 md:mb-12 group transition-all">
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
         RELOAD_BROWSER
@@ -164,13 +164,18 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                           Precision extraction mode. Unlock specific frequencies for your project using individual credits.
                       </p>
                   </div>
-                  <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/10">
-                      <div className="text-3xl md:text-4xl font-black italic mb-2 tracking-tighter text-studio-neon">7 CREDITS</div>
-                      <div className="text-[9px] font-black uppercase tracking-widest text-white/20">INSTANT CLOUD SYNC</div>
+                  <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/10 flex flex-col gap-6">
+                      <div>
+                          <div className="text-3xl md:text-4xl font-black italic mb-2 tracking-tighter text-studio-neon">1 CREDIT</div>
+                          <div className="text-[9px] font-black uppercase tracking-widest text-white/20">PER INDIVIDUAL SAMPLE</div>
+                      </div>
+                      <Link href="/pricing" className="h-12 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white hover:text-black transition-all">
+                          Get Credits Now
+                      </Link>
                   </div>
               </div>
 
-              <div className="flex-[1.8] bg-[#0a0a0a] border-4 border-studio-yellow p-8 md:p-14 relative overflow-hidden group shadow-[0_0_100px_rgba(234,179,8,0.1)] rounded-sm">
+              <div className="flex-[1.8] bg-[#0a0a0a] border-4 border-studio-yellow p-6 md:p-14 relative group shadow-[0_0_100px_rgba(234,179,8,0.1)] rounded-sm overflow-hidden">
                   {/* 🔩 DECOR SCREWS */}
                   <div className="absolute top-3 left-3 w-4 h-4 rounded-full bg-studio-yellow/20 shadow-inner border border-black flex items-center justify-center">
                       <div className="w-3 h-[1px] bg-black/40 rotate-45" />

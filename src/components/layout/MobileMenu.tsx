@@ -48,9 +48,10 @@ export function MobileMenu({ user }: { user: any }) {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="lg:hidden h-9 w-9 md:h-10 md:w-10 flex items-center justify-center border border-white/10 hover:bg-white hover:text-black transition-all bg-black/40"
+        className="h-10 w-10 flex items-center justify-center border border-white/10 hover:border-studio-neon transition-all bg-black/60 pointer-events-auto cursor-pointer rounded-sm group"
+        title="Open Navigation"
       >
-        <Menu className="h-4 w-4" />
+        <Menu className="h-5 w-5 text-white/60 group-hover:text-studio-neon transition-colors" />
       </button>
 
       <AnimatePresence>
@@ -60,7 +61,7 @@ export function MobileMenu({ user }: { user: any }) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-0 z-[100] bg-[#0a0a0a] flex flex-col p-6 overflow-y-auto font-mono"
+            className="fixed inset-0 z-[600] bg-[#0a0a0a] flex flex-col p-6 overflow-y-auto"
           >
             {/* 🧬 HEADER GRID */}
             <div className="flex justify-between items-start mb-12">

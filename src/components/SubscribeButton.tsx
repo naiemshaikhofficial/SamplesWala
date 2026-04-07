@@ -101,7 +101,7 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       onClick={handleSubscribe}
       disabled={isPending || disabled}
       className={`
-        relative w-full py-5 rounded-2xl text-center text-sm font-black uppercase tracking-widest transition-all overflow-hidden group
+        relative w-full py-4 lg:py-5 rounded-xl lg:rounded-2xl text-center text-[10px] lg:text-sm font-black uppercase tracking-widest transition-all overflow-hidden group
         ${isFeatured 
           ? 'bg-white text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.02]' 
           : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20'

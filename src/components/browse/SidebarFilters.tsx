@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Layers, Activity, Keyboard, Timer, X, Sparkles, ShieldCheck, UserCheck } from 'lucide-react'
+import { 
+    Layers, Activity, Keyboard, Timer, X, Sparkles, 
+    Filter as FilterIcon, SlidersHorizontal, ChevronDown,
+    ShieldCheck, UserCheck, Search, Disc, Settings2, Mic2
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 type Category = { id: string, name: string }
 
@@ -29,12 +34,12 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
     const currentType = searchParams.get('type')
     const currentKey = searchParams.get('key')
     const currentTag = searchParams.get('tag')
+    const currentGenre = searchParams.get('genre')
     
     // 🧬 Filter Settings
     const [bpmMin, setBpmMin] = useState(searchParams.get('bpm_min') || '')
     const [bpmMax, setBpmMax] = useState(searchParams.get('bpm_max') || '')
-    
-    const currentQuery = searchParams.get('q')
+    const [isMobileOpen, setIsMobileOpen] = useState(false)
 
     const updateFilters = (updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString())
@@ -49,114 +54,103 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
         router.push('/browse')
         setBpmMin('')
         setBpmMax('')
+        setIsMobileOpen(false)
     }
 
-    // GENRE SECTION
-    const GenreSection = () => (
-        <div className="space-y-4">
-            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                <Sparkles size={14} className="text-studio-neon" /> GENRE
+    // 🎹 SHARED FILTER SECTIONS
+    const FilterSections = () => (
+        <div className="space-y-12 pb-24 md:pb-0">
+            {/* GENRE */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Sparkles size={14} className="text-studio-neon" /> GENRE
+                </div>
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                    {genres.map((genre) => {
+                        const genreVal = genre.toLowerCase();
+                        const isActive = currentGenre === genreVal;
+                        return (
+                            <Link 
+                                key={genre}
+                                href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), genre: genreVal }).toString()}`}
+                                onClick={() => setIsMobileOpen(false)}
+                                className={`px-3 py-2.5 text-[9px] uppercase font-black tracking-widest transition-all border text-center ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
+                            >
+                                {genre}
+                            </Link>
+                        )
+                    })}
+                </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
-                {genres.map((genre) => {
-                    const genreVal = genre.toLowerCase();
-                    const isActive = searchParams.get('genre') === genreVal;
-                    return (
-                        <Link 
-                            key={genre}
-                            href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), genre: genreVal }).toString()}`}
-                            className={`px-3 py-2.5 text-[9px] uppercase font-black tracking-widest transition-all border text-center ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
-                        >
-                            {genre}
-                        </Link>
-                    )
-                })}
-            </div>
-        </div>
-    )
 
-    // TAGS SECTION
-    const TagSection = () => (
-        <div className="space-y-4">
-            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                <Activity size={14} className="text-studio-neon" /> POPULAR TAGS
+            {/* TAGS */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Activity size={14} className="text-studio-neon" /> POPULAR TAGS
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                    {popularTags.map((tag) => {
+                        const isActive = currentTag === tag.toLowerCase();
+                        return (
+                            <Link 
+                                key={tag}
+                                href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), tag: tag.toLowerCase() }).toString()}`}
+                                onClick={() => setIsMobileOpen(false)}
+                                className={`px-3 py-1.5 text-[9px] uppercase font-black tracking-widest border transition-all ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
+                            >
+                                #{tag}
+                            </Link>
+                        )
+                    })}
+                </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-                {popularTags.map((tag) => {
-                    const isActive = currentTag === tag.toLowerCase();
-                    return (
-                        <Link 
-                            key={tag}
-                            href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), tag: tag.toLowerCase() }).toString()}`}
-                            className={`px-3 py-1.5 text-[9px] uppercase font-black tracking-widest border transition-all ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
-                        >
-                            #{tag}
-                        </Link>
-                    )
-                })}
-            </div>
-        </div>
-    )
 
-    // INSTRUMENT SECTION
-    const InstrumentSection = () => (
-        <div className="space-y-4">
-            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                <Layers size={14} className="text-studio-neon" /> INSTRUMENT
-            </div>
-            <div className="flex flex-col gap-1 max-h-72 overflow-y-auto custom-scrollbar pr-2">
-                <Link href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), category: '' }).toString()}`} className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest transition-all ${!currentCategory ? 'bg-studio-neon text-black' : 'text-white/40 hover:bg-white/5 border border-white/10'}`}>ALL INSTRUMENTS</Link>
-                {categories?.map((cat) => (
+            {/* INSTRUMENT */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Layers size={14} className="text-studio-neon" /> INSTRUMENT
+                </div>
+                <div className="flex flex-col gap-1 max-h-72 overflow-y-auto custom-scrollbar pr-2">
                     <Link 
-                        key={cat.id} 
-                        href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), category: cat.id }).toString()}`}
-                        className={`px-4 py-2.5 text-[10px] uppercase font-black tracking-widest transition-all border border-transparent ${currentCategory === cat.id ? 'bg-studio-neon text-black' : 'text-white/40 hover:bg-white/5 border-white/10'}`}
+                        href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), category: '' }).toString()}`} 
+                        onClick={() => setIsMobileOpen(false)}
+                        className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest transition-all ${!currentCategory ? 'bg-studio-neon text-black' : 'text-white/40 hover:bg-white/5 border border-white/10'}`}
                     >
-                        {cat.name}
+                        ALL INSTRUMENTS
                     </Link>
-                ))}
-            </div>
-        </div>
-    )
-
-    // KEY SECTION
-    const KeySection = () => (
-        <div className="space-y-4">
-            <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                <Keyboard size={14} className="text-studio-neon" /> MUSICAL KEY
-            </div>
-            <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                {musicalKeys.map((k) => (
-                    <Link 
-                        key={k}
-                        href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), key: k }).toString()}`}
-                        className={`h-9 flex items-center justify-center text-[9px] border font-black transition-all ${currentKey === k ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/30 border-white/10 hover:bg-white/5'}`}
-                    >
-                        {k}
-                    </Link>
-                ))}
-            </div>
-        </div>
-    )
-
-    return (
-        <aside className="w-full md:w-80 border-r-2 border-black bg-[#0d0d0d] p-8 space-y-12 shrink-0">
-            
-            {/* Filters Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">FILTERS</span>
-                {(currentCategory || currentType || currentKey || bpmMin || bpmMax) && (
-                    <button onClick={clearFilters} className="text-studio-neon hover:text-white transition-colors text-[10px] font-bold">
-                        CLEAR
-                    </button>
-                )}
+                    {categories?.map((cat) => (
+                        <Link 
+                            key={cat.id} 
+                            href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), category: cat.id }).toString()}`}
+                            onClick={() => setIsMobileOpen(false)}
+                            className={`px-4 py-2.5 text-[10px] uppercase font-black tracking-widest transition-all border border-transparent ${currentCategory === cat.id ? 'bg-studio-neon text-black' : 'text-white/40 hover:bg-white/5 border-white/10'}`}
+                        >
+                            {cat.name}
+                        </Link>
+                    ))}
+                </div>
             </div>
 
-            <GenreSection />
-            <TagSection />
-            <InstrumentSection />
+            {/* KEY */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Keyboard size={14} className="text-studio-neon" /> MUSICAL KEY
+                </div>
+                <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    {musicalKeys.map((k) => (
+                        <Link 
+                            key={k}
+                            href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), key: k }).toString()}`}
+                            onClick={() => setIsMobileOpen(false)}
+                            className={`h-9 flex items-center justify-center text-[9px] border font-black transition-all ${currentKey === k ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/30 border-white/10 hover:bg-white/5'}`}
+                        >
+                            {k}
+                        </Link>
+                    ))}
+                </div>
+            </div>
 
-            {/* Format Type */}
+            {/* FORMAT */}
             <div className="space-y-4">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
                     <Activity size={14} className="text-studio-neon" /> FORMAT
@@ -169,6 +163,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                             <Link 
                                 key={type}
                                 href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), type: typeVal }).toString()}`}
+                                onClick={() => setIsMobileOpen(false)}
                                 className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest text-center transition-all border ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
                             >
                                 {type}
@@ -178,47 +173,10 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 </div>
             </div>
 
-            <KeySection />
-
-            {/* Time Signature */}
+            {/* BPM */}
             <div className="space-y-4">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                    <Activity size={14} className="text-studio-neon" /> TIME SIG
-                </div>
-                <div className="grid grid-cols-3 gap-1.5">
-                    {['4/4', '3/4', '6/8'].map((sig) => {
-                        const isActive = searchParams.get('time_sig') === sig;
-                        return (
-                            <Link 
-                                key={sig}
-                                href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), time_sig: sig }).toString()}`}
-                                className={`px-3 py-2.5 text-[9px] uppercase font-bold tracking-widest transition-all border text-center ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
-                            >
-                                {sig}
-                            </Link>
-                        )
-                    })}
-                </div>
-            </div>
-
-            {/* Producer Search */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                    <UserCheck size={14} className="text-studio-neon" /> BY DESIGNER
-                </div>
-                <input 
-                    type="text" 
-                    value={searchParams.get('producer') || ''}
-                    onChange={(e) => updateFilters({ producer: e.target.value })}
-                    placeholder="NAME..." 
-                    className="w-full bg-black border border-white/10 p-3 text-[11px] font-black text-white focus:border-studio-neon focus:outline-none transition-all placeholder:text-white/10 uppercase"
-                />
-            </div>
-
-            {/* Tempo & BPM */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                    <Timer size={14} className="text-studio-neon" /> BPM
+                    <Timer size={14} className="text-studio-neon" /> BPM RANGE
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <input 
@@ -240,58 +198,8 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 </div>
             </div>
 
-            {/* Suggested for you */}
-            <div className="pt-8 border-t-2 border-black space-y-6">
-                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] text-studio-neon italic animate-pulse">
-                    <Activity size={14} /> AI Suggested
-                </div>
-                
-                <div className="p-5 bg-black/60 border border-white/5 space-y-5 rounded-sm shadow-[0_0_30px_rgba(0,255,157,0.03)]">
-                    {/* Vibe (Calculated) */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
-                            <span>Vibe</span>
-                            <span className="text-studio-neon">84.2%</span>
-                        </div>
-                        <div className="h-1 bg-white/5 w-full flex">
-                            <div className="h-full bg-studio-neon shadow-[0_0_10px_rgba(0,255,157,0.5)] w-[84%] transition-all duration-[3000ms]"></div>
-                        </div>
-                    </div>
-
-                    {/* Complexity */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
-                            <span>Complexity</span>
-                            <span className="text-white/60">MEDIUM HIGH</span>
-                        </div>
-                        <div className="h-1 bg-white/5 w-full flex gap-1">
-                            {[1,2,3,4,5,6,7,8].map(i => (
-                                <div key={i} className={`h-full flex-1 ${i <= 6 ? 'bg-white/20' : 'bg-white/5'}`}></div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Suggested sounds */}
-                    <div className="pt-2 border-t border-white/5 space-y-3">
-                        <div className="text-[7px] font-black text-studio-neon/40 uppercase tracking-[0.2em]">Suggested for you</div>
-                        <div className="text-[9px] font-bold text-white/60 lowercase italic leading-relaxed">
-                            "Our AI found some great {currentTag || 'melodic'} sounds matching your style."
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center gap-2 text-[8px] font-black text-white/10 uppercase tracking-widest">
-                        <ShieldCheck size={10} /> Secure Storage
-                    </div>
-                    <div className="text-[8px] font-black text-studio-neon/20 uppercase tracking-widest animate-pulse">
-                        Scanning...
-                    </div>
-                </div>
-            </div>
-
-            {/* Sort & Limit */}
-            <div className="grid grid-cols-2 gap-4 pb-12">
+            {/* SORT & LIMIT */}
+            <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-3">
                     <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">SORT BY</span>
                     <select 
@@ -318,28 +226,89 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 </div>
             </div>
 
-            {/* Reset Filters */}
-            <div className="pt-12 border-t-2 border-black space-y-4">
-                <button 
+            {/* RESET */}
+            <div className="pt-8 border-t border-white/5">
+                 <button 
                   onClick={clearFilters}
-                  className="w-full py-4 bg-red-950/20 border-2 border-black text-red-500 text-[10px] font-black uppercase tracking-[0.5em] hover:bg-red-500 hover:text-white transition-all italic flex items-center justify-center gap-4 shadow-[0_0_20px_rgba(255,0,0,0.05)]"
+                  className="w-full py-4 bg-red-950/20 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.5em] hover:bg-red-500 hover:text-white transition-all italic flex items-center justify-center gap-4"
                 >
                     <X size={16} /> Reset Filters
                 </button>
-                <div className="p-6 bg-black/40 border-2 border-black">
-                    <div className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">Status</div>
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-white/10">
-                            <span className="flex items-center gap-2"><Activity size={8} className="text-studio-neon" /> Connection</span>
-                            <span className="text-studio-neon italic">Active</span>
-                        </div>
-                        <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-white/10">
-                            <span className="flex items-center gap-2"><ShieldCheck size={8} className="text-studio-neon" /> Protection</span>
-                            <span className="text-studio-neon italic">Secure</span>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </aside>
+        </div>
+    )
+
+    return (
+        <>
+            {/* 🛠️ MOBILE_FILTER_TOGGLE (Now Inline, not fixed) */}
+            <div className="md:hidden px-8 py-6 bg-[#080808] border-b border-white/5">
+                <button 
+                    onClick={() => setIsMobileOpen(true)}
+                    className="w-full h-14 bg-black border-2 border-white/10 text-white flex items-center justify-between px-6 font-black uppercase text-[10px] tracking-widest hover:border-studio-neon group transition-all"
+                >
+                    <div className="flex items-center gap-4">
+                        <SlidersHorizontal size={14} className="text-studio-neon group-hover:scale-110 transition-transform" />
+                        <span>Filter Sounds</span>
+                    </div>
+                    {(currentCategory || currentType || currentKey || currentGenre) && (
+                        <div className="h-2 w-2 bg-studio-neon rounded-full animate-pulse" />
+                    )}
+                </button>
+            </div>
+
+            {/* 📱 MOBILE_DRAWER_OVERLAY */}
+            <AnimatePresence>
+                {isMobileOpen && (
+                    <div className="fixed inset-0 z-[200] lg:hidden">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsMobileOpen(false)}
+                            className="absolute inset-0 bg-black/95 backdrop-blur-3xl"
+                        />
+                        
+                        <motion.div 
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                            className="absolute bottom-0 left-0 right-0 h-[90vh] bg-studio-grey border-t-2 border-studio-neon p-8 overflow-y-auto custom-scrollbar"
+                        >
+                            <div className="flex justify-between items-center mb-10 sticky top-0 bg-studio-grey z-10 pb-4 border-b border-white/5">
+                                <h3 className="text-xl font-black uppercase italic tracking-tighter">FILTERS</h3>
+                                <button onClick={() => setIsMobileOpen(false)} className="h-10 w-10 border border-white/10 flex items-center justify-center hover:bg-studio-neon hover:text-black transition-all">
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            
+                            <FilterSections />
+                            
+                            <div className="fixed bottom-0 left-0 right-0 py-6 px-8 bg-studio-grey border-t border-white/10 shadow-[0_-20px_40px_rgba(0,0,0,0.8)] z-20">
+                                <button 
+                                    onClick={() => setIsMobileOpen(false)}
+                                    className="w-full h-16 bg-white text-black font-black uppercase tracking-widest text-[11px] hover:bg-studio-neon transition-all"
+                                >
+                                    APPLY FILTERS
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* 🖥️ DESKTOP_SIDEBAR */}
+            <aside className="hidden md:block w-80 border-r-2 border-black bg-[#0d0d0d] p-8 shrink-0 overflow-y-auto max-h-[calc(100vh-140px)] custom-scrollbar">
+                <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-10">
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic text-simple">FILTERS</span>
+                    {(currentCategory || currentType || currentKey || currentGenre) && (
+                        <button onClick={clearFilters} className="text-studio-neon hover:text-white transition-colors text-[10px] font-bold">
+                            CLEAR
+                        </button>
+                    )}
+                </div>
+                <FilterSections />
+            </aside>
+        </>
     )
 }
