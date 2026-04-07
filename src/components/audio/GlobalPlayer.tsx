@@ -60,9 +60,9 @@ export function GlobalPlayer() {
                     <div className="flex items-center gap-3 overflow-hidden bg-studio-yellow/10 px-3 py-1 rounded-sm border border-studio-yellow/20">
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-studio-yellow animate-pulse" />
-                            <span className="text-studio-yellow font-black">Preview Mode</span>
+                            <span className="text-studio-yellow font-black">PREVIEW ONLY</span>
                         </div>
-                        <span className="text-white/60 italic lowercase">unlock for high quality</span>
+                        <span className="text-white/60 italic lowercase">low quality & watermarked :: unlock for full quality</span>
                     </div>
                 )}
              </div>
@@ -103,7 +103,12 @@ export function GlobalPlayer() {
                     <div className="hidden md:flex items-center gap-6">
                         <div className="flex items-center p-1 bg-white/5 border border-white/10 rounded-sm">
                             <button onClick={prev} className="h-10 w-10 flex items-center justify-center hover:bg-white/10 text-white/30 disabled:opacity-20"><SkipBack size={16} fill="currentColor" /></button>
-                            <button onClick={() => isPlaying ? pause() : play(activeId!, '')} className="h-10 w-14 bg-white text-black hover:bg-studio-neon"><Play size={18} fill="currentColor" className="ml-1" /></button>
+                            <button 
+                                onClick={() => isPlaying ? pause() : play(activeId!, '')} 
+                                className="h-11 w-16 bg-white text-black hover:bg-studio-neon flex items-center justify-center transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_#a6e22e]"
+                            >
+                                {isLoading ? <Loader2 size={18} className="animate-spin" /> : isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
+                            </button>
                             <button onClick={next} className="h-10 w-10 flex items-center justify-center hover:bg-white/10 text-white/30 disabled:opacity-20"><SkipForward size={16} fill="currentColor" /></button>
                         </div>
 
@@ -140,19 +145,34 @@ export function GlobalPlayer() {
                     </div>
                 </div>
 
-                {/* 🎚️ MASTER OUTPUT & DOWNLOAD */}
-                <div className="col-span-4 md:col-span-3 flex items-center gap-3 md:gap-4 justify-end min-w-0">
+                {/* Volume & Download */}
+                <div className="col-span-4 md:col-span-3 flex items-center gap-3 md:gap-10 justify-end min-w-0">
                     
-                    {activeId && (
-                        <DownloadButton 
-                            sampleId={activeId} 
-                            isUnlockedInitial={activeMetadata?.isUnlocked || false}
-                            creditCost={activeMetadata?.creditCost || 1} 
+                    {/* Volume Control */}
+                    <div className="hidden xl:flex items-center gap-4 group/vol px-4 border-l border-white/5">
+                        <div className="flex items-center gap-2 text-white/20 group-hover/vol:text-studio-neon transition-colors">
+                            {volume === 0 ? <VolumeX size={14} /> : volume < 0.5 ? <Volume1 size={14} /> : <Volume2 size={14} />}
+                            <span className="text-[10px] font-black w-8">{(volume * 100).toFixed(0)}%</span>
+                        </div>
+                        <input 
+                            type="range" min="0" max="1" step="0.01" value={volume}
+                            onChange={(e) => setVolume(parseFloat(e.target.value))}
+                            className="w-24 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-studio-neon hover:bg-white/20 transition-all outline-none"
                         />
+                    </div>
+
+                    {activeId && (
+                        <div className="scale-110 md:scale-100">
+                             <DownloadButton 
+                                sampleId={activeId} 
+                                isUnlockedInitial={activeMetadata?.isUnlocked || false}
+                                creditCost={activeMetadata?.creditCost || 1} 
+                            />
+                        </div>
                     )}
 
-                    <button onClick={() => stop()} className="h-10 w-10 flex items-center justify-center">
-                        <X size={18} className="text-white/20 hover:text-white" />
+                    <button onClick={() => stop()} className="h-10 w-10 flex items-center justify-center group-hover:rotate-90 transition-transform">
+                        <X size={20} className="text-white/20 hover:text-studio-yellow transition-colors" />
                     </button>
                 </div>
             </div>

@@ -44,7 +44,7 @@ export default async function PricingPage() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 px-4">
           <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
-            <Activity size={10} /> {activeSub ? `SUBSCRIPTION_NODE :: ${currentPlanName.toUpperCase()}_LINKED` : 'COMMERCE_TERMINAL :: INITIALIZED'}
+            <Activity size={10} /> {activeSub ? `MEMBERSHIP :: ${currentPlanName.toUpperCase()}_PLAN` : 'PRICING :: READY'}
           </div>
           <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
             SIGNAL <span className="text-studio-neon">TIERS</span>
