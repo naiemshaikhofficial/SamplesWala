@@ -160,6 +160,9 @@ export default function SettingsPage() {
                                                             <p className="text-[11px] font-black text-studio-neon uppercase tracking-[0.4em] italic leading-none">
                                                                 {currentCredits} AVAILABLE CREDITS
                                                             </p>
+                                                            <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em] italic leading-none">
+                                                                STATUS: {isActive ? 'ACTIVE' : 'INACTIVE'}
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
