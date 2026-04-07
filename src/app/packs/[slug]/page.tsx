@@ -203,17 +203,33 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                           <div className="space-y-4 pt-4 min-w-0 w-full overflow-hidden">
                              <span className="text-[9px] font-black uppercase tracking-widest text-[#fff]/20 border-b border-white/5 pb-2 block italic text-left">PACK_CONTENTS:</span>
                              <div className="grid grid-cols-1 gap-2">
-                                {[
-                                    { icon: <Layers size={12}/>, label: 'Full Multitrack Stems', active: hasPremiumArtifacts },
-                                    { icon: <Music4 size={12}/>, label: 'Master MIDI Sequences', active: hasPremiumArtifacts },
-                                    { icon: <Zap size={12}/>, label: 'Lifetime License', active: true },
-                                    { icon: <Database size={12}/>, label: 'High-Quality 24-bit WAV', active: true }
-                                ].map((m, i) => (
-                                    <div key={i} className={`flex items-center gap-3 text-[9px] font-bold uppercase tracking-tight p-3 border transition-all min-w-0 ${m.active ? 'text-white/60 bg-white/5 border-white/5' : 'text-white/10 bg-white/2 border-white/2 opacity-30'}`}>
-                                        <div className={m.active ? "text-studio-yellow shrink-0" : "text-white/10 shrink-0"}>{m.icon}</div>
-                                        <span className="truncate flex-1">{m.label}</span>
-                                    </div>
-                                ))}
+                                 {(() => {
+                                     // 📟 DYNAMIC_SPEC_ROUTING
+                                     const defaultSpecs = [
+                                         { label: 'Full Multitrack Stems', icon: <Layers size={12}/>, active: hasPremiumArtifacts },
+                                         { label: 'Master MIDI Sequences', icon: <Music4 size={12}/>, active: hasPremiumArtifacts },
+                                         { label: 'Lifetime License', icon: <Zap size={12}/>, active: true },
+                                         { label: 'High-Quality 24-bit WAV', icon: <Database size={12}/>, active: true }
+                                     ];
+
+                                     const specsToRender = (pack.specifications && Array.isArray(pack.specifications) && pack.specifications.length > 0)
+                                         ? pack.specifications.map((s: string) => ({
+                                             label: s,
+                                             icon: s.toLowerCase().includes('stem') ? <Layers size={12}/> : 
+                                                   s.toLowerCase().includes('midi') ? <Music4 size={12}/> :
+                                                   s.toLowerCase().includes('license') ? <Zap size={12}/> :
+                                                   s.toLowerCase().includes('wav') ? <Database size={12}/> : <Sparkles size={12}/>,
+                                             active: true
+                                         }))
+                                         : defaultSpecs;
+
+                                     return specsToRender.map((m: any, i: number) => (
+                                         <div key={i} className={`flex items-center gap-3 text-[9px] font-bold uppercase tracking-tight p-3 border transition-all min-w-0 ${m.active ? 'text-white/60 bg-white/5 border-white/5' : 'text-white/10 bg-white/2 border-white/2 opacity-30'}`}>
+                                             <div className={m.active ? "text-studio-yellow shrink-0" : "text-white/10 shrink-0"}>{m.icon}</div>
+                                             <span className="truncate flex-1">{m.label}</span>
+                                         </div>
+                                     ));
+                                 })()}
                              </div>
                           </div>
                       </div>

@@ -89,8 +89,9 @@ export default function AdminDashboardClient({
   const [showNewSoundModal, setShowNewSoundModal] = useState(false)
   const [editingPack, setEditingPack] = useState<any>(null)
   const [editingSound, setEditingSound] = useState<any>(null)
+  const [sampleSearchQuery, setSampleSearchQuery] = useState('')
 
-  const [newPack, setNewPack] = useState({ name: '', description: '', price_inr: 0, price_usd: 0, cover_url: '', slug: '' })
+  const [newPack, setNewPack] = useState({ name: '', description: '', price_inr: 0, price_usd: 0, cover_url: '', slug: '', specifications: '' })
   const [newSound, setNewSound] = useState({ 
     name: '', 
     audio_url: '', 
@@ -154,6 +155,12 @@ export default function AdminDashboardClient({
     setIsSubmitting(true)
     try {
         const { id, created_at, ...updateData } = editingPack // Sanitization
+        
+        // Convert comma string to array if it's a string
+        if (typeof updateData.specifications === 'string') {
+            updateData.specifications = updateData.specifications.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
+        }
+
         await editPackAction(id, updateData)
         setEditingPack(null)
         router.refresh()
@@ -186,7 +193,13 @@ export default function AdminDashboardClient({
     e.preventDefault()
     setIsSubmitting(true)
     try {
-        await createPackAction(newPack)
+        const payload = { ...newPack }
+        if (payload.specifications) {
+            (payload as any).specifications = payload.specifications.split(',').map(s => s.trim()).filter(s => s.length > 0)
+        } else {
+            (payload as any).specifications = []
+        }
+        await createPackAction(payload as any)
         setShowNewPackModal(false)
         router.refresh()
         alert('SUCCESS :: Pack registered in database.')
@@ -352,6 +365,10 @@ export default function AdminDashboardClient({
                             <input required value={newPack.cover_url} onChange={e => setNewPack({ ...newPack, cover_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Specifications (Comma Separated)</label>
+                        <input value={newPack.specifications} onChange={e => setNewPack({ ...newPack, specifications: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="MIDI, Stems, 24-bit WAV, etc." />
+                    </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
                         {isSubmitting ? 'SAVING...' : 'CREATE PACK'}
                     </button>
@@ -469,6 +486,10 @@ export default function AdminDashboardClient({
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover URL</label>
                             <input required value={editingPack.cover_url} onChange={e => setEditingPack({ ...editingPack, cover_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Specifications (Comma Separated)</label>
+                        <input value={Array.isArray(editingPack.specifications) ? editingPack.specifications.join(', ') : editingPack.specifications} onChange={e => setEditingPack({ ...editingPack, specifications: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="MIDI, Stems, 24-bit WAV, etc." />
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
                         {isSubmitting ? 'SAVING...' : 'SAVE CHANGES'}
@@ -747,13 +768,32 @@ export default function AdminDashboardClient({
                                     <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Pack ID :: {selectedPack.id}</span>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => setShowNewSoundModal(true)}
-                                className="px-10 py-4 bg-studio-neon text-black font-black uppercase text-[10px] tracking-widest hover:invert transition-all flex items-center gap-4"
-                            >
-                                <PlusCircle size={16} /> Add New Sound
-                            </button>
+                            <div className="flex flex-col md:flex-row gap-6 items-center flex-1 max-w-2xl bg-black/40 p-4 border border-white/5 rounded-sm">
+                                <div className="relative w-full group">
+                                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-studio-neon transition-colors" />
+                                    <input 
+                                        type="text"
+                                        placeholder="SEARCH_SIGNAL_ID_OR_NAME..."
+                                        value={sampleSearchQuery}
+                                        onChange={(e) => setSampleSearchQuery(e.target.value)}
+                                        className="w-full bg-black border border-white/10 px-16 py-4 font-black uppercase text-[10px] tracking-widest focus:border-studio-neon outline-none transition-all focus:shadow-[0_0_20px_rgba(166,226,46,0.05)]"
+                                    />
+                                </div>
+                                <button 
+                                    onClick={() => setShowNewSoundModal(true)}
+                                    className="w-full md:w-auto px-10 py-4 bg-studio-neon text-black font-black uppercase text-[10px] tracking-widest hover:invert transition-all flex items-center justify-center gap-4 shrink-0 shadow-lg"
+                                >
+                                    <PlusCircle size={16} /> Add New Sound
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Search Feedback */}
+                        {sampleSearchQuery && (
+                            <div className="mb-6 flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-studio-neon animate-pulse">
+                                <Activity size={12} /> Filtering: {sampleSearchQuery}
+                            </div>
+                        )}
 
                         <div className="bg-black/60 border border-white/10 overflow-hidden shadow-2xl relative z-10">
                             <table className="w-full text-left border-collapse">
@@ -767,7 +807,9 @@ export default function AdminDashboardClient({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {packSamples.map((sound) => (
+                                    {packSamples
+                                        .filter(s => s.name.toLowerCase().includes(sampleSearchQuery.toLowerCase()) || s.id.toLowerCase().includes(sampleSearchQuery.toLowerCase()))
+                                        .map((sound) => (
                                         <tr key={sound.id} className="hover:bg-white/[0.02] transition-colors group">
                                             <td className="p-8">
                                                 <div className="text-sm font-black italic tracking-tight">{sound.name}</div>
