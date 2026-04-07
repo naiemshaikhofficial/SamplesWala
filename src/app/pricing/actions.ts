@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Razorpay from 'razorpay'
@@ -187,13 +188,16 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         throw new Error('Signal Forge Detected: Payment verification failed.')
     }
 
+    // ✅ Signature verified — use service-role client to bypass RLS for fulfillment writes
+    const adminSupabase = getAdminClient()
+
     // 📡 2. COMMERCE_FULFILLMENT_ORCHESTRATION
     if (itemType === 'subscription') {
-        const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
+        const { data: plan } = await adminSupabase.from('subscription_plans').select('*').eq('id', itemId).single()
         if (!plan) throw new Error('Artifact Plan not found')
 
         // 1. Finalize Local Membership
-        const { error: accountError } = await supabase
+        const { error: accountError } = await adminSupabase
             .from('user_accounts')
             .upsert({
                 user_id: user.id,
@@ -206,10 +210,10 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         if (accountError) throw accountError
 
         // 2. Inject Initial Credits (Tokens)
-        await supabase.rpc('add_credits', { u_id: user.id, amount: plan.credits_per_month })
+        await adminSupabase.rpc('add_credits', { u_id: user.id, amount: plan.credits_per_month })
 
         // 3. Log Secure Audit Trail
-        await supabase.from('credit_orders').insert({
+        await adminSupabase.from('credit_orders').insert({
             user_id: user.id,
             order_id: subscriptionId || orderId,
             payment_id: paymentId,
@@ -220,18 +224,18 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         })
 
     } else if (itemType === 'pack') {
-        const { data: pack } = await supabase.from('credit_packs').select('*').eq('id', itemId).single()
+        const { data: pack } = await adminSupabase.from('credit_packs').select('*').eq('id', itemId).single()
         if (!pack) throw new Error('Pack not found')
 
         // 1. Inject Pack Credits
-        const { error: creditError } = await supabase.rpc('add_credits', {
+        const { error: creditError } = await adminSupabase.rpc('add_credits', {
             u_id: user.id,
             amount: pack.credits
         })
         if (creditError) throw creditError
 
         // 2. Log to Ledger
-        await supabase.from('credit_orders').insert({
+        await adminSupabase.from('credit_orders').insert({
             user_id: user.id,
             order_id: orderId,
             payment_id: paymentRes.razorpay_payment_id,
@@ -243,22 +247,22 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
 
     } else if (itemType === 'sample_pack') {
         // 🔥 MINIMALIST FULL PACK UNLOCK
-        const { data: pack } = await supabase.from('sample_packs').select('*').eq('id', itemId).single()
+        const { data: pack } = await adminSupabase.from('sample_packs').select('*').eq('id', itemId).single()
         if (!pack) throw new Error('Pack not found')
 
         // Insert ONE record into user_vault (type 'pack')
-        const { error: vaultError } = await supabase.from('user_vault').upsert({
+        const { error: vaultError } = await adminSupabase.from('user_vault').upsert({
             user_id: user.id,
             item_id: pack.id,
             item_type: 'pack',
             item_name: `Full Pack: ${pack.name}`,
-            amount: 0 // Cash purchase doesn't consume credits, it creates the entry directly
+            amount: 0
         }, { onConflict: 'user_id,item_id' })
 
         if (vaultError) throw vaultError
 
         // Log transaction
-        await supabase.from('credit_orders').insert({
+        await adminSupabase.from('credit_orders').insert({
             user_id: user.id,
             order_id: orderId,
             payment_id: paymentRes.razorpay_payment_id,
