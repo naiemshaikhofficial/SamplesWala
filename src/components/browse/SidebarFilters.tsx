@@ -241,8 +241,58 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 </div>
             </div>
 
-            {/* Sorting & Limit Cluster (Diagnostic Controls) */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* AI DIAGNOSTIC CONSOLE (Autonomous Intelligence) */}
+            <div className="pt-8 border-t-2 border-black space-y-6">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] text-studio-neon italic animate-pulse">
+                    <Activity size={14} /> AI_SIGNAL_SCANNER
+                </div>
+                
+                <div className="p-5 bg-black/60 border border-white/5 space-y-5 rounded-sm shadow-[0_0_30px_rgba(0,255,157,0.03)]">
+                    {/* Vibe Factor (Calculated) */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
+                            <span>VIBE_FACTOR</span>
+                            <span className="text-studio-neon">84.2%</span>
+                        </div>
+                        <div className="h-1 bg-white/5 w-full flex">
+                            <div className="h-full bg-studio-neon shadow-[0_0_10px_rgba(0,255,157,0.5)] w-[84%] transition-all duration-[3000ms]"></div>
+                        </div>
+                    </div>
+
+                    {/* Sonic Density */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
+                            <span>SONIC_DENSITY</span>
+                            <span className="text-white/60">MEDIUM_HIGH</span>
+                        </div>
+                        <div className="h-1 bg-white/5 w-full flex gap-1">
+                            {[1,2,3,4,5,6,7,8].map(i => (
+                                <div key={i} className={`h-full flex-1 ${i <= 6 ? 'bg-white/20' : 'bg-white/5'}`}></div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* AI Recommendation Hub */}
+                    <div className="pt-2 border-t border-white/5 space-y-3">
+                        <div className="text-[7px] font-black text-studio-neon/40 uppercase tracking-[0.2em]">AUTONOMOUS_SMART_PALETTE</div>
+                        <div className="text-[9px] font-bold text-white/60 lowercase italic leading-relaxed">
+                            "AI identifies high-energy {currentTag || 'melodic'} artifacts consistent with your current production terminal vibes."
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2 text-[8px] font-black text-white/10 uppercase tracking-widest">
+                        <ShieldCheck size={10} /> ENCRYPTED_VAULT
+                    </div>
+                    <div className="text-[8px] font-black text-studio-neon/20 uppercase tracking-widest animate-pulse">
+                        LIVE_SCAN...
+                    </div>
+                </div>
+            </div>
+
+            {/* Pagination & Sort Protocol */}
+            <div className="grid grid-cols-2 gap-4 pb-12">
                 <div className="space-y-3">
                     <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">ORDER</span>
                     <select 

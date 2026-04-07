@@ -67,20 +67,20 @@ export function TopSounds({
         </div>
 
         <div className="relative z-10 container mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-24 gap-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/40 px-4 py-1 self-start border-l-4 border-studio-neon">
                         Top_Artifacts :: High_Quality
                     </div>
                     <div className="flex items-center gap-6">
-                        <div className="h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
-                        <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none italic">
+                        <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
+                        <h2 className="text-4xl md:text-8xl font-black uppercase tracking-tighter leading-none italic">
                             TOP<span className="text-studio-neon">_SAMPLES</span>
                         </h2>
                     </div>
                 </div>
-                <Link href="/browse?mode=samples" className="group flex items-center gap-4 px-10 py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden">
-                    <span className="text-[11px] font-black uppercase tracking-widest relative z-10">BROWSE_ALL_SOUNDS</span>
+                <Link href="/browse?mode=samples" className="group flex items-center gap-4 px-8 py-4 md:px-10 md:py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden self-start">
+                    <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest relative z-10">BROWSE_ALL_SOUNDS</span>
                     <Activity className="w-4 h-4 relative z-10 group-hover:scale-y-150 transition-transform" />
                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
@@ -147,18 +147,18 @@ export function TopSounds({
                                     <div className="absolute inset-x-0 bottom-0 h-1 bg-studio-neon scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
                                 </div>
                                 
-                                <div className="flex items-center justify-between border-t border-white/5 pt-4">
-                                    <div className="flex flex-col">
+                                <div className="flex items-center justify-between border-t border-white/5 pt-4 gap-2">
+                                    <div className="flex flex-col min-w-0 flex-1">
                                         {(sound.key || sound.bpm) ? (
-                                            <span className="text-[10px] font-black text-studio-neon uppercase tracking-widest mb-1">
+                                            <span className="text-[8px] md:text-[10px] font-black text-studio-neon uppercase tracking-widest mb-0.5 truncate">
                                                 {sound.key} {sound.bpm && `${sound.bpm} BPM`}
                                             </span>
                                         ) : null}
-                                        <span className="text-lg font-black text-white tracking-tighter truncate max-w-[150px] leading-tight">
+                                        <span className="text-sm md:text-lg font-black text-white tracking-tighter truncate leading-tight">
                                             {sound.name}
                                         </span>
                                     </div>
-                                    <div className="scale-75 origin-right">
+                                    <div className="scale-90 md:scale-75 origin-right shrink-0">
                                         <DownloadButton 
                                             sampleId={sound.id} 
                                             isUnlockedInitial={isUnlocked} 

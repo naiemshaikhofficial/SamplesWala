@@ -46,7 +46,7 @@ export function AdaptiveHero() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                className="space-y-6 md:space-y-8 mb-12 md:mb-16 w-full"
+                className="space-y-4 md:space-y-8 mb-8 md:mb-16 w-full"
             >
                 <div className="flex items-center justify-center gap-4 md:gap-6 text-studio-neon">
                     <div className="hidden lg:block w-32 border-b border-studio-neon/20 opacity-40">
@@ -62,9 +62,9 @@ export function AdaptiveHero() {
                     </div>
                 </div>
 
-                <h1 className="text-3xl sm:text-5xl md:text-[7rem] font-black uppercase tracking-tighter leading-[0.9] italic">
+                <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-[7rem] font-black uppercase tracking-tighter leading-[0.9] italic">
                     <TextScramble text="THE WORLD'S BEST" duration={1200} /><br />
-                    <span className="text-studio-neon bg-black px-4 sm:px-8 py-2 md:py-3 border-r-[12px] md:border-r-[24px] border-studio-yellow transform -skew-x-12 inline-flex items-center gap-6 mt-3 md:mt-4 group/h1">
+                    <span className="text-studio-neon bg-black px-4 sm:px-8 py-2 md:py-3 border-r-[12px] md:border-r-[24px] border-studio-yellow transform -skew-x-12 inline-flex items-center gap-4 md:gap-6 mt-3 md:mt-4 group/h1">
                         <TextScramble text="SOUNDS" delay={400} />
                         <div className="hidden md:flex h-8 gap-[1px] items-end opacity-40 group-hover/h1:opacity-100 transition-opacity">
                             <DAWVisualizer color="#a6e22e" bars={10} height={32} />
@@ -72,7 +72,7 @@ export function AdaptiveHero() {
                     </span>
                 </h1>
 
-                <p className="max-w-2xl mx-auto text-xs md:text-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] leading-relaxed px-4 opacity-40 hover:opacity-100 transition-opacity duration-700 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/20">
+                <p className="max-w-2xl mx-auto text-[10px] sm:text-sm md:text-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] leading-relaxed px-4 opacity-40 hover:opacity-100 transition-opacity duration-700 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/20">
                     <TextScramble text="Premium high-definition samples for your track." delay={800} duration={1500} /> <br className="hidden md:block" />
                     <TextScramble text="Created by world-class producers. Royalty Free." delay={1000} duration={1500} />
                 </p>

@@ -47,7 +47,7 @@ export default function RootLayout({
               <Suspense fallback={null}>
                   <Header />
               </Suspense>
-              <main className="flex-grow relative pt-[260px] md:pt-[200px] lg:pt-[180px] xl:pt-[120px]">
+              <main className="flex-grow relative pt-[100px] md:pt-[140px] lg:pt-[160px] xl:pt-[120px] pb-32 lg:pb-0">
                 {children}
               </main>
               <Footer />

@@ -24,24 +24,24 @@ export function NewArrivals({ packs }: { packs: any[] }) {
             style={{ y: textY }}
             className="absolute top-0 left-1/2 -translate-x-1/2 text-[15rem] font-black text-white/5 whitespace-nowrap pointer-events-none select-none italic"
         >
-            FRESH_ARTIFACTS
+            FRESH_PACKS
         </motion.div>
 
         <div className="relative z-10 container mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-16 gap-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/40 px-4 py-1 self-start border-l-4 border-studio-neon">
-                        Marketplace_Unit :: New_Arrivals
+                        Marketplace_Unit :: Fresh_Packs
                     </div>
                     <div className="flex items-center gap-6">
-                        <div className="h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
-                        <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none italic">
-                            FRESH<span className="text-studio-neon">_SAMPLES</span>
+                        <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
+                        <h2 className="text-4xl md:text-8xl font-black uppercase tracking-tighter leading-none italic">
+                            FRESH<span className="text-studio-neon">_PACKS</span>
                         </h2>
                     </div>
                 </div>
-                <Link href="/browse" className="group flex items-center gap-4 px-10 py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden">
-                    <span className="text-[11px] font-black uppercase tracking-widest relative z-10">BROWSE_CATALOG</span>
+                <Link href="/browse" className="group flex items-center gap-4 px-8 py-4 md:px-10 md:py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden self-start">
+                    <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest relative z-10">BROWSE_CATALOG</span>
                     <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-2 transition-transform" />
                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
