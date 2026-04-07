@@ -5,6 +5,7 @@ import {
   BarChart3, Radio
 } from "lucide-react";
 import { NewArrivals } from "@/components/home/NewArrivals";
+import { FreshSounds } from "@/components/home/FreshSounds";
 import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
@@ -33,6 +34,19 @@ export default async function Home() {
 
   // 💿 AUTOMATIC POPULARITY ENGINE
   const topSamples = await getTopPopularSounds(12)
+
+  // 📡 FRESH SOUNDS SIGNAL: Fetch newest individual samples with bypass
+  let { data: freshSounds, error: freshError } = await supabase
+    .from('samples')
+    .select('*, sample_packs(name, slug, cover_url)')
+    .order('created_at', { ascending: false })
+    .limit(12)
+
+  if (freshError || !freshSounds || freshSounds.length === 0) {
+      if (freshError) console.warn('[SIGNAL_REPAIR] Fresh sounds fetch failed join, using bypass:', freshError.message);
+      const { data: rawFresh } = await supabase.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
+      freshSounds = rawFresh as any;
+  }
 
   const { data: { user } } = await supabase.auth.getUser()
   let unlockedSampleIds: string[] = []
@@ -72,6 +86,12 @@ export default async function Home() {
             </div>
             <NewArrivals packs={latestPacks || []} />
         </div>
+
+        {/* 📡 LIVE INTAKE: FRESH SOUNDS */}
+        <FreshSounds 
+            samples={freshSounds || []} 
+            unlockedSampleIds={unlockedSampleIds}
+        />
 
         {/* 🎚️ MASTER FX RACK */}
         <div className="grid grid-cols-1 md:grid-cols-3 border-b-8 border-black">
