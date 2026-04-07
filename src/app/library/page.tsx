@@ -92,7 +92,7 @@ export default async function LibraryPage() {
                         >
                             <div className="aspect-square relative overflow-hidden bg-black/40 border border-white/5 grayscale group-hover:grayscale-0 transition-all duration-700">
                                 {p.cover_url ? (
-                                    <Image src={p.cover_url} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
+                                    <Image src={p.cover_url} alt={p.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-1000" />
                                 ) : <div className="h-full w-full flex items-center justify-center font-black italic text-2xl text-white/5">WALA</div>}
                                 <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors" />
                             </div>

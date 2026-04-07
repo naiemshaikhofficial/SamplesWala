@@ -69,9 +69,11 @@ export function Header() {
         
         {/* 🎹 MOBILE LOGO & MENU TOGGLE */}
         <div className="flex items-center gap-3">
-            <Suspense fallback={<div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />}>
-              <MobileMenu user={user} />
-            </Suspense>
+            <div className="lg:hidden">
+              <Suspense fallback={<div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />}>
+                <MobileMenu user={user} />
+              </Suspense>
+            </div>
             <Link href="/" className="group relative transition-all hover:scale-105 shrink-0">
                 <Image 
                   src="/Logo.png" 

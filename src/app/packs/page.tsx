@@ -28,7 +28,7 @@ export default async function SamplePacksPage({
               <Link key={pack.id} href={`/packs/${pack.slug}`} className="group flex flex-col p-4 rounded-2xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20 transition-all active:scale-[0.98]">
                 <div className="aspect-square relative overflow-hidden rounded-xl bg-white/5 mb-4 group-hover:shadow-2xl transition-all">
                   {pack.cover_url ? (
-                    <Image src={pack.cover_url} alt={pack.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={pack.cover_url} alt={pack.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                      <div className="absolute inset-0 flex items-center justify-center text-white/5 font-black italic text-3xl uppercase tracking-tighter mix-blend-overlay">
                         WALA

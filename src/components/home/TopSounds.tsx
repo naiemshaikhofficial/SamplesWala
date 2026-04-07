@@ -121,6 +121,7 @@ export function TopSounds({
                                             src={sound.sample_packs?.cover_url} 
                                             alt={sound.name} 
                                             fill 
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                             className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 opacity-60 group-hover:opacity-100" 
                                         />
                                     ) : (

@@ -80,7 +80,7 @@ export function GlobalPlayer() {
                 <div className="col-span-4 md:col-span-3 flex items-center gap-2 md:gap-4 min-w-0">
                     <div className="h-10 w-10 bg-black border border-white/10 relative group overflow-hidden shrink-0 hidden sm:block">
                         {activeMetadata?.coverUrl ? (
-                            <Image src={activeMetadata.coverUrl} alt={activeMetadata.name} fill className="object-cover opacity-60" />
+                            <Image src={activeMetadata.coverUrl} alt={activeMetadata.name} fill sizes="40px" className="object-cover opacity-60" />
                         ) : (
                             <Music className="h-4 w-4 text-white/20 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
                         )}
