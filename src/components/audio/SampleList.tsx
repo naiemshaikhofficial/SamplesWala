@@ -10,7 +10,7 @@ import { useAudio } from './AudioProvider'
 type Sample = {
     id: string
     name: string
-    audio_url: string
+    audio_url?: string
     bpm?: number | null
     key?: string | null
     credit_cost?: number

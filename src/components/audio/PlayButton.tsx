@@ -15,12 +15,13 @@ export function PlayButton({
   lightMode = false
 }: { 
   id: string, 
-  url: string, 
+  url?: string, 
   name?: string, 
   packName?: string, 
   coverUrl?: string | null,
   bpm?: number | null,
   audioKey?: string | null,
+  audio_url?: string | null,
   isUnlocked?: boolean,
   creditCost?: number | null,
   lightMode?: boolean

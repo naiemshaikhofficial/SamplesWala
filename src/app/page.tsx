@@ -16,7 +16,7 @@ export default async function Home() {
   // 📀 Fetch Latest Packs with Relational Fallback
   let { data: latestPacks } = await supabase
     .from('sample_packs')
-    .select('*, categories(name)')
+    .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url, categories(name)')
     .order('created_at', { ascending: false })
     .limit(4)
 
@@ -24,7 +24,7 @@ export default async function Home() {
   if (!latestPacks || latestPacks.length === 0) {
       const { data: secondScan } = await supabase
         .from('sample_packs')
-        .select('*')
+        .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
         .order('created_at', { ascending: false })
         .limit(4)
       latestPacks = secondScan;

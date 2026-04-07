@@ -37,7 +37,11 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
 
   if (!pack) notFound()
   
-  const { data: samples } = await supabase.from('samples').select('*').eq('pack_id', pack.id).order('created_at', { ascending: true })
+  const { data: samples } = await supabase
+    .from('samples')
+    .select('id, name, bpm, key, credit_cost, pack_id, created_at, type, ai_genre')
+    .eq('pack_id', pack.id)
+    .order('created_at', { ascending: true })
   
   // Handled relation locally if joined query failed
   const categoryId = pack.category_id;

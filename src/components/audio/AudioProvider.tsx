@@ -5,7 +5,7 @@ import { getCachedAudio, cacheAudio } from '@/lib/audio/cache'
 
 type AudioMetadata = { 
     id: string, 
-    url: string,
+    url?: string,
     name: string, 
     packName: string, 
     coverUrl?: string | null, 
@@ -26,7 +26,7 @@ type AudioContextType = {
   isLooping: boolean
   volume: number
   playlist: AudioMetadata[]
-  play: (id: string, url: string, metadata?: AudioMetadata) => void
+  play: (id: string, url?: string, metadata?: AudioMetadata) => void
   pause: () => void
   seek: (time: number) => void
   setVolume: (val: number) => void
@@ -207,11 +207,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return url;
   }
 
-  const play = async (id: string, url: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) => {
+  const play = async (id: string, url?: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) => {
     if (!audioRef.current) return
     
-    // 🛰️ TRANSFORM_SIGNAL :: Resolve direct stream for admin/external nodes
-    const finalStreamUrl = resolveDriveSignal(url);
+    // 🛰️ TRANSFORM_SIGNAL :: Resolve direct stream for admin/external nodes (if URL provided)
+    const finalStreamUrl = url ? resolveDriveSignal(url) : '';
     
     if (activeId === id) {
       if (isPlaying) audioRef.current.pause();

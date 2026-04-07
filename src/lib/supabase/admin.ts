@@ -51,7 +51,7 @@ export async function getTopPopularSounds(limit = 10) {
     // Fallback: If no sounds unlocked yet, return newest
     const { data: newest } = await supabase
       .from('samples')
-      .select('*, sample_packs(name, cover_url, slug)')
+      .select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, created_at, sample_packs(name, cover_url, slug)')
       .order('created_at', { ascending: false })
       .limit(limit)
     return newest || []
@@ -59,7 +59,7 @@ export async function getTopPopularSounds(limit = 10) {
 
   const { data: samples, error: sampleError } = await supabase
     .from('samples')
-    .select('*, sample_packs(name, cover_url, slug)')
+    .select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, created_at, sample_packs(name, cover_url, slug)')
     .in('id', topIds)
 
   if (sampleError) return []

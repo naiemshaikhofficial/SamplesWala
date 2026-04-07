@@ -15,7 +15,7 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   const supabase = await createClient()
   const cleanQuery = filters.query?.trim()
   
-  let queryBuilder = supabase.from('sample_packs').select('*, categories(name)')
+  let queryBuilder = supabase.from('sample_packs').select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url, categories(name)')
   
   if (cleanQuery) {
     queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`)
@@ -49,7 +49,7 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   
   if (error && error.code === 'PGRST200') {
     console.warn('[REPAIRING_RELATIONAL_SIGNATURE] Categories relationship missing. Falling back...');
-    const fallbackQuery = supabase.from('sample_packs').select('*')
+    const fallbackQuery = supabase.from('sample_packs').select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
     const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false })
     if (fallbackError) {
         console.error('[BROWSE_ACTION_CRITICAL_FAILURE]', fallbackError);
@@ -85,7 +85,7 @@ export async function getFilteredSamples(filters: {
   const cleanQuery = filters.query?.trim()
   const limitVal = parseInt(filters.limit || '25')
   
-  let queryBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, cover_url)')
+  let queryBuilder = supabase.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, time_signature, created_at, sample_packs(name, category_id, cover_url)')
   
   // 🔭 PRECISION SEARCH SIGNAL (Search name OR tags)
   if (cleanQuery) {
@@ -192,7 +192,7 @@ export async function getFilteredSamples(filters: {
   // 🛰️ SIGNAL RECOVERY: Fallback if custom columns (Time Signature) are missing
   if (error && error.code === 'PGRST103') {
     console.warn('[RECOVERY_MODE] Rerouting signal without Time_Signature metadata.');
-    const fallbackBuilder = supabase.from('samples').select('*, sample_packs(name, category_id, cover_url)')
+    const fallbackBuilder = supabase.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, created_at, sample_packs(name, category_id, cover_url)')
     if (cleanQuery) fallbackBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`);
     const { data: fbData, error: fbError } = await fallbackBuilder.limit(limitVal);
     data = fbData;
@@ -217,7 +217,7 @@ export async function getRelatedPacks(currentPackId: string, categoryId: string)
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('sample_packs')
-    .select('*')
+    .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
     .eq('category_id', categoryId)
     .neq('id', currentPackId)
     .limit(4)
