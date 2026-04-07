@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { ShieldCheck, Loader2, Save, MapPin } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { updateBillingAction } from '@/app/profile/actions'
 import { useNotify } from '@/components/ui/NotificationProvider'
 
 export function BillingSettings({ initialData, userId }: { initialData: any, userId: string }) {
@@ -17,26 +17,12 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
         gstin: initialData?.gstin || ''
     })
     const { showToast } = useNotify()
-    const supabase = createClient()
 
     const handleSave = async () => {
         setLoading(true)
         try {
-            const { error } = await supabase
-                .from('user_accounts')
-                .update({
-                    full_name: billing.full_name,
-                    phone_number: billing.phone,
-                    address_line1: billing.address,
-                    city: billing.city,
-                    state: billing.state,
-                    postal_code: billing.zip,
-                    gstin: billing.gstin
-                })
-                .eq('user_id', userId)
-
-            if (error) throw error
-
+            await updateBillingAction(billing)
+            
             // 🧬 EDGE SYNC: Update local storage for checkout speed
             localStorage.setItem(`billing_${userId}`, JSON.stringify(billing))
             

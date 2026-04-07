@@ -1,11 +1,18 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { 
+  createPackAction, editPackAction, deletePackAction,
+  addSoundAction, editSoundAction, deleteSoundAction,
+  updateCreditsAction, assignSubscriptionAction,
+  getSamplesToProcessAction, processAiSignalAction, getPackSamplesAction
+} from '@/app/admin/actions'
 import Link from 'next/link'
 import { 
   LayoutDashboard, Package, Music, Users, ArrowUpRight, TrendingUp, 
   PlusCircle, ShieldCheck, Zap, Activity, HardDrive, Cpu, 
-  Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2, Key
+  Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2, Key,
+  ChevronLeft
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -18,7 +25,7 @@ export default function AdminDashboardClient({
 }) {
   const router = useRouter()
   const [isScanning, setIsScanning] = useState(false)
-  const [activeTab, setActiveTab] = useState('DASHBOARD')
+  const [activeTab, setActiveTab] = useState<string>('DASHBOARD')
   const [scanProgress, setScanProgress] = useState({ current: 0, total: 0, status: 'IDLE' })
 
   // 🧪 REALTIME_SIMULATOR: Just for visual flair
@@ -42,8 +49,7 @@ export default function AdminDashboardClient({
     setScanProgress({ current: 0, total: countToScan, status: 'INITIALIZING' })
 
     try {
-        const resList = await fetch(`/api/ai/get-unprocessed${isForce ? '?force=true' : ''}`)
-        const { data: samplesToProcess } = await resList.json()
+        const samplesToProcess = await getSamplesToProcessAction(isForce)
 
         if (!samplesToProcess || samplesToProcess.length === 0) {
             setScanProgress({ current: 0, total: 0, status: 'COMPLETED' })
@@ -56,17 +62,7 @@ export default function AdminDashboardClient({
         let completed = 0;
         for (const sample of samplesToProcess) {
             try {
-                const res = await fetch('/api/ai/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sampleId: sample.id })
-                })
-                
-                if (!res.ok) {
-                    const errData = await res.json()
-                    throw new Error(errData.error || 'CHUNK_FAILURE')
-                }
-
+                await processAiSignalAction(sample.id)
                 completed++
                 setScanProgress(prev => ({ ...prev, current: completed }))
             } catch (err) {
@@ -84,22 +80,113 @@ export default function AdminDashboardClient({
     }
   }
 
+  const [selectedPack, setSelectedPack] = useState<any>(null)
+  const [packSamples, setPackSamples] = useState<any[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
+  const [creditChange, setCreditChange] = useState(0)
   const [showNewPackModal, setShowNewPackModal] = useState(false)
   const [showNewSoundModal, setShowNewSoundModal] = useState(false)
-  const [newPack, setNewPack] = useState({ name: '', description: '', price: 0, cover_image: '' })
-  const [newSound, setNewSound] = useState({ name: '', file_url: '', pack_id: '', ai_genre: 'Indian Classical / Bollywood', bpm: 120, key: 'C MINOR' })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editingPack, setEditingPack] = useState<any>(null)
+  const [editingSound, setEditingSound] = useState<any>(null)
+
+  const [newPack, setNewPack] = useState({ name: '', description: '', price: 0, cover_url: '' })
+  const [newSound, setNewSound] = useState({ 
+    name: '', 
+    audio_url: '', 
+    download_url: '', 
+    pack_id: '', 
+    ai_genre: 'Indian Classical / Bollywood', 
+    bpm: 120, 
+    key: '', 
+    key_type: 'Minor',
+    credit_cost: 1,
+    type: 'loop' 
+  })
+
+  // 📡 FETCH PACK SAMPLES
+  useEffect(() => {
+    if (selectedPack) {
+        fetchPackSamples(selectedPack.id)
+    }
+  }, [selectedPack])
+
+  const fetchPackSamples = async (packId: string) => {
+    try {
+        const data = await getPackSamplesAction(packId)
+        setPackSamples(data || [])
+    } catch (err: any) {
+        console.error('FETCH_ERROR ::', err.message)
+    }
+  }
+
+  const handleDeletePack = async (packId: string) => {
+    if (!confirm('DELETE_CONFIRM :: Remove pack and ALL its sounds permanently?')) return
+    setIsSubmitting(true)
+    try {
+        await deletePackAction(packId)
+        router.refresh()
+        alert('SUCCESS :: Pack removed from grid.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteSound = async (soundId: string) => {
+    if (!confirm('DELETE_CONFIRM :: Erase sound artifact?')) return
+    setIsSubmitting(true)
+    try {
+        await deleteSoundAction(soundId)
+        if (selectedPack) fetchPackSamples(selectedPack.id)
+        router.refresh()
+        alert('SUCCESS :: Sound signal terminated.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleEditPack = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+        const { id, created_at, ...updateData } = editingPack // Sanitization
+        await editPackAction(id, updateData)
+        setEditingPack(null)
+        router.refresh()
+        alert('SUCCESS :: Catalog metadata calibrated.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleEditSound = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+        const { id, created_at, ...updateData } = editingSound // Sanitization
+        await editSoundAction(id, updateData)
+        setEditingSound(null)
+        if (selectedPack) fetchPackSamples(selectedPack.id)
+        router.refresh()
+        alert('SUCCESS :: Sound artifact calibrated.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
 
   const handleCreatePack = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-        const res = await fetch('/api/admin/create-pack', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newPack)
-        })
-        if (!res.ok) throw new Error('FAILED_TO_CREATE_PACK')
+        await createPackAction(newPack)
         setShowNewPackModal(false)
         router.refresh()
         alert('SUCCESS :: Pack registered in database.')
@@ -113,16 +200,48 @@ export default function AdminDashboardClient({
   const handleAddSound = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    const finalKey = newSound.key.trim() ? `${newSound.key.trim()} ${newSound.key_type}` : null
     try {
-        const res = await fetch('/api/admin/add-sound', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newSound)
-        })
-        if (!res.ok) throw new Error('FAILED_TO_ADD_SOUND')
+        const payload = { 
+            ...newSound, 
+            key: finalKey, 
+            pack_id: selectedPack?.id || newSound.pack_id 
+        }
+        await addSoundAction(payload)
         setShowNewSoundModal(false)
+        if (selectedPack) fetchPackSamples(selectedPack.id)
         router.refresh()
         alert('SUCCESS :: Sound artifact synced to pack.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleUpdateCredits = async (userId: string) => {
+    if (creditChange === 0) return
+    setIsSubmitting(true)
+    try {
+        await updateCreditsAction(userId, creditChange)
+        router.refresh()
+        setEditingUser(null)
+        setCreditChange(0)
+        alert('SUCCESS :: User resonance calibrated.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleAssignSubscription = async (userId: string, planId: string) => {
+    setIsSubmitting(true)
+    try {
+        await assignSubscriptionAction(userId, planId)
+        router.refresh()
+        setEditingUser(null)
+        alert(`SUCCESS :: USER_NODE_ACTIVE :: [${planId}] calibrated.`)
     } catch (err: any) {
         alert(`NODE_ERROR :: ${err.message}`)
     } finally {
@@ -150,6 +269,54 @@ export default function AdminDashboardClient({
   return (
     <div className="min-h-screen bg-[#050505] text-white flex selection:bg-studio-neon selection:text-black">
       
+      {/* 📟 USER COMMAND CONSOLE (CREDIT/SUB) */}
+      {editingUser && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+            <div className="bg-studio-grey w-full max-w-lg border-x-8 border-studio-yellow p-12 relative shadow-[0_0_100px_rgba(255,204,0,0.1)]">
+                <button onClick={() => setEditingUser(null)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
+                <div className="text-[10px] font-black text-studio-yellow uppercase tracking-widest mb-4">Command :: User_{editingUser.id.slice(0, 8)}</div>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-12 truncate">{editingUser.full_name || 'Anonymous User'}</h2>
+                
+                <div className="space-y-12">
+                    <div className="space-y-6">
+                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Credit Resonator</span>
+                        <div className="flex gap-4">
+                            <input 
+                                type="number" 
+                                value={creditChange} 
+                                onChange={e => setCreditChange(Number(e.target.value))}
+                                className="flex-1 bg-black border border-white/10 p-5 font-black text-studio-neon text-xl focus:border-studio-neon outline-none transition-all"
+                                placeholder="0"
+                            />
+                            <button 
+                                onClick={() => handleUpdateCredits(editingUser.id)}
+                                disabled={isSubmitting}
+                                className="px-8 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-widest hover:invert transition-all disabled:opacity-50"
+                            >Sync</button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-6">
+                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Subscription Node Override</span>
+                        <div className="grid grid-cols-1 gap-2">
+                            {['essential', 'pro', 'elite'].map(plan => (
+                                <button 
+                                    key={plan}
+                                    onClick={() => handleAssignSubscription(editingUser.id, plan)}
+                                    disabled={isSubmitting}
+                                    className="w-full py-4 border border-white/10 hover:border-studio-yellow hover:bg-studio-yellow/10 text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-studio-yellow transition-all flex items-center justify-between px-8 group"
+                                >
+                                    <span>{plan}_plan</span>
+                                    <div className="h-2 w-2 bg-studio-yellow opacity-0 group-hover:opacity-100 shadow-[0_0_10px_#ffcc00] transition-all" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* 📟 NEW PACK MODAL */}
       {showNewPackModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
@@ -171,8 +338,8 @@ export default function AdminDashboardClient({
                             <input required type="number" value={newPack.price} onChange={e => setNewPack({ ...newPack, price: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover Image Link</label>
-                            <input required value={newPack.cover_image} onChange={e => setNewPack({ ...newPack, cover_image: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover URL</label>
+                            <input required value={newPack.cover_url} onChange={e => setNewPack({ ...newPack, cover_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
@@ -186,7 +353,7 @@ export default function AdminDashboardClient({
       {/* 📟 ADD SOUND MODAL */}
       {showNewSoundModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-            <div className="bg-studio-grey w-full max-w-2xl border-8 border-black p-10 relative">
+            <div className="bg-studio-grey w-full max-w-3xl border-8 border-black p-10 relative">
                 <button onClick={() => setShowNewSoundModal(false)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
                 <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Ingest_New_Sound</h2>
                 <form onSubmit={handleAddSound} className="space-y-6">
@@ -203,38 +370,158 @@ export default function AdminDashboardClient({
                             <input required value={newSound.name} onChange={e => setNewSound({ ...newSound, name: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">File URL (Drive Link)</label>
-                        <input required value={newSound.file_url} onChange={e => setNewSound({ ...newSound, file_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Genre</label>
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">HQ File URL (Drive)</label>
+                            <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">MP3 Preview URL</label>
+                            <input required value={newSound.audio_url} onChange={e => setNewSound({ ...newSound, audio_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-6 gap-6">
+                        <div className="col-span-2 space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Regional Genre</label>
                             <select required value={newSound.ai_genre} onChange={e => setNewSound({ ...newSound, ai_genre: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
                                 <option>Indian Classical / Bollywood</option>
                                 <option>Tapori / Street Style</option>
                                 <option>South Indian / Folk</option>
-                                <option>Percussive</option>
-                                <option>Melodic Artifact</option>
+                                <option>Synth / Electronics</option>
+                                <option>Percussive Instrument</option>
                             </select>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-2 col-span-1">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Type</label>
+                            <select required value={newSound.type} onChange={e => setNewSound({ ...newSound, type: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
+                                <option value="loop">Loop</option>
+                                <option value="oneshot">Oneshot</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2 col-span-1">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key (Opt)</label>
+                            <div className="flex gap-1">
+                                <input value={newSound.key} onChange={e => setNewSound({ ...newSound, key: e.target.value.toUpperCase() })} className="flex-1 bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="E.G. C#" />
+                                <select value={newSound.key_type} onChange={e => setNewSound({ ...newSound, key_type: e.target.value })} className="bg-black border border-white/10 p-2 text-[8px] font-black uppercase outline-none focus:border-studio-neon">
+                                    <option>Major</option>
+                                    <option>Minor</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="space-y-2 col-span-1">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">BPM</label>
                             <input required type="number" value={newSound.bpm} onChange={e => setNewSound({ ...newSound, bpm: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key</label>
-                            <input required value={newSound.key} onChange={e => setNewSound({ ...newSound, key: e.target.value.toUpperCase() })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="e.g. C MINOR" />
+                        <div className="space-y-2 col-span-1">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Credits</label>
+                            <input required type="number" value={newSound.credit_cost} onChange={e => setNewSound({ ...newSound, credit_cost: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
-                        {isSubmitting ? 'INGESTING...' : 'INGEST_SOUND_ARTIFACT'}
+                        {isSubmitting ? 'INGESTING...' : 'SYNC_TO_CATALOG'}
                     </button>
                 </form>
             </div>
         </div>
       )}
-      
+
+      {/* 📟 EDIT PACK MODAL */}
+      {editingPack && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+            <div className="bg-studio-grey w-full max-w-xl border-8 border-black p-10 relative">
+                <button onClick={() => setEditingPack(null)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Edit_Pack_Metadata</h2>
+                <form onSubmit={handleEditPack} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Pack Name</label>
+                        <input required value={editingPack.name} onChange={e => setEditingPack({ ...editingPack, name: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Description</label>
+                        <textarea required value={editingPack.description} onChange={e => setEditingPack({ ...editingPack, description: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all h-32" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Price (INR)</label>
+                            <input required type="number" value={editingPack.price} onChange={e => setEditingPack({ ...editingPack, price: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover URL</label>
+                            <input required value={editingPack.cover_url} onChange={e => setEditingPack({ ...editingPack, cover_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
+                        {isSubmitting ? 'SYNCING...' : 'SYNC_CATALOG_CALIBRATION'}
+                    </button>
+                    <button type="button" onClick={() => setEditingPack(null)} className="w-full py-4 border border-white/10 text-white/20 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all">Cancel</button>
+                </form>
+            </div>
+        </div>
+      )}
+
+      {/* 📟 EDIT SOUND MODAL */}
+      {editingSound && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+            <div className="bg-studio-grey w-full max-w-3xl border-8 border-black p-10 relative">
+                <button onClick={() => setEditingSound(null)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Calibrate_Sound_Artifact</h2>
+                <form onSubmit={handleEditSound} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Sample Name</label>
+                            <input required value={editingSound.name} onChange={e => setEditingSound({ ...editingSound, name: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">HQ Stems URL (Main)</label>
+                            <input required value={editingSound.download_url} onChange={e => setEditingSound({ ...editingSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">MP3 Preview URL</label>
+                            <input required value={editingSound.audio_url} onChange={e => setEditingSound({ ...editingSound, audio_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Regional Genre</label>
+                            <select required value={editingSound.ai_genre} onChange={e => setEditingSound({ ...editingSound, ai_genre: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
+                                <option>Indian Classical / Bollywood</option>
+                                <option>Tapori / Street Style</option>
+                                <option>South Indian / Folk</option>
+                                <option>Synth / Electronics</option>
+                                <option>Percussive Instrument</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Type</label>
+                            <select required value={editingSound.type} onChange={e => setEditingSound({ ...editingSound, type: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
+                                <option value="loop">Loop</option>
+                                <option value="oneshot">Oneshot</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key (Opt)</label>
+                            <input value={editingSound.key || ''} onChange={e => setEditingSound({ ...editingSound, key: e.target.value.toUpperCase() })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="E.G. C# MINOR" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">BPM</label>
+                            <input required type="number" value={editingSound.bpm} onChange={e => setEditingSound({ ...editingSound, bpm: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Credits</label>
+                            <input required type="number" value={editingSound.credit_cost} onChange={e => setEditingSound({ ...editingSound, credit_cost: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
+                        {isSubmitting ? 'CALIBRATING...' : 'SYNC_ARTIFACT_RESONANCE'}
+                    </button>
+                    <button type="button" onClick={() => setEditingSound(null)} className="w-full py-4 border border-white/10 text-white/20 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all">Cancel</button>
+                </form>
+            </div>
+        </div>
+      )}
+
       {/* 📟 STUDIO_SIDE_RACK */}
       <aside className="w-80 border-r-8 border-black bg-studio-grey p-8 flex flex-col justify-between hidden lg:flex sticky top-0 h-screen z-[100]">
         <div>
@@ -424,58 +711,165 @@ export default function AdminDashboardClient({
 
         {/* 📦 PACKS TAB */}
         {activeTab === 'PACKS' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {allPacks.map((pack) => (
-                    <div key={pack.id} className="bg-black/40 border border-white/5 p-8 flex flex-col group hover:border-studio-neon transition-all relative">
-                        <div className="flex justify-between items-start mb-10">
-                            <div className="h-16 w-16 bg-studio-grey border border-white/10 flex items-center justify-center -rotate-12 group-hover:rotate-0 transition-transform">
-                                <Package className="h-8 w-8 text-white/20 group-hover:text-studio-neon" />
+            <div className="space-y-12">
+                {selectedPack ? (
+                    <>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                            <div className="flex items-center gap-8">
+                                <button 
+                                    onClick={() => setSelectedPack(null)}
+                                    className="h-16 w-16 bg-black border border-white/10 flex items-center justify-center hover:border-studio-neon transition-all"
+                                >
+                                    <ChevronLeft className="text-studio-neon" />
+                                </button>
+                                <div>
+                                    <h2 className="text-4xl font-black italic tracking-tighter uppercase">{selectedPack.name}</h2>
+                                    <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Signal_Path :: {selectedPack.id}</span>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <span className="text-[8px] font-black uppercase text-white/20 tracking-widest block">Price</span>
-                                <span className="text-xl font-black italic tracking-tighter text-studio-neon">₹{pack.price}</span>
+                            <button 
+                                onClick={() => setShowNewSoundModal(true)}
+                                className="px-10 py-4 bg-studio-neon text-black font-black uppercase text-[10px] tracking-widest hover:invert transition-all flex items-center gap-4"
+                            >
+                                <PlusCircle size={16} /> Add_Sound_Artifact
+                            </button>
+                        </div>
+
+                        <div className="bg-black/60 border border-white/10 overflow-hidden shadow-2xl relative z-10">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-white/5 border-b border-white/10">
+                                    <tr>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Sample</th>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">BPM</th>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Key</th>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credits</th>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {packSamples.map((sound) => (
+                                        <tr key={sound.id} className="hover:bg-white/[0.02] transition-colors group">
+                                            <td className="p-8">
+                                                <div className="text-sm font-black italic tracking-tight">{sound.name}</div>
+                                                <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest mt-1">Artifact_ID: {sound.id.slice(0, 8)}</div>
+                                            </td>
+                                            <td className="p-8 text-center">
+                                                <span className="text-sm font-black italic text-studio-neon">{sound.bpm || '--'}</span>
+                                            </td>
+                                            <td className="p-8 text-center text-[10px] font-black uppercase tracking-widest italic text-white/60">
+                                                {sound.key || 'N/A'}
+                                            </td>
+                                            <td className="p-8">
+                                                <div className="flex items-center justify-center gap-3">
+                                                    <Key className="h-3 w-3 text-studio-yellow" />
+                                                    <span className="text-lg font-black italic tracking-tighter text-studio-yellow">{sound.credit_cost || 1}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-8 text-right flex items-center justify-end gap-2">
+                                                <button 
+                                                    onClick={() => setEditingSound(sound)}
+                                                    className="p-3 bg-white/5 border border-white/10 hover:bg-studio-neon hover:text-black transition-all"
+                                                >
+                                                    <Settings size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteSound(sound.id)}
+                                                    className="p-3 bg-red-950/20 border border-red-900/30 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                                >
+                                                    <Terminal size={14} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {allPacks.map((pack) => (
+                            <div 
+                                key={pack.id} 
+                                onClick={() => setSelectedPack(pack)}
+                                className="bg-black/40 border border-white/5 p-8 flex flex-col group hover:border-studio-neon transition-all relative overflow-hidden group cursor-pointer"
+                            >
+                                <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
+                                    {pack.cover_url ? (
+                                        <img src={pack.cover_url} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                                    ) : (
+                                        <div className="w-full h-full bg-studio-grey" />
+                                    )}
+                                </div>
+                                <div className="flex justify-between items-start mb-10 relative z-10 pointer-events-none">
+                                    <div className="h-16 w-16 bg-black border border-white/10 flex items-center justify-center -rotate-12 group-hover:rotate-0 transition-transform overflow-hidden">
+                                        {pack.cover_url ? (
+                                            <img src={pack.cover_url} alt={pack.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <Package className="h-8 w-8 text-white/20 group-hover:text-studio-neon" />
+                                        )}
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[8px] font-black uppercase text-white/20 tracking-widest block">Price</span>
+                                        <span className="text-xl font-black italic tracking-tighter text-studio-neon">₹{pack.price}</span>
+                                    </div>
+                                </div>
+                                <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-2 truncate relative z-10 pointer-events-none">{pack.name}</h3>
+                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-10 line-clamp-2 relative z-10 pointer-events-none">{pack.description}</p>
+                                
+                                <div className="flex gap-2 mt-auto relative z-10">
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); setEditingPack(pack); }}
+                                        className="flex-1 py-3 bg-white text-black text-[9px] font-black uppercase tracking-widest hover:bg-studio-neon transition-all"
+                                    >Edit</button>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDeletePack(pack.id); }}
+                                        className="px-5 py-3 bg-black/40 border border-white/10 text-white/20 hover:text-red-500 hover:border-red-500 transition-all"
+                                    ><Terminal size={14}/></button>
+                                </div>
                             </div>
-                        </div>
-                        <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-2 truncate">{pack.name}</h3>
-                        <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-10 line-clamp-2">{pack.description}</p>
-                        
-                        <div className="flex gap-2 mt-auto">
-                            <button className="flex-1 py-3 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">Edit</button>
-                            <button className="px-5 py-3 bg-red-950/20 border border-red-900/30 text-red-500 hover:bg-red-500 hover:text-white transition-all"><Terminal size={14}/></button>
-                        </div>
+                        ))}
                     </div>
-                ))}
+                )}
             </div>
         )}
 
         {/* 👥 CUSTOMERS TAB */}
         {activeTab === 'USERS' && (
-            <div className="bg-black/60 border border-white/10 overflow-hidden">
+            <div className="bg-black/60 border border-white/10 overflow-hidden relative z-10 shadow-2xl">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-white/5 border-b border-white/10">
                         <tr>
                             <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">ID</th>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Customer Name</th>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credit Balance</th>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Customer</th>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Plan</th>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credits</th>
                             <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                         {allCustomers.map((user) => (
                             <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
-                                <td className="p-8 font-mono text-[9px] text-white/20">{user.id.slice(0, 8)}...</td>
+                                <td className="p-8 font-mono text-[9px] text-white/10">{user.id.slice(0, 8)}...</td>
                                 <td className="p-8">
-                                    <div className="text-sm font-black italic tracking-tight">{user.full_name || 'N/A'}</div>
-                                    <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Active Member</div>
+                                    <div className="text-sm font-black italic tracking-tight">{user.full_name || 'Anonymous User'}</div>
+                                    <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest leading-none mt-1">{user.id === editingUser?.id ? 'SYNCING...' : 'Node_Active'}</div>
+                                </td>
+                                <td className="p-8 text-center">
+                                    <span className="px-5 py-1.5 bg-black border border-white/10 text-[8px] font-black uppercase tracking-widest text-white/40 rounded-full group-hover:border-studio-yellow group-hover:text-studio-yellow transition-all">
+                                        {user.user_accounts?.[0]?.subscription_tier || 'Free'}
+                                    </span>
                                 </td>
                                 <td className="p-8">
                                     <div className="flex items-center justify-center gap-3">
-                                        <Key className="h-3 w-3 text-studio-yellow" />
-                                        <span className="text-lg font-black italic tracking-tighter text-studio-yellow">{user.user_accounts?.[0]?.credits || 0}</span>
+                                        <Key className="h-3 w-3 text-studio-neon" />
+                                        <span className="text-lg font-black italic tracking-tighter text-studio-neon">{user.user_accounts?.[0]?.credits || 0}</span>
                                     </div>
                                 </td>
                                 <td className="p-8 text-right">
-                                    <button className="px-6 py-2 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:border-studio-neon hover:text-studio-neon transition-all">View Profile</button>
+                                    <button 
+                                        onClick={() => setEditingUser(user)}
+                                        className="px-6 py-2 bg-white text-black border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-studio-neon transition-all shadow-lg"
+                                    >Admin Console</button>
                                 </td>
                             </tr>
                         ))}
