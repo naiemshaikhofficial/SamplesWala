@@ -11,9 +11,15 @@ import { useEffect, useState } from 'react'
 import { useAudio } from '@/components/audio/AudioProvider'
 import { useSidebar } from './SidebarContext'
 import { Menu } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 export function Header() {
+  const pathname = usePathname()
+  const isAdmin = pathname?.startsWith('/admin')
   const { isOpen, toggle } = useSidebar()
+  
+  if (isAdmin) return null;
+  
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
   const { isPlaying, activeId, activeMetadata, currentTime, play, pause } = useAudio()

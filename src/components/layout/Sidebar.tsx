@@ -22,45 +22,14 @@ const iconMap: any = {
   'one-shots': <Layers className="w-3 h-3" />,
 }
 
-const sidebarGroups = [
-  {
-    label: "Navigation",
-    items: [
-      { id: 'all', label: 'All Sounds', icon: <Layout className="w-3 h-3" /> },
-      { id: 'packs', label: 'Sound Packs', icon: <Disc className="w-3 h-3" /> },
-      { id: 'trending', label: 'Trending', icon: <Sparkles className="w-3 h-3" /> },
-      { id: 'bundles', label: 'Bundles', icon: <Layers className="w-3 h-3" /> },
-    ]
-  },
-  {
-    label: "Sample_Library",
-    items: [
-      { id: 'melodies', label: 'Melodies', icon: <Music className="w-3 h-3" /> },
-      { id: 'drums', label: 'Drums_Perc', icon: <Disc className="w-3 h-3" /> },
-      { id: 'vocals', label: 'Vocals_FX', icon: <Mic2 className="w-3 h-3" /> },
-      { id: 'presets', label: 'Serum_Presets', icon: <Settings2 className="w-3 h-3" /> },
-    ]
-  },
-  {
-    label: "User_Archive",
-    items: [
-      { id: 'library', label: 'My_Library', icon: <Folder className="w-3 h-3" /> },
-      { id: 'purchases', label: 'Purchases', icon: <Timer className="w-3 h-3" /> },
-      { id: 'favorites', label: 'Favorites', icon: <Sparkles className="w-3 h-3" /> },
-    ]
-  },
-  {
-    label: "System_Node",
-    items: [
-      { id: 'subscription', label: 'Active_Plan', icon: <Zap className="w-3 h-3 text-studio-yellow" /> },
-      { id: 'credits', label: 'My_Credits', icon: <Key className="w-3 h-3" /> },
-      { id: 'license', label: 'License_Log', icon: <UserCheck className="w-3 h-3" /> },
-    ]
-  }
-];
-
 export function Sidebar() {
   const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin');
+  
+  if (isAdmin) {
+    return null;
+  }
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentFilter = searchParams.get('filter');

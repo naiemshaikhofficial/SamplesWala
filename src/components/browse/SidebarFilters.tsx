@@ -241,17 +241,17 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 </div>
             </div>
 
-            {/* AI DIAGNOSTIC CONSOLE (Autonomous Intelligence) */}
+            {/* AI Suggested (Simple Intelligence) */}
             <div className="pt-8 border-t-2 border-black space-y-6">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] text-studio-neon italic animate-pulse">
-                    <Activity size={14} /> AI_SIGNAL_SCANNER
+                    <Activity size={14} /> AI Suggested
                 </div>
                 
                 <div className="p-5 bg-black/60 border border-white/5 space-y-5 rounded-sm shadow-[0_0_30px_rgba(0,255,157,0.03)]">
-                    {/* Vibe Factor (Calculated) */}
+                    {/* Vibe (Calculated) */}
                     <div className="space-y-2">
                         <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
-                            <span>VIBE_FACTOR</span>
+                            <span>Vibe</span>
                             <span className="text-studio-neon">84.2%</span>
                         </div>
                         <div className="h-1 bg-white/5 w-full flex">
@@ -259,11 +259,11 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                         </div>
                     </div>
 
-                    {/* Sonic Density */}
+                    {/* Complexity */}
                     <div className="space-y-2">
                         <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-white/30">
-                            <span>SONIC_DENSITY</span>
-                            <span className="text-white/60">MEDIUM_HIGH</span>
+                            <span>Complexity</span>
+                            <span className="text-white/60">MEDIUM HIGH</span>
                         </div>
                         <div className="h-1 bg-white/5 w-full flex gap-1">
                             {[1,2,3,4,5,6,7,8].map(i => (
@@ -272,71 +272,71 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                         </div>
                     </div>
 
-                    {/* AI Recommendation Hub */}
+                    {/* Suggested sounds */}
                     <div className="pt-2 border-t border-white/5 space-y-3">
-                        <div className="text-[7px] font-black text-studio-neon/40 uppercase tracking-[0.2em]">AUTONOMOUS_SMART_PALETTE</div>
+                        <div className="text-[7px] font-black text-studio-neon/40 uppercase tracking-[0.2em]">Suggested for you</div>
                         <div className="text-[9px] font-bold text-white/60 lowercase italic leading-relaxed">
-                            "AI identifies high-energy {currentTag || 'melodic'} artifacts consistent with your current production terminal vibes."
+                            "Our AI found some great {currentTag || 'melodic'} sounds matching your style."
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-2 text-[8px] font-black text-white/10 uppercase tracking-widest">
-                        <ShieldCheck size={10} /> ENCRYPTED_VAULT
+                        <ShieldCheck size={10} /> Secure Storage
                     </div>
                     <div className="text-[8px] font-black text-studio-neon/20 uppercase tracking-widest animate-pulse">
-                        LIVE_SCAN...
+                        Scanning...
                     </div>
                 </div>
             </div>
 
-            {/* Pagination & Sort Protocol */}
+            {/* Sort & Limit */}
             <div className="grid grid-cols-2 gap-4 pb-12">
                 <div className="space-y-3">
-                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">ORDER</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">SORT BY</span>
                     <select 
                         value={searchParams.get('sort') || 'newest'}
                         onChange={(e) => updateFilters({ sort: e.target.value })}
                         className="w-full bg-black border border-white/10 p-2 text-[9px] font-black text-white/60 focus:text-studio-neon focus:outline-none transition-all appearance-none cursor-pointer"
                     >
-                        <option value="newest">NEWEST_ARTIFACTS</option>
-                        <option value="bpm">BPM_FREQUENCY</option>
-                        <option value="key">MUSICAL_KEY</option>
+                        <option value="newest">Newest First</option>
+                        <option value="bpm">BPM</option>
+                        <option value="key">Key</option>
                     </select>
                 </div>
                 <div className="space-y-3">
-                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20 italic">FRAME_LIMIT</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20 italic">SHOW</span>
                     <select 
                         value={searchParams.get('limit') || '25'}
                         onChange={(e) => updateFilters({ limit: e.target.value })}
                         className="w-full bg-black border border-white/10 p-2 text-[9px] font-black text-white/60 focus:text-studio-neon focus:outline-none transition-all appearance-none cursor-pointer"
                     >
-                        <option value="10">10_SAMPLES</option>
-                        <option value="25">25_SAMPLES</option>
-                        <option value="50">50_SAMPLES</option>
+                        <option value="10">10 sounds</option>
+                        <option value="25">25 sounds</option>
+                        <option value="50">50 sounds</option>
                     </select>
                 </div>
             </div>
 
-            {/* Diagnostic Node (System State) */}
+            {/* Reset Filters */}
             <div className="pt-12 border-t-2 border-black space-y-4">
                 <button 
                   onClick={clearFilters}
                   className="w-full py-4 bg-red-950/20 border-2 border-black text-red-500 text-[10px] font-black uppercase tracking-[0.5em] hover:bg-red-500 hover:text-white transition-all italic flex items-center justify-center gap-4 shadow-[0_0_20px_rgba(255,0,0,0.05)]"
                 >
-                    <X size={16} /> PURGE_DIAGNOSTIC_SIGNAL
+                    <X size={16} /> Reset Filters
                 </button>
                 <div className="p-6 bg-black/40 border-2 border-black">
-                    <div className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">DAW_SIGNAL_STATUS</div>
+                    <div className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">System Status</div>
                     <div className="space-y-2">
                         <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-white/10">
-                            <span className="flex items-center gap-2"><Activity size={8} className="text-studio-neon" /> LATENCY</span>
-                            <span className="text-studio-neon italic">0.02ms</span>
+                            <span className="flex items-center gap-2"><Activity size={8} className="text-studio-neon" /> Connection</span>
+                            <span className="text-studio-neon italic">Active</span>
                         </div>
                         <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-white/10">
-                            <span className="flex items-center gap-2"><ShieldCheck size={8} className="text-studio-neon" /> CRYPTO</span>
-                            <span className="text-studio-neon italic">AES_256</span>
+                            <span className="flex items-center gap-2"><ShieldCheck size={8} className="text-studio-neon" /> Protection</span>
+                            <span className="text-studio-neon italic">Secure</span>
                         </div>
                     </div>
                 </div>

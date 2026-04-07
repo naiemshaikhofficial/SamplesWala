@@ -7,6 +7,7 @@ import { Layout, Search, Disc, User, Music } from 'lucide-react'
 
 export function BottomNav() {
   const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) return null;
 
   const navItems = [
     { label: 'Home', href: '/', icon: <Layout className="w-5 h-5" /> },

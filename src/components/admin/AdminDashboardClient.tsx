@@ -5,14 +5,16 @@ import Link from 'next/link'
 import { 
   LayoutDashboard, Package, Music, Users, ArrowUpRight, TrendingUp, 
   PlusCircle, ShieldCheck, Zap, Activity, HardDrive, Cpu, 
-  Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2
+  Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2, Key
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 export default function AdminDashboardClient({ 
-    packsCount, samplesCount, unprocessedAiCount, recentPurchases, userEmail, isAdminFromDb
+    packsCount, samplesCount, unprocessedAiCount, recentPurchases, 
+    allPacks, allCustomers, aiLogs, userEmail, isAdminFromDb
 }: { 
-    packsCount: number, samplesCount: number, unprocessedAiCount: number, recentPurchases: any[], userEmail: string, isAdminFromDb: boolean
+    packsCount: number, samplesCount: number, unprocessedAiCount: number, recentPurchases: any[], 
+    allPacks: any[], allCustomers: any[], aiLogs: any[], userEmail: string, isAdminFromDb: boolean
 }) {
   const router = useRouter()
   const [isScanning, setIsScanning] = useState(false)
@@ -28,28 +30,31 @@ export default function AdminDashboardClient({
     return () => clearInterval(interval)
   }, [])
 
-  const handleScanAi = async () => {
-    if (!confirm('PROTOCOL_INIT :: Confirm Autonomous AI Scan for all unprocessed sounds?')) return
+  const handleScanAi = async (isForce: boolean = false) => {
+    const msg = isForce 
+        ? 'PROTOCOL_INIT :: Force Re-scanning ALL sounds in database? This will overwrite existing metadata.'
+        : 'PROTOCOL_INIT :: Confirm Autonomous AI Scan for all unprocessed sounds?'
+    
+    if (!confirm(msg)) return
     
     setIsScanning(true)
-    setScanProgress({ current: 0, total: unprocessedAiCount, status: 'INITIALIZING' })
+    const countToScan = isForce ? samplesCount : unprocessedAiCount
+    setScanProgress({ current: 0, total: countToScan, status: 'INITIALIZING' })
 
     try {
-        // 1. Fetch the list of unprocessed sample IDs
-        const resList = await fetch('/api/ai/get-unprocessed')
-        const { data: unprocessedIds } = await resList.json()
+        const resList = await fetch(`/api/ai/get-unprocessed${isForce ? '?force=true' : ''}`)
+        const { data: samplesToProcess } = await resList.json()
 
-        if (!unprocessedIds || unprocessedIds.length === 0) {
+        if (!samplesToProcess || samplesToProcess.length === 0) {
             setScanProgress({ current: 0, total: 0, status: 'COMPLETED' })
             setIsScanning(false)
             return
         }
 
-        setScanProgress(prev => ({ ...prev, total: unprocessedIds.length, status: 'PROCESSING_SIGNAL' }))
+        setScanProgress(prev => ({ ...prev, total: samplesToProcess.length, status: 'PROCESSING_SIGNAL' }))
 
-        // 2. Sequential Processing Loop
         let completed = 0;
-        for (const sample of unprocessedIds) {
+        for (const sample of samplesToProcess) {
             try {
                 const res = await fetch('/api/ai/analyze', {
                     method: 'POST',
@@ -66,7 +71,6 @@ export default function AdminDashboardClient({
                 setScanProgress(prev => ({ ...prev, current: completed }))
             } catch (err) {
                 console.error(`SCAN_ERROR at Sample ${sample.id} ::`, err)
-                // Continue scanning others even if one fails
             }
         }
 
@@ -80,7 +84,52 @@ export default function AdminDashboardClient({
     }
   }
 
-  // 🛡️ SECURITY OVERLAY
+  const [showNewPackModal, setShowNewPackModal] = useState(false)
+  const [showNewSoundModal, setShowNewSoundModal] = useState(false)
+  const [newPack, setNewPack] = useState({ name: '', description: '', price: 0, cover_image: '' })
+  const [newSound, setNewSound] = useState({ name: '', file_url: '', pack_id: '', ai_genre: 'Indian Classical / Bollywood', bpm: 120, key: 'C MINOR' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleCreatePack = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+        const res = await fetch('/api/admin/create-pack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newPack)
+        })
+        if (!res.ok) throw new Error('FAILED_TO_CREATE_PACK')
+        setShowNewPackModal(false)
+        router.refresh()
+        alert('SUCCESS :: Pack registered in database.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleAddSound = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+        const res = await fetch('/api/admin/add-sound', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSound)
+        })
+        if (!res.ok) throw new Error('FAILED_TO_ADD_SOUND')
+        setShowNewSoundModal(false)
+        router.refresh()
+        alert('SUCCESS :: Sound artifact synced to pack.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
   const isAuthorized = isAdminFromDb || userEmail?.includes('naiem') || userEmail?.includes('sampleswala') || userEmail?.includes('beatswala');
 
   if (!isAuthorized) {
@@ -101,10 +150,95 @@ export default function AdminDashboardClient({
   return (
     <div className="min-h-screen bg-[#050505] text-white flex selection:bg-studio-neon selection:text-black">
       
+      {/* 📟 NEW PACK MODAL */}
+      {showNewPackModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+            <div className="bg-studio-grey w-full max-w-xl border-8 border-black p-10 relative">
+                <button onClick={() => setShowNewPackModal(false)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Create_New_Pack</h2>
+                <form onSubmit={handleCreatePack} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Pack Name</label>
+                        <input required value={newPack.name} onChange={e => setNewPack({ ...newPack, name: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Description</label>
+                        <textarea required value={newPack.description} onChange={e => setNewPack({ ...newPack, description: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all h-32" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Price (INR)</label>
+                            <input required type="number" value={newPack.price} onChange={e => setNewPack({ ...newPack, price: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover Image Link</label>
+                            <input required value={newPack.cover_image} onChange={e => setNewPack({ ...newPack, cover_image: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
+                        {isSubmitting ? 'SYNCING...' : 'REGISTER_PACK'}
+                    </button>
+                </form>
+            </div>
+        </div>
+      )}
+
+      {/* 📟 ADD SOUND MODAL */}
+      {showNewSoundModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+            <div className="bg-studio-grey w-full max-w-2xl border-8 border-black p-10 relative">
+                <button onClick={() => setShowNewSoundModal(false)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Ingest_New_Sound</h2>
+                <form onSubmit={handleAddSound} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Target Pack</label>
+                            <select required value={newSound.pack_id} onChange={e => setNewSound({ ...newSound, pack_id: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] tracking-widest focus:border-studio-neon outline-none transition-all text-white">
+                                <option value="">SELECT_PACK</option>
+                                {allPacks.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Sample Name</label>
+                            <input required value={newSound.name} onChange={e => setNewSound({ ...newSound, name: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">File URL (Drive Link)</label>
+                        <input required value={newSound.file_url} onChange={e => setNewSound({ ...newSound, file_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Genre</label>
+                            <select required value={newSound.ai_genre} onChange={e => setNewSound({ ...newSound, ai_genre: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
+                                <option>Indian Classical / Bollywood</option>
+                                <option>Tapori / Street Style</option>
+                                <option>South Indian / Folk</option>
+                                <option>Percussive</option>
+                                <option>Melodic Artifact</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">BPM</label>
+                            <input required type="number" value={newSound.bpm} onChange={e => setNewSound({ ...newSound, bpm: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key</label>
+                            <input required value={newSound.key} onChange={e => setNewSound({ ...newSound, key: e.target.value.toUpperCase() })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="e.g. C MINOR" />
+                        </div>
+                    </div>
+                    <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
+                        {isSubmitting ? 'INGESTING...' : 'INGEST_SOUND_ARTIFACT'}
+                    </button>
+                </form>
+            </div>
+        </div>
+      )}
+      
       {/* 📟 STUDIO_SIDE_RACK */}
       <aside className="w-80 border-r-8 border-black bg-studio-grey p-8 flex flex-col justify-between hidden lg:flex sticky top-0 h-screen z-[100]">
         <div>
-            <div className="flex items-center gap-4 mb-20 group">
+            <Link href="/" className="flex items-center gap-4 mb-20 group">
                 <div className="h-12 w-12 bg-black border-2 border-white/10 group-hover:border-studio-neon transition-all flex items-center justify-center rotate-45 group-hover:rotate-0">
                     <ShieldCheck className="h-6 w-6 text-studio-neon -rotate-45 group-hover:rotate-0 transition-all" />
                 </div>
@@ -112,16 +246,15 @@ export default function AdminDashboardClient({
                     <span className="font-black uppercase tracking-widest text-sm italic">SAMPLES_WALA</span>
                     <span className="text-[7px] font-bold uppercase text-white/20 tracking-widest mt-1">V5.2_PRODUCTION_SYSTEM</span>
                 </div>
-            </div>
+            </Link>
 
             <nav className="space-y-2">
                 {[
-                    { id: 'DASHBOARD', icon: LayoutDashboard, label: 'DASHBOARD', href: '/admin' },
-                    { id: 'PACKS', icon: Package, label: 'SAMPLE PACKS', href: '/admin' },
-                    { id: 'SAMPLES', icon: Music, label: 'SOUNDS', href: '/admin' },
-                    { id: 'USERS', icon: Users, label: 'CUSTOMERS', href: '/admin' },
-                    { id: 'LOGS', icon: Terminal, label: 'SYSTEM LOGS', href: '/admin' },
-                    { id: 'SETTINGS', icon: Settings, label: 'SETTINGS', href: '/admin' }
+                    { id: 'DASHBOARD', icon: LayoutDashboard, label: 'Dashboard' },
+                    { id: 'PACKS', icon: Package, label: 'Packs' },
+                    { id: 'USERS', icon: Users, label: 'Customers' },
+                    { id: 'LOGS', icon: Terminal, label: 'System Logs' },
+                    { id: 'SETTINGS', icon: Settings, label: 'Settings' }
                 ].map((item) => (
                     <button 
                         key={item.id}
@@ -135,10 +268,9 @@ export default function AdminDashboardClient({
         </div>
 
         <div className="space-y-8">
-             {/* 🧬 SYSTEM LOAD VUE */}
              <div className="p-6 bg-black/40 border border-white/5 rounded-sm">
                 <div className="flex justify-between items-center mb-4">
-                    <span className="text-[8px] font-black text-white/20 tracking-widest uppercase">CPU_RESERVE</span>
+                    <span className="text-[8px] font-black text-white/20 tracking-widest uppercase">Server Load</span>
                     <span className="text-[10px] font-black text-studio-neon italic">{cpuUsage}%</span>
                 </div>
                 <div className="h-1 bg-white/5 w-full relative overflow-hidden">
@@ -151,7 +283,7 @@ export default function AdminDashboardClient({
                    <Users className="w-5 h-5 opacity-20 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <div className="text-[8px] font-black uppercase text-white/20 truncate">Authorized_ID</div>
+                    <div className="text-[8px] font-black uppercase text-white/20 truncate">Authorized ID</div>
                     <div className="text-[11px] font-black italic tracking-tighter truncate leading-tight">{userEmail}</div>
                 </div>
              </div>
@@ -165,134 +297,278 @@ export default function AdminDashboardClient({
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-24 relative z-10">
             <div>
                 <div className="flex items-center gap-4 mb-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/20">
-                    <Activity className="h-3 w-3 text-studio-neon animate-pulse" /> STABLE_NODE_LINKED
+                    <Activity className="h-3 w-3 text-studio-neon animate-pulse" /> STATION :: {activeTab}
                 </div>
-                <h1 className="text-7xl font-black uppercase tracking-tighter italic leading-none border-l-8 border-studio-yellow pl-10">Admin<br/><span className="text-studio-neon">_Control</span></h1>
+                <h1 className="text-7xl font-black uppercase tracking-tighter italic leading-none border-l-8 border-studio-yellow pl-10">Admin<br/><span className="text-studio-neon">_{activeTab}</span></h1>
             </div>
 
             <div className="flex flex-wrap items-center gap-6">
-                <div className="flex flex-col items-end gap-2">
-                    {isScanning && (
-                        <div className="text-[9px] font-bold text-studio-neon uppercase tracking-widest animate-pulse mb-2">
-                            {scanProgress.status} :: {scanProgress.current}/{scanProgress.total} 
-                            ({Math.round((scanProgress.current / scanProgress.total) * 100)}%)
-                            {scanProgress.total > 0 && ` ~ Est ${Math.max(0, (scanProgress.total - scanProgress.current) * 1.5)}s remaining`}
-                        </div>
-                    )}
-                    <button 
-                    onClick={handleScanAi}
-                    disabled={isScanning}
-                    className={`px-12 py-5 border-2 border-studio-neon text-studio-neon font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 transition-all relative overflow-hidden ${isScanning ? 'opacity-100 bg-studio-neon/10' : 'hover:bg-studio-neon hover:text-black shadow-[0_0_30px_rgba(166,226,46,0.1)]'}`}
-                    >
-                        {isScanning ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-studio-neon" />
-                        ) : (
-                            <Zap className="h-4 w-4" />
-                        )}
-                        {isScanning ? 'SCAN_ACTIVE' : 'START AI_SCAN'}
-                        
-                        {/* 📊 PROGRESS BAR (Inside Button) */}
+                <div className="flex flex-col items-center gap-3">
+                    <div className="flex flex-col items-end gap-2 w-full">
                         {isScanning && (
-                            <div className="absolute bottom-0 left-0 h-1 bg-studio-neon transition-all duration-500" style={{ width: `${(scanProgress.current / scanProgress.total) * 100}%` }} />
+                            <div className="text-[9px] font-bold text-studio-neon uppercase tracking-widest animate-pulse mb-2">
+                                {scanProgress.status} :: {scanProgress.current}/{scanProgress.total} 
+                                ({Math.round((scanProgress.current / scanProgress.total) * 100)}%)
+                            </div>
                         )}
+                        <button 
+                        onClick={() => handleScanAi(false)}
+                        disabled={isScanning}
+                        className={`w-full px-12 py-5 border-2 border-studio-neon text-studio-neon font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 transition-all relative overflow-hidden ${isScanning ? 'opacity-100 bg-studio-neon/10' : 'hover:bg-studio-neon hover:text-black shadow-[0_0_30px_rgba(166,226,46,0.1)]'}`}
+                        >
+                            {isScanning ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-studio-neon" />
+                            ) : (
+                                <Zap className="h-4 w-4" />
+                            )}
+                            {isScanning ? 'Scan Active' : 'Start AI Scan'}
+                            {isScanning && (
+                                <div className="absolute bottom-0 left-0 h-1 bg-studio-neon transition-all duration-500" style={{ width: `${(scanProgress.current / scanProgress.total) * 100}%` }} />
+                            )}
+                        </button>
+                    </div>
+                    {!isScanning && (
+                        <button 
+                            onClick={() => handleScanAi(true)}
+                            className="text-[8px] font-black uppercase tracking-[0.4em] text-white/20 hover:text-studio-neon transition-all flex items-center gap-2 group"
+                        >
+                            <SlidersHorizontal size={10} className="group-hover:rotate-180 transition-transform duration-500" /> Force Re-scan All
+                        </button>
+                    )}
+                </div>
+                <div className="flex gap-4">
+                    <button onClick={() => setShowNewSoundModal(true)} className="px-12 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 hover:-translate-y-2 transition-all shadow-2xl">
+                        <PlusCircle className="h-4 w-4" /> Add Sound
+                    </button>
+                    <button onClick={() => setShowNewPackModal(true)} className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 hover:-translate-y-2 transition-all shadow-2xl border-r-8 border-studio-yellow">
+                        <PlusCircle className="h-4 w-4" /> New Pack
                     </button>
                 </div>
-                <button className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 hover:-translate-y-2 transition-all shadow-2xl border-r-8 border-studio-yellow">
-                    <PlusCircle className="h-4 w-4" /> NEW_SOUND
-                </button>
             </div>
         </header>
 
-        {/* 📊 TELEMETRY DATA */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24 relative z-10">
-            {[
-                { label: 'Sample Packs', value: packsCount, icon: Package, color: 'text-white' },
-                { label: 'Total Sounds', value: samplesCount, icon: Music, color: 'text-white' },
-                { label: 'AI Processing', value: unprocessedAiCount, icon: Activity, color: unprocessedAiCount > 0 ? (isScanning ? 'text-studio-yellow animate-pulse' : 'text-studio-neon') : 'text-white/20', accent: true },
-                { label: 'Total Sales', value: recentPurchases?.length, icon: TrendingUp, color: 'text-[#00FF00]' }
-            ].map((stat, i) => (
-                <div key={i} className={`p-10 border border-white/5 bg-black/40 backdrop-blur-3xl group hover:border-studio-neon transition-all relative overflow-hidden ${stat.accent ? 'border-studio-neon/20' : ''}`}>
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-opacity">
-                        <stat.icon className="h-32 w-32" />
-                    </div>
-                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 mb-10 block italic">{stat.label}</span>
-                    <div className={`text-6xl font-black italic tracking-tighter mb-4 ${stat.color}`}>{stat.value || 0}</div>
-                    <div className="flex items-center gap-3">
-                        <div className="h-0.5 w-6 bg-white/10 group-hover:bg-studio-neon transition-all" />
-                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20">ACTIVE_FEED</span>
-                    </div>
+        {/* 📟 CONDITIONAL TABS CONTENT */}
+        {activeTab === 'DASHBOARD' && (
+            <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24 relative z-10">
+                    {[
+                        { label: 'Packs', value: packsCount, icon: Package, color: 'text-white' },
+                        { label: 'Sounds', value: samplesCount, icon: Music, color: 'text-white' },
+                        { label: 'AI Processing', value: unprocessedAiCount, icon: Activity, color: unprocessedAiCount > 0 ? (isScanning ? 'text-studio-yellow animate-pulse' : 'text-studio-neon') : 'text-white/20', accent: true },
+                        { label: 'Total Sales', value: recentPurchases?.length, icon: TrendingUp, color: 'text-[#00FF00]' }
+                    ].map((stat, i) => (
+                        <div key={i} className={`p-10 border border-white/5 bg-black/40 group hover:border-studio-neon transition-all relative overflow-hidden ${stat.accent ? 'border-studio-neon/20' : ''}`}>
+                            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+                                <stat.icon className="h-32 w-32" />
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 mb-10 block italic">{stat.label}</span>
+                            <div className={`text-6xl font-black italic tracking-tighter mb-4 ${stat.color}`}>{stat.value || 0}</div>
+                            <div className="flex items-center gap-3">
+                                <div className="h-0.5 w-6 bg-white/10 group-hover:bg-studio-neon transition-all" />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Active Feed</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            ))}
-        </div>
 
-        {/* 📑 RECENT OPERATIONS DISPLAY */}
-        <div className="bg-black/60 border border-white/10 relative z-10 overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.5)]">
-            <div className="px-12 py-10 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-studio-grey/40">
-                <div className="flex flex-col">
-                    <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-2 group cursor-pointer hover:text-studio-neon transition-all flex items-center gap-4">
-                        <Disc className="w-6 h-6 animate-spin-slow opacity-20" /> RECENT_SALES
-                    </h2>
-                    <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Live :: New Purchases</span>
-                </div>
-                <div className="flex gap-2 p-1 bg-black/40 border border-white/5 self-start md:self-center">
-                    <button className="px-6 py-2 text-[9px] font-black uppercase bg-white text-black">SUCCESS</button>
-                    <button className="px-6 py-2 text-[9px] font-black uppercase text-white/20 hover:text-white transition-all">PENDING</button>
-                </div>
-            </div>
-            
-            <div className="divide-y divide-black">
-                {recentPurchases?.length > 0 ? recentPurchases.map((purchase: any) => (
-                    <div key={purchase.id} className="p-12 flex flex-col md:grid md:grid-cols-12 gap-8 items-center hover:bg-white/[0.03] transition-all group border-b border-black">
-                        <div className="md:col-span-8 flex items-center gap-10">
-                             <div className="h-16 w-16 bg-studio-grey border border-white/10 flex items-center justify-center group-hover:border-studio-neon transition-all shrink-0">
-                                <ArrowUpRight className="h-6 w-6 text-white/20 group-hover:text-studio-neon group-hover:scale-110 transition-all" />
-                             </div>
-                             <div className="min-w-0">
-                                <Link href="#" className="text-2xl font-black italic tracking-tighter truncate block hover:text-studio-neon transition-all underline decoration-white/10 underline-offset-8 decoration-2">{purchase.item_name}</Link>
-                                <div className="flex items-center gap-4 mt-6">
-                                    <div className="h-3 w-3 rounded-full bg-studio-neon/20 border border-studio-neon animate-pulse" />
-                                    <span className="text-[9px] font-black uppercase text-white/30 tracking-widest leading-none truncate">
-                                        ID: {purchase.profiles?.full_name || 'SYSTEM_GUEST'} // REF: {purchase.id.slice(0, 8)}
-                                    </span>
+                <div className="bg-black/60 border border-white/10 relative z-10 overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.5)]">
+                    <div className="px-12 py-10 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-studio-grey/40">
+                        <div className="flex flex-col">
+                            <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-2 group cursor-pointer hover:text-studio-neon transition-all flex items-center gap-4">
+                                <Disc className="w-6 h-6 animate-spin-slow opacity-20" /> Recent Sales
+                            </h2>
+                            <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Live :: New Purchases</span>
+                        </div>
+                        <div className="flex gap-2 p-1 bg-black/40 border border-white/5 self-start md:self-center">
+                            <button className="px-6 py-2 text-[9px] font-black uppercase bg-white text-black">SUCCESS</button>
+                            <button className="px-6 py-2 text-[9px] font-black uppercase text-white/20 hover:text-white transition-all">PENDING</button>
+                        </div>
+                    </div>
+                    
+                    <div className="divide-y divide-black">
+                        {recentPurchases?.length > 0 ? recentPurchases.map((purchase: any) => (
+                            <div key={purchase.id} className="p-12 flex flex-col md:grid md:grid-cols-12 gap-8 items-center hover:bg-white/[0.03] transition-all group border-b border-black">
+                                <div className="md:col-span-8 flex items-center gap-10">
+                                     <div className="h-16 w-16 bg-studio-grey border border-white/10 flex items-center justify-center group-hover:border-studio-neon transition-all shrink-0">
+                                        <ArrowUpRight className="h-6 w-6 text-white/20 group-hover:text-studio-neon group-hover:scale-110 transition-all" />
+                                     </div>
+                                     <div className="min-w-0">
+                                        <Link href="#" className="text-2xl font-black italic tracking-tighter truncate block hover:text-studio-neon transition-all underline decoration-white/10 underline-offset-8 decoration-2">{purchase.item_name}</Link>
+                                        <div className="flex items-center gap-4 mt-6">
+                                            <div className="h-3 w-3 rounded-full bg-studio-neon/20 border border-studio-neon animate-pulse" />
+                                            <span className="text-[9px] font-black uppercase text-white/30 tracking-widest leading-none truncate">
+                                                User: {purchase.profiles?.full_name || 'Anonymous User'} // REF: {purchase.id.slice(0, 8)}
+                                            </span>
+                                        </div>
+                                     </div>
                                 </div>
-                             </div>
-                        </div>
-                        <div className="md:col-span-4 w-full md:text-right flex md:flex-col justify-between items-center md:items-end gap-2">
-                             <div className="text-3xl font-black italic tracking-tighter text-[#00FF00] bg-black/40 px-6 py-2 border-r-4 border-[#00FF00] shadow-[10px_0_20px_rgba(0,255,0,0.05)]">
-                                +{purchase.amount_total > 0 ? `₹${purchase.amount_total}` : 'FREE_SYNC'}
-                             </div>
-                             <div className="text-[10px] font-black uppercase text-white/10 mt-3 tracking-[0.4em] italic flex items-center gap-3">
-                                <Activity size={10} className="text-white/20" /> {new Date(purchase.created_at).toLocaleTimeString()} :: GMT_SYNC
-                             </div>
-                        </div>
+                                <div className="md:col-span-4 w-full md:text-right flex md:flex-col justify-between items-center md:items-end gap-2">
+                                     <div className="text-3xl font-black italic tracking-tighter text-[#00FF00] bg-black/40 px-6 py-2 border-r-4 border-[#00FF00] shadow-[10px_0_20px_rgba(0,255,0,0.05)]">
+                                        +{purchase.amount_total > 0 ? `₹${purchase.amount_total}` : 'FREE_SYNC'}
+                                     </div>
+                                     <div className="text-[10px] font-black uppercase text-white/10 mt-3 tracking-[0.4em] italic flex items-center gap-3">
+                                        <Activity size={10} className="text-white/20" /> {new Date(purchase.created_at).toLocaleTimeString()} :: GMT_SYNC
+                                     </div>
+                                </div>
+                            </div>
+                        )) : (
+                            <div className="p-32 text-center">
+                                <SlidersHorizontal className="w-20 h-20 text-white/5 mx-auto mb-8" />
+                                <div className="text-[11px] font-black uppercase tracking-[0.6em] text-white/10 italic">No activity detected</div>
+                            </div>
+                        )}
                     </div>
-                )) : (
-                    <div className="p-32 text-center">
-                        <SlidersHorizontal className="w-20 h-20 text-white/5 mx-auto mb-8" />
-                        <div className="text-[11px] font-black uppercase tracking-[0.6em] text-white/10 italic">NO_ACQUISITION_CYCLES_DETECTED</div>
-                    </div>
-                )}
-            </div>
+                </div>
+            </>
+        )}
 
-            <div className="p-10 bg-black/40 border-t border-white/5 text-center">
-                <button className="text-[9px] font-black uppercase tracking-widest text-white/20 hover:text-studio-neon transition-all hover:tracking-[0.5em] duration-700">
-                    - View_Full_Diagnostic_Archive -
-                </button>
+        {/* 📦 PACKS TAB */}
+        {activeTab === 'PACKS' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {allPacks.map((pack) => (
+                    <div key={pack.id} className="bg-black/40 border border-white/5 p-8 flex flex-col group hover:border-studio-neon transition-all relative">
+                        <div className="flex justify-between items-start mb-10">
+                            <div className="h-16 w-16 bg-studio-grey border border-white/10 flex items-center justify-center -rotate-12 group-hover:rotate-0 transition-transform">
+                                <Package className="h-8 w-8 text-white/20 group-hover:text-studio-neon" />
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[8px] font-black uppercase text-white/20 tracking-widest block">Price</span>
+                                <span className="text-xl font-black italic tracking-tighter text-studio-neon">₹{pack.price}</span>
+                            </div>
+                        </div>
+                        <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-2 truncate">{pack.name}</h3>
+                        <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-10 line-clamp-2">{pack.description}</p>
+                        
+                        <div className="flex gap-2 mt-auto">
+                            <button className="flex-1 py-3 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">Edit</button>
+                            <button className="px-5 py-3 bg-red-950/20 border border-red-900/30 text-red-500 hover:bg-red-500 hover:text-white transition-all"><Terminal size={14}/></button>
+                        </div>
+                    </div>
+                ))}
             </div>
-        </div>
+        )}
+
+        {/* 👥 CUSTOMERS TAB */}
+        {activeTab === 'USERS' && (
+            <div className="bg-black/60 border border-white/10 overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead className="bg-white/5 border-b border-white/10">
+                        <tr>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">ID</th>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Customer Name</th>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credit Balance</th>
+                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {allCustomers.map((user) => (
+                            <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
+                                <td className="p-8 font-mono text-[9px] text-white/20">{user.id.slice(0, 8)}...</td>
+                                <td className="p-8">
+                                    <div className="text-sm font-black italic tracking-tight">{user.full_name || 'N/A'}</div>
+                                    <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Active Member</div>
+                                </td>
+                                <td className="p-8">
+                                    <div className="flex items-center justify-center gap-3">
+                                        <Key className="h-3 w-3 text-studio-yellow" />
+                                        <span className="text-lg font-black italic tracking-tighter text-studio-yellow">{user.user_accounts?.[0]?.credits || 0}</span>
+                                    </div>
+                                </td>
+                                <td className="p-8 text-right">
+                                    <button className="px-6 py-2 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:border-studio-neon hover:text-studio-neon transition-all">View Profile</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )}
+
+        {/* 📡 SYSTEM LOGS TAB */}
+        {activeTab === 'LOGS' && (
+            <div className="space-y-4">
+                {aiLogs.map((log) => (
+                    <div key={log.id} className="bg-black/40 border-l-4 border-white/5 p-8 flex items-center justify-between group hover:border-studio-neon transition-all">
+                        <div className="flex items-center gap-10">
+                            <div className="p-4 bg-black border border-white/10 group-hover:border-studio-neon transition-all">
+                                <Activity className={`h-4 w-4 ${log.analysis_phase === 'FAILURE' ? 'text-red-500' : 'text-studio-neon'}`} />
+                            </div>
+                            <div>
+                                <div className="text-xl font-black italic tracking-tighter uppercase">{log.analysis_phase}</div>
+                                <div className="text-[9px] font-bold text-white/20 uppercase tracking-widest flex items-center gap-4">
+                                    <span>Sample: {log.samples?.name || 'Unknown'}</span>
+                                    <span className="h-1 w-1 bg-white/20 rounded-full" />
+                                    <span>{new Date(log.created_at).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-[8px] font-black text-white/10 uppercase tracking-widest mb-1 italic">Status</div>
+                            <div className={`text-[10px] font-black uppercase tracking-widest ${log.analysis_phase === 'FAILURE' ? 'text-red-500' : 'text-studio-neon'}`}>
+                                {log.result_data?.status || 'DONE'}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+
+        {/* ⚙️ SETTINGS TAB */}
+        {activeTab === 'SETTINGS' && (
+            <div className="max-w-3xl space-y-12">
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-black italic tracking-tighter uppercase flex items-center gap-4">
+                        <ShieldCheck className="text-studio-neon" /> Platform Security
+                    </h2>
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="p-10 bg-black/40 border border-white/5 space-y-4">
+                            <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Maintenance Mode</span>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-black italic tracking-tighter">System Offline</span>
+                                <div className="w-12 h-6 bg-white/5 border border-white/10 relative cursor-pointer">
+                                    <div className="absolute left-1 top-1 w-4 h-4 bg-white/20" />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-10 bg-black/40 border border-white/5 space-y-4">
+                            <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Public Deposits</span>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-black italic tracking-tighter text-studio-neon">Active Payment Node</span>
+                                <div className="w-12 h-6 bg-studio-neon/20 border border-studio-neon relative cursor-pointer">
+                                    <div className="absolute right-1 top-1 w-4 h-4 bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-black italic tracking-tighter uppercase flex items-center gap-4">
+                        <Settings className="text-studio-neon" /> Global Rates
+                    </h2>
+                    <div className="p-10 bg-black/40 border border-white/5 space-y-10">
+                        <div className="flex justify-between items-center bg-black p-6 border border-white/5">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Base Credit Rate</span>
+                            <span className="text-2xl font-black italic text-studio-neon">₹1.00 / 1 Token</span>
+                        </div>
+                        <button className="w-full py-5 bg-white text-black font-black uppercase text-[11px] tracking-[0.3em] hover:bg-studio-neon transition-all">Update System Parameters</button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         {/* 📀 SYSTEM_STATUS_FOOTER (Decor) */}
-        <div className="mt-24 flex flex-col md:flex-row justify-between items-center gap-10 opacity-20">
+        <div className="mt-24 flex flex-col md:flex-row justify-between items-center gap-10 opacity-20 relative z-10">
             <div className="flex items-center gap-8">
                 <div className="flex gap-1 h-4 items-end">
                     {[3, 7, 5, 9, 4, 8, 2, 6].map((h, i) => <div key={i} className="w-1 bg-studio-neon animate-peak" style={{ height: `${h * 10}%`, animationDelay: `${i * 0.1}s` }} />)}
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">Website Status :: Online</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">Station Status :: Secure</span>
             </div>
             <div className="flex items-center gap-10 text-[8px] font-black uppercase tracking-widest">
-                <span>Database: Connected</span>
-                <span className="text-studio-neon">Speed: fast</span>
-                <span>Security: active</span>
+                <span>Database: {isAdminFromDb ? 'Direct' : 'Restricted'}</span>
+                <span className="text-studio-neon">Admin: {userEmail.split('@')[0]}</span>
+                <span>Security: v5.2.0</span>
             </div>
         </div>
 

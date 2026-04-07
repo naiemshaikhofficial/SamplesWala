@@ -1,9 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Music, Disc, ShieldCheck, Mail, ArrowUpRight, Zap, Volume2, Settings2, Database, Key, Radio, Activity, Play } from 'lucide-react'
 
 export function Footer() {
+  const pathname = usePathname()
+  if (pathname?.startsWith('/admin')) return null;
+
   return (
     <footer className="px-6 md:px-20 py-20 md:py-32 bg-studio-charcoal border-t-[32px] border-black relative overflow-hidden font-mono shadow-[inset_0_20px_50px_rgba(0,0,0,0.8)]">
         {/* 🧬 STUDIO DECOR (Faint Console Background) */}

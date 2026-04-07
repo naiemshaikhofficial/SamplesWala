@@ -44,17 +44,12 @@ export default function RootLayout({
                 <Sidebar />
             </Suspense>
             <MainLayoutWrapper>
-              <Suspense fallback={null}>
-                  <Header />
-              </Suspense>
-              <main className="flex-grow relative pt-[100px] md:pt-[140px] lg:pt-[160px] xl:pt-[120px] pb-32 lg:pb-0">
-                {children}
-              </main>
-              <Footer />
-              <GlobalPlayer />
-              <Suspense fallback={null}>
-                  <BottomNav />
-              </Suspense>
+               {children}
+               <Footer />
+               <GlobalPlayer />
+               <Suspense fallback={null}>
+                   <BottomNav />
+               </Suspense>
             </MainLayoutWrapper>
           </div>
         </ClientProviders>

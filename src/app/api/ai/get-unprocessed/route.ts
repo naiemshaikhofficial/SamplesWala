@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 /**
  * 📡 GET_UNPROCESSED: Returns a list of sample IDs that haven't been processed by AI
  */
-export async function GET() {
+export async function GET(request: Request) {
     try {
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -22,16 +22,22 @@ export async function GET() {
             return NextResponse.json({ error: 'UNAUTHORIZED_ACCESS_DENIED' }, { status: 403 })
         }
 
-        const { data: unprocessedSamples, error: fetchError } = await supabase
-            .from('samples')
-            .select('id')
-            .eq('ai_is_processed', false)
+        const { searchParams } = new URL(request.url)
+        const force = searchParams.get('force') === 'true'
+
+        let query = supabase.from('samples').select('id')
+        
+        if (!force) {
+            query = query.eq('ai_is_processed', false)
+        }
+
+        const { data: samplesToProcess, error: fetchError } = await query
 
         if (fetchError) throw fetchError
 
         return NextResponse.json({ 
             success: true, 
-            data: unprocessedSamples || []
+            data: samplesToProcess || []
         })
 
     } catch (error: any) {
