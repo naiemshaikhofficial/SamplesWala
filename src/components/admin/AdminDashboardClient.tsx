@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { 
   createPackAction, editPackAction, deletePackAction,
   addSoundAction, editSoundAction, deleteSoundAction,
-  updateCreditsAction, assignSubscriptionAction,
+  updateCreditsAction, assignSubscriptionAction, manualSetCreditsAction,
+  extendSubscriptionAction,
   getSamplesToProcessAction, processAiSignalAction, getPackSamplesAction,
   getAllUsersAction, getUserVaultAction, terminateSubscriptionAction, 
   toggleBanUserAction, deleteUserAction, getUserTransactionsAction
@@ -112,7 +113,7 @@ export default function AdminDashboardClient({
     key: '', 
     key_type: 'None',
     credit_cost: 1,
-    type: 'loop' 
+    type: 'Sample' 
   })
 
   // 📡 FETCH PACK SAMPLES
@@ -137,9 +138,9 @@ export default function AdminDashboardClient({
     try {
         await deletePackAction(packId)
         router.refresh()
-        alert('SUCCESS :: Pack removed from grid.')
+        alert('SUCCESS :: Pack removed.')
     } catch (err: any) {
-        alert(`NODE_ERROR :: ${err.message}`)
+        alert(`ERROR :: ${err.message}`)
     } finally {
         setIsSubmitting(false)
     }
@@ -152,7 +153,7 @@ export default function AdminDashboardClient({
         await deleteSoundAction(soundId)
         if (selectedPack) fetchPackSamples(selectedPack.id)
         router.refresh()
-        alert('SUCCESS :: Sound signal terminated.')
+        alert('SUCCESS :: Sound artifact removed.')
     } catch (err: any) {
         alert(`NODE_ERROR :: ${err.message}`)
     } finally {
@@ -239,7 +240,7 @@ export default function AdminDashboardClient({
         setShowNewSoundModal(false)
         if (selectedPack) fetchPackSamples(selectedPack.id)
         router.refresh()
-        alert('SUCCESS :: Sound artifact synced to pack.')
+        alert('SUCCESS :: Sound added.')
     } catch (err: any) {
         alert(`NODE_ERROR :: ${err.message}`)
     } finally {
@@ -302,7 +303,7 @@ export default function AdminDashboardClient({
     try {
         await deleteUserAction(userId)
         handleRefreshUsers()
-        alert('SUCCESS :: User node erased.')
+        alert('SUCCESS :: User deleted.')
     } catch (err: any) {
         alert(`NODE_ERROR :: ${err.message}`)
     }
@@ -316,7 +317,7 @@ export default function AdminDashboardClient({
         router.refresh()
         setEditingUser(null)
         setCreditChange(0)
-        alert('SUCCESS :: User resonance calibrated.')
+        alert('SUCCESS :: Credits updated.')
     } catch (err: any) {
         alert(`NODE_ERROR :: ${err.message}`)
     } finally {
@@ -330,9 +331,39 @@ export default function AdminDashboardClient({
         await assignSubscriptionAction(userId, planId)
         router.refresh()
         setEditingUser(null)
-        alert(`SUCCESS :: USER_NODE_ACTIVE :: [${planId}] calibrated.`)
+        alert(`SUCCESS :: Manual plan assigned [${planId}]. 1 month validity set.`)
     } catch (err: any) {
-        alert(`NODE_ERROR :: ${err.message}`)
+        alert(`ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleManualSetCredits = async (userId: string) => {
+    const total = prompt("Enter NEW TOTAL credits for this user:", editingUser?.credits.toString())
+    if (total === null) return
+    setIsSubmitting(true)
+    try {
+        await manualSetCreditsAction(userId, Number(total))
+        router.refresh()
+        setEditingUser(null)
+        alert('SUCCESS :: User credits updated.')
+    } catch (err: any) {
+        alert(`ERROR :: ${err.message}`)
+    } finally {
+        setIsSubmitting(false)
+    }
+  }
+
+  const handleExtendSubscription = async (userId: string, months: number) => {
+    setIsSubmitting(true)
+    try {
+        await extendSubscriptionAction(userId, months)
+        router.refresh()
+        setEditingUser(null)
+        alert(`SUCCESS :: Subscription extended by ${months} month(s).`)
+    } catch (err: any) {
+        alert(`ERROR :: ${err.message}`)
     } finally {
         setIsSubmitting(false)
     }
@@ -363,42 +394,56 @@ export default function AdminDashboardClient({
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
             <div className="bg-studio-grey w-full max-w-lg border-x-8 border-studio-yellow p-12 relative shadow-[0_0_100px_rgba(255,204,0,0.1)]">
                 <button onClick={() => setEditingUser(null)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
-                <div className="text-[10px] font-black text-studio-yellow uppercase tracking-widest mb-4">Command :: User_{editingUser.id.slice(0, 8)}</div>
+                <div className="text-[10px] font-black text-studio-yellow uppercase tracking-widest mb-4">Account :: {editingUser.id.slice(0, 8)}</div>
                 <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-12 truncate">{editingUser.full_name || 'Anonymous User'}</h2>
                 
                 <div className="space-y-12">
                     <div className="space-y-6">
-                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Credit Resonator</span>
+                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Adjust Credits (+ / -)</span>
                         <div className="flex gap-4">
                             <input 
                                 type="number" 
                                 value={creditChange} 
                                 onChange={e => setCreditChange(Number(e.target.value))}
                                 className="flex-1 bg-black border border-white/10 p-5 font-black text-studio-neon text-xl focus:border-studio-neon outline-none transition-all"
-                                placeholder="0"
+                                placeholder="Add/Remove amount"
                             />
                             <button 
                                 onClick={() => handleUpdateCredits(editingUser.id)}
                                 disabled={isSubmitting}
                                 className="px-8 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-widest hover:invert transition-all disabled:opacity-50"
-                            >Sync</button>
+                            >
+                                OK
+                            </button>
+                        </div>
+                        <div className="flex gap-4">
+                            <button onClick={() => handleManualSetCredits(editingUser.id)} className="flex-1 py-3 border border-white/5 text-[8px] font-black uppercase tracking-widest text-white/20 hover:text-white transition-all">Set Absolute Total</button>
+                            <button onClick={() => { if(confirm('RESET_CREDITS :: Wipe all credits to zero?')) manualSetCreditsAction(editingUser.id, 0).then(() => { router.refresh(); setEditingUser(null); alert('DONE'); }) }} className="flex-1 py-3 border border-spider-red/20 text-[8px] font-black uppercase tracking-widest text-spider-red hover:bg-spider-red hover:text-black transition-all">Wipe Credits (Zero)</button>
                         </div>
                     </div>
 
                     <div className="space-y-6">
-                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Subscription Node Override</span>
-                        <div className="grid grid-cols-1 gap-2">
-                            {['essential', 'pro', 'elite'].map(plan => (
-                                <button 
-                                    key={plan}
-                                    onClick={() => handleAssignSubscription(editingUser.id, plan)}
-                                    disabled={isSubmitting}
-                                    className="w-full py-4 border border-white/10 hover:border-studio-yellow hover:bg-studio-yellow/10 text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-studio-yellow transition-all flex items-center justify-between px-8 group"
-                                >
-                                    <span>{plan}_plan</span>
-                                    <div className="h-2 w-2 bg-studio-yellow opacity-0 group-hover:opacity-100 shadow-[0_0_10px_#ffcc00] transition-all" />
-                                </button>
-                            ))}
+                        <div className="flex justify-between items-center bg-black/40 p-4 border border-white/5">
+                             <div className="flex flex-col">
+                                <span className="text-[9px] font-black uppercase text-white/40 tracking-widest">Assign Plan (Reset Validity)</span>
+                                <div className="grid grid-cols-2 gap-2 mt-4">
+                                     <button onClick={() => handleAssignSubscription(editingUser.id, 'TRIAL')} className="px-4 py-2 bg-studio-neon text-black text-[8px] font-black uppercase">TRIAL</button>
+                                     {['essential', 'pro', 'elite'].map(p => (
+                                         <button key={p} onClick={() => handleAssignSubscription(editingUser.id, p)} className="px-4 py-2 border border-white/10 text-white/40 hover:text-white uppercase text-[8px] font-black">{p}</button>
+                                     ))}
+                                </div>
+                             </div>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-studio-neon/5 p-6 border-l-4 border-studio-neon">
+                             <div className="flex flex-col gap-2">
+                                <span className="text-[9px] font-black uppercase text-studio-neon tracking-widest">Extend Subscription (Add Time)</span>
+                                <div className="flex gap-2">
+                                     <button onClick={() => handleExtendSubscription(editingUser.id, 1)} className="px-4 py-2 bg-studio-neon text-black text-[8px] font-black">+1 MONTH</button>
+                                     <button onClick={() => handleExtendSubscription(editingUser.id, 3)} className="px-4 py-2 bg-studio-neon text-black text-[8px] font-black">+3 MONTHS</button>
+                                     <button onClick={() => handleExtendSubscription(editingUser.id, 12)} className="px-4 py-2 bg-studio-neon text-black text-[8px] font-black">+12 MONTHS</button>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -1033,50 +1078,6 @@ export default function AdminDashboardClient({
             </div>
         )}
 
-        {/* 👥 CUSTOMERS TAB */}
-        {activeTab === 'USERS' && (
-            <div className="bg-black/60 border border-white/10 overflow-hidden relative z-10 shadow-2xl">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-white/5 border-b border-white/10">
-                        <tr>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">ID</th>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Customer</th>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Plan</th>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credits</th>
-                            <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {allCustomers.map((user) => (
-                            <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
-                                <td className="p-8 font-mono text-[9px] text-white/10">{user.id.slice(0, 8)}...</td>
-                                <td className="p-8">
-                                    <div className="text-sm font-black italic tracking-tight">{user.full_name || 'Anonymous User'}</div>
-                                    <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest leading-none mt-1">{user.id === editingUser?.id ? 'SYNCING...' : 'Node_Active'}</div>
-                                </td>
-                                <td className="p-8 text-center">
-                                    <span className="px-5 py-1.5 bg-black border border-white/10 text-[8px] font-black uppercase tracking-widest text-white/40 rounded-full group-hover:border-studio-yellow group-hover:text-studio-yellow transition-all">
-                                        {user.user_accounts?.[0]?.subscription_tier || 'Free'}
-                                    </span>
-                                </td>
-                                <td className="p-8">
-                                    <div className="flex items-center justify-center gap-3">
-                                        <Key className="h-3 w-3 text-studio-neon" />
-                                        <span className="text-lg font-black italic tracking-tighter text-studio-neon">{user.user_accounts?.[0]?.credits || 0}</span>
-                                    </div>
-                                </td>
-                                <td className="p-8 text-right">
-                                    <button 
-                                        onClick={() => setEditingUser(user)}
-                                        className="px-6 py-2 bg-white text-black border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-studio-neon transition-all shadow-lg"
-                                    >Admin Console</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        )}
 
         {/* 📡 SYSTEM LOGS TAB */}
         {activeTab === 'LOGS' && (
@@ -1177,7 +1178,7 @@ export default function AdminDashboardClient({
                                 </div>
                                 <div className="md:col-span-4 flex items-center justify-end gap-3 flex-wrap">
                                     <button onClick={() => handleShowVault(user)} className="h-10 px-6 bg-black border border-white/10 hover:border-studio-neon text-[8px] font-black uppercase tracking-widest hover:text-studio-neon transition-all group/btn flex items-center gap-2">
-                                        <Disc className="w-3 h-3 group-hover/btn:animate-spin" /> Vault
+                                        <Disc className="w-3 h-3 group-hover/btn:animate-spin" /> Library
                                     </button>
                                     <button onClick={() => handleToggleBan(user.id, !!user.is_banned)} className={`h-10 px-6 border ${user.is_banned ? 'bg-studio-neon text-black border-studio-neon' : 'bg-black border-white/10 text-white/20 hover:border-spider-red hover:text-spider-red'} text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2`}>
                                         {user.is_banned ? <Unlock className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
@@ -1270,19 +1271,19 @@ export default function AdminDashboardClient({
                 <div className="relative z-10 h-full flex flex-col">
                     <div className="flex items-start justify-between mb-12">
                         <div>
-                            <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-studio-neon mb-4">
-                                <Activity className="h-3 w-3 animate-pulse" /> TARGET_OVERSIGHT :: {userModalTab}
-                            </div>
-                            <h2 className="text-6xl font-black italic tracking-tighter uppercase leading-none">Account<br/><span className="text-studio-neon">_Diagnostic</span></h2>
+                             <div className="flex items-center gap-4 text-studio-neon/40 text-[9px] font-black uppercase tracking-[0.4em] mb-4">
+                                 <Activity className="h-3 w-3 animate-pulse" /> USER_DETAILS :: {userModalTab}
+                             </div>
+                             <h2 className="text-6xl font-black italic tracking-tighter uppercase leading-none">User<br/><span className="text-studio-neon">_Summary</span></h2>
                         </div>
                         <div className="flex flex-col items-end gap-6 text-right">
                             <button onClick={() => { setSelectedUser(null); setSelectedUserVault(null); setSelectedUserTransactions(null); }} className="h-16 w-16 bg-black border-2 border-white/10 flex items-center justify-center hover:border-studio-neon transition-all hover:rotate-90">
                                 <Zap className="text-white/40" />
                             </button>
                             <div className="flex gap-2 p-1 bg-black/40 border border-white/5">
-                                <button onClick={() => setUserModalTab('VAULT')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'VAULT' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Artifact Vault</button>
-                                <button onClick={() => setUserModalTab('FINANCE')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'FINANCE' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Financial Registry</button>
-                                <button onClick={() => setUserModalTab('SUBSCRIPTION')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'SUBSCRIPTION' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Subscription Hub</button>
+                                <button onClick={() => setUserModalTab('VAULT')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'VAULT' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>User Library</button>
+                                <button onClick={() => setUserModalTab('FINANCE')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'FINANCE' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Payment History</button>
+                                <button onClick={() => setUserModalTab('SUBSCRIPTION')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'SUBSCRIPTION' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Subscription Info</button>
                             </div>
                         </div>
                     </div>
@@ -1291,7 +1292,7 @@ export default function AdminDashboardClient({
                         {userModalTab === 'VAULT' && (
                             <div className="animate-in fade-in duration-300">
                                 <div className="grid grid-cols-12 gap-6 px-10 py-5 bg-studio-grey border-b border-black text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic sticky top-0 z-20">
-                                    <div className="col-span-8">Artifact Name / Signal ID</div>
+                                    <div className="col-span-8">Sound Name / ID</div>
                                     <div className="col-span-2 text-center">Type</div>
                                     <div className="col-span-2 text-right">Unlocked</div>
                                 </div>
@@ -1316,7 +1317,7 @@ export default function AdminDashboardClient({
                         {userModalTab === 'FINANCE' && (
                             <div className="animate-in fade-in duration-300">
                                 <div className="grid grid-cols-12 gap-6 px-10 py-5 bg-studio-grey border-b border-black text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic sticky top-0 z-20">
-                                    <div className="col-span-6">Order ID / Payment Node</div>
+                                    <div className="col-span-6">Order ID / Payment ID</div>
                                     <div className="col-span-2 text-center">Amount</div>
                                     <div className="col-span-2 text-center">Credits</div>
                                     <div className="col-span-2 text-right">Timestamp</div>
@@ -1332,7 +1333,7 @@ export default function AdminDashboardClient({
                                             <div className="col-span-2 text-center"><span className="px-4 py-1.5 bg-studio-neon/10 border border-studio-neon text-studio-neon text-[9px] font-black tracking-widest leading-none">+{tx.credits_awarded} CR</span></div>
                                             <div className="col-span-2 text-right text-[10px] font-black uppercase text-white/20 italic">{new Date(tx.created_at).toLocaleDateString()}</div>
                                         </div>
-                                    )) : <div className="p-32 text-center text-[11px] font-black uppercase tracking-widest text-white/10 italic">REGISTRY_EMPTY :: NO_DEPOSITS_DETECTED</div>}
+                                    )) : <div className="p-32 text-center text-[11px] font-black uppercase tracking-widest text-white/10 italic">EMPTY :: NO PAYMENTS FOUND</div>}
                                 </div>
                             </div>
                         )}
@@ -1341,7 +1342,7 @@ export default function AdminDashboardClient({
                             <div className="p-20 space-y-12 animate-in fade-in duration-300">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                                     <div className="p-10 bg-black/40 border border-white/5 space-y-6 group hover:border-studio-neon transition-all">
-                                        <span className="text-[9px] font-black uppercase text-white/20 tracking-widest">Active Plan Node</span>
+                                        <span className="text-[9px] font-black uppercase text-white/20 tracking-widest">Active Plan</span>
                                         <div className="flex flex-col gap-4">
                                             <div className="text-5xl font-black italic tracking-tighter text-studio-neon uppercase leading-none">{selectedUser?.subscription_tier || 'NO_TIER'}</div>
                                             <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest truncate italic">Registry Email: {selectedUser?.email}</div>
@@ -1353,7 +1354,7 @@ export default function AdminDashboardClient({
                                     </div>
 
                                     <div className="p-10 bg-black/40 border-2 border-dashed border-white/10 space-y-6">
-                                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest flex items-center gap-4"><RefreshCw className="h-3 w-3 animate-spin-slow" /> Next Billing Pulse</span>
+                                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest flex items-center gap-4"><RefreshCw className="h-3 w-3 animate-spin-slow" /> Next Billing Date</span>
                                         <div className="text-5xl font-black italic tracking-tighter text-white uppercase leading-none">{selectedUser?.next_billing ? new Date(selectedUser.next_billing).toLocaleDateString() : 'NO_CYCLE'}</div>
                                         <div className="flex items-center justify-between pt-6 border-t border-white/5">
                                             <div className={`text-[8px] font-black uppercase tracking-widest ${selectedUser?.subscription_status === 'ACTIVE' ? 'text-studio-neon' : 'text-spider-red'}`}>Status: {selectedUser?.subscription_status}</div>
@@ -1363,9 +1364,9 @@ export default function AdminDashboardClient({
                                 </div>
                                 
                                 <div className="p-12 bg-spider-red/5 border border-spider-red/20 space-y-6">
-                                     <div className="flex items-center gap-4 text-spider-red"><Lock className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Dangerous Node Suppression</span></div>
+                                     <div className="flex items-center gap-4 text-spider-red"><Lock className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Danger Zone</span></div>
                                      <p className="text-[10px] font-medium text-white/40 leading-relaxed max-w-xl italic lowercase">Terminating this node will instantly revoke high-bandwidth artifact access. User credits will be preserved but cycles will halt immediately.</p>
-                                     <button onClick={() => handleTerminateSub(selectedUser?.id)} className="px-12 py-5 border-2 border-spider-red text-spider-red font-black uppercase text-[10px] tracking-widest hover:bg-spider-red hover:text-black transition-all">Terminate Node Lifecycle</button>
+                                     <button onClick={() => handleTerminateSub(selectedUser?.id)} className="px-12 py-5 border-2 border-spider-red text-spider-red font-black uppercase text-[10px] tracking-widest hover:bg-spider-red hover:text-black transition-all">Terminate Subscription</button>
                                 </div>
                             </div>
                         )}
@@ -1376,7 +1377,7 @@ export default function AdminDashboardClient({
                             <div className="flex flex-col"><span className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Total Unlocks</span><span className="text-4xl font-black italic tracking-tighter text-studio-neon leading-none">{selectedUserVault?.length || 0}</span></div>
                             <div className="flex flex-col"><span className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Lifetime Deposits</span><span className="text-4xl font-black italic tracking-tighter text-studio-neon leading-none text-white">₹{selectedUserTransactions?.reduce((acc, curr) => acc + (curr.amount_inr || 0), 0) || 0}</span></div>
                         </div>
-                        <button onClick={() => { setSelectedUser(null); setSelectedUserVault(null); setSelectedUserTransactions(null); }} className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.4em] hover:bg-studio-neon transition-all">Exit Diagnostic</button>
+                        <button onClick={() => { setSelectedUser(null); setSelectedUserVault(null); setSelectedUserTransactions(null); }} className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.4em] hover:bg-studio-neon transition-all">Close Summary</button>
                     </div>
                 </div>
             </div>

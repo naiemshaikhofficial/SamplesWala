@@ -67,7 +67,7 @@ export default async function Home() {
         <div className="px-6 md:px-20 py-24 border-y-8 border-black bg-studio-grey/30 relative">
             <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-neon opacity-20">
                 <div className="w-4 h-4 border-2 border-studio-neon animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Marketplace_Unit :: New_Arrivals</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Latest Arrivals</span>
             </div>
             <NewArrivals packs={latestPacks || []} />
         </div>
@@ -126,7 +126,7 @@ export default async function Home() {
         <div className="px-6 md:px-20 py-32 bg-studio-charcoal border-b-8 border-black relative">
             <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-yellow opacity-20">
                 <SlidersHorizontal className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Playlist::Top_Signatures</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Top Sounds Trending</span>
             </div>
             <div className="max-w-[2000px] mx-auto">
                 <Suspense fallback={<div className="h-96 bg-black" />}>
@@ -145,8 +145,8 @@ export default async function Home() {
                     <SlidersHorizontal className="h-40 w-40" />
                 </div>
                 <ShieldCheck className="h-16 w-16 mb-12 text-studio-neon group-hover:text-black transition-colors" />
-                <h4 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">Universal<br/>License</h4>
-                <p className="text-lg font-bold opacity-40 group-hover:opacity-100 group-hover:text-black leading-loose max-w-sm mt-8">Every artifact is 100% royalty-free and production-ready for your DAW.</p>
+                <h4 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">Usage<br/>Rights</h4>
+                <p className="text-lg font-bold opacity-40 group-hover:opacity-100 group-hover:text-black leading-loose max-w-sm mt-8">Every sound is 100% royalty-free and ready for your next hit.</p>
                 <div className="mt-12 h-2 w-20 bg-studio-yellow group-hover:bg-black transition-all" />
             </div>
             <div className="flex-1 p-12 md:p-24 hover:bg-studio-yellow hover:text-black transition-all group relative overflow-hidden">

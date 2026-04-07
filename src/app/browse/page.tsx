@@ -33,7 +33,7 @@ export default async function BrowsePage({
   const params = await (searchParams as any)
   const categories = await getAllCategories()
   
-  // 🎹 BOOTING SOUND ENGINE (Integrated Precision Signal)
+  // 🎹 Loading Sounds (Precision Search)
   const [packs, samples] = await Promise.all([
      getFilteredPacks({ 
         query: params.q, 
@@ -84,7 +84,7 @@ export default async function BrowsePage({
         <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex items-center gap-8">
                 <div className="h-10 w-1 bg-studio-neon" />
-                <h1 className="text-4xl font-black uppercase tracking-tighter italic">BROWSE_<span className="text-studio-neon">SOUNDS</span></h1>
+                <h1 className="text-4xl font-black uppercase tracking-tighter italic">Sounds_<span className="text-studio-neon">Library</span></h1>
             </div>
 
             <form action="/browse" className="relative w-full max-w-xl">
@@ -92,7 +92,7 @@ export default async function BrowsePage({
                 <input 
                     name="q"
                     type="text" 
-                    placeholder="Search artifacts..." 
+                    placeholder="Search sounds..." 
                     defaultValue={params.q}
                     className="w-full bg-black px-16 py-4 border-2 border-white/5 focus:border-studio-neon transition-all uppercase font-black tracking-widest text-lg focus:outline-none"
                 />
@@ -102,10 +102,10 @@ export default async function BrowsePage({
 
       <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row min-h-[calc(100vh-140px)]">
         
-        {/* 🎛️ SIDEBAR_DIAGNOSTICS (Precision Filters) */}
+        {/* 🎛️ Search Filters */}
         <SidebarFilters categories={categories} />
 
-        {/* 🎧 SIGNAL_GRID (Playlist Area) */}
+        {/* 🎧 SOUND_GRID */}
         <main className="flex-1 p-8 md:p-12 space-y-24 bg-[#080808]">
             
             {/* Packs Layout */}
@@ -144,7 +144,7 @@ export default async function BrowsePage({
                 </div>
             )}
 
-            {/* Individual Signals List */}
+            {/* Individual Sounds List */}
             {samples && samples.length > 0 && (
                 <div className="space-y-12">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/10">
@@ -195,7 +195,7 @@ export default async function BrowsePage({
               <div className="flex flex-col items-center justify-center py-40 border-2 border-dashed border-white/5 opacity-40">
                   <Cpu size={48} className="mb-10 text-studio-neon animate-pulse" />
                   <h2 className="text-2xl font-black uppercase tracking-[0.5em]">No Sounds Found</h2>
-                  <p className="text-[10px] uppercase tracking-[0.3em] mt-4 italic">Adjust_Diagnostic_Filters</p>
+                  <p className="text-[10px] uppercase tracking-[0.3em] mt-4 italic">Try adjusting your filters</p>
               </div>
             )}
         </main>

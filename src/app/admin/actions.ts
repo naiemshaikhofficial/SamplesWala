@@ -5,12 +5,12 @@ import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { AIStudioAnalyser } from '@/lib/ai/analyser'
 
-// 🛡️ SECURITY PROTOCOL :: GLOBAL AUTHORIZATION
+// 🛡️ Admin Security Check
 async function ensureAdmin() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    if (!user) throw new Error('UNAUTHENTICATED')
+    if (!user) throw new Error('NOT_LOGGED_IN')
 
     const { data: adminRecord } = await supabase
         .from('admins')
@@ -23,9 +23,9 @@ async function ensureAdmin() {
                         user.email?.includes('sampleswala') || 
                         user.email?.includes('beatswala');
 
-    if (!isAuthorized) throw new Error('UNAUTHORIZED_ACCESS')
+    if (!isAuthorized) throw new Error('NOT_AUTHORIZED')
     
-    // 🔑 ESCALATE PRIVILEGES :: Switch to Admin Client (Service Role) to bypass RLS
+    // Switch to Admin Client (Service Role) to bypass RLS for management tasks
     const adminClient = getAdminClient()
     return { supabase: adminClient, user }
 }
@@ -129,12 +129,73 @@ export async function updateCreditsAction(userId: string, amount: number) {
 export async function assignSubscriptionAction(userId: string, planId: string) {
     const { supabase } = await ensureAdmin()
     
+    // Set expiry to 30 days from now for manual assignment
+    const expiry = new Date()
+    expiry.setDate(expiry.getDate() + 30)
+
     const { error } = await supabase
         .from('user_accounts')
         .update({ 
-            subscription_status: 'active',
-            subscription_tier: planId 
+            subscription_status: 'ACTIVE',
+            subscription_tier: planId.toUpperCase(),
+            next_billing: expiry.toISOString()
         })
+        .eq('id', userId)
+
+    if (error) throw new Error(error.message)
+    
+    revalidatePath('/admin')
+    return { success: true }
+}
+
+export async function extendSubscriptionAction(userId: string, months: number) {
+    const { supabase } = await ensureAdmin()
+    
+    // Fetch current status
+    const { data: acc, error: fetchError } = await supabase
+        .from('user_accounts')
+        .select('next_billing, subscription_status')
+        .eq('id', userId)
+        .single()
+
+    if (fetchError) {
+        // If not exists in user_accounts, first manual assignment sets 30 days
+        const firstExpiry = new Date()
+        firstExpiry.setMonth(firstExpiry.getMonth() + months)
+        await supabase.from('user_accounts').insert([{ id: userId, subscription_status: 'ACTIVE', next_billing: firstExpiry.toISOString() }])
+        revalidatePath('/admin')
+        return { success: true }
+    }
+
+    let baseDate = new Date()
+    if (acc.subscription_status === 'ACTIVE' && acc.next_billing) {
+        const currentEx = new Date(acc.next_billing)
+        if (currentEx > baseDate) baseDate = currentEx
+    }
+
+    const newEx = new Date(baseDate)
+    newEx.setMonth(newEx.setMonth(newEx.getMonth() + months))
+
+    const { error: updateError } = await supabase
+        .from('user_accounts')
+        .update({ 
+            subscription_status: 'ACTIVE',
+            next_billing: newEx.toISOString()
+        })
+        .eq('id', userId)
+
+    if (updateError) throw new Error(updateError.message)
+    
+    revalidatePath('/admin')
+    return { success: true }
+}
+
+export async function manualSetCreditsAction(userId: string, total: number) {
+    const { supabase } = await ensureAdmin()
+    
+    const { error } = await supabase
+        .from('user_accounts')
+        .update({ credits: total })
         .eq('id', userId)
 
     if (error) throw new Error(error.message)

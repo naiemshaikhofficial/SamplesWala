@@ -30,7 +30,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
     const currentKey = searchParams.get('key')
     const currentTag = searchParams.get('tag')
     
-    // 🧬 Filter State Architecture
+    // 🧬 Filter Settings
     const [bpmMin, setBpmMin] = useState(searchParams.get('bpm_min') || '')
     const [bpmMax, setBpmMax] = useState(searchParams.get('bpm_max') || '')
     
@@ -142,7 +142,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
     return (
         <aside className="w-full md:w-80 border-r-2 border-black bg-[#0d0d0d] p-8 space-y-12 shrink-0">
             
-            {/* Header Signal */}
+            {/* Filters Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/5">
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">FILTERS</span>
                 {(currentCategory || currentType || currentKey || bpmMin || bpmMax) && (
@@ -204,7 +204,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
             {/* Producer Search */}
             <div className="space-y-4">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
-                    <UserCheck size={14} className="text-studio-neon" /> BY PRODUCER
+                    <UserCheck size={14} className="text-studio-neon" /> BY DESIGNER
                 </div>
                 <input 
                     type="text" 
@@ -240,7 +240,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 </div>
             </div>
 
-            {/* AI Suggested (Simple Intelligence) */}
+            {/* Suggested for you */}
             <div className="pt-8 border-t-2 border-black space-y-6">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] text-studio-neon italic animate-pulse">
                     <Activity size={14} /> AI Suggested
@@ -327,7 +327,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                     <X size={16} /> Reset Filters
                 </button>
                 <div className="p-6 bg-black/40 border-2 border-black">
-                    <div className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">System Status</div>
+                    <div className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mb-4 border-b border-white/5 pb-2">Status</div>
                     <div className="space-y-2">
                         <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-white/10">
                             <span className="flex items-center gap-2"><Activity size={8} className="text-studio-neon" /> Connection</span>
