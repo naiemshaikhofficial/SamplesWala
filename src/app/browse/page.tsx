@@ -124,6 +124,7 @@ export default async function BrowsePage({
                                                 src={pack.cover_url} 
                                                 alt={pack.name} 
                                                 fill 
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                 className="object-cover grayscale-0 group-hover:scale-110 transition-transform duration-1000 opacity-60 group-hover:opacity-100" 
                                             />
                                         ) : (
