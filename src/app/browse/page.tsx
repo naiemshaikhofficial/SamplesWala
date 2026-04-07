@@ -84,7 +84,7 @@ export default async function BrowsePage({
         <div className="max-w-[1700px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
             <div className="flex items-center gap-8">
                 <div className="h-10 w-1 bg-studio-neon" />
-                <h1 className="text-4xl font-black uppercase tracking-tighter italic">ARTIFACT_<span className="text-studio-neon">BROWN</span>SER</h1>
+                <h1 className="text-4xl font-black uppercase tracking-tighter italic">BROWSE_<span className="text-studio-neon">SOUNDS</span></h1>
             </div>
 
             <form action="/browse" className="relative w-full max-w-xl">
@@ -112,7 +112,7 @@ export default async function BrowsePage({
             {packs && packs.length > 0 && (
                 <div className="space-y-12">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/10">
-                        <Folder size={12} className="text-studio-neon" /> Artifact_Clusters
+                        <Folder size={12} className="text-studio-neon" /> Sound Packs
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {packs.map((pack: any) => (
@@ -148,7 +148,7 @@ export default async function BrowsePage({
             {samples && samples.length > 0 && (
                 <div className="space-y-12">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/10">
-                        <Cable size={12} className="text-studio-neon" /> Discrete_Signals
+                        <Cable size={12} className="text-studio-neon" /> Individual Sounds
                     </div>
                     <div className="divide-y-2 divide-black border-2 border-black bg-[#111]">
                         {samples.map((sample: any, idx: number) => {
@@ -192,7 +192,7 @@ export default async function BrowsePage({
             {hasNoResults && (
               <div className="flex flex-col items-center justify-center py-40 border-2 border-dashed border-white/5 opacity-40">
                   <Cpu size={48} className="mb-10 text-studio-neon animate-pulse" />
-                  <h2 className="text-2xl font-black uppercase tracking-[0.5em]">No_Frequency_Detected</h2>
+                  <h2 className="text-2xl font-black uppercase tracking-[0.5em]">No Sounds Found</h2>
                   <p className="text-[10px] uppercase tracking-[0.3em] mt-4 italic">Adjust_Diagnostic_Filters</p>
               </div>
             )}

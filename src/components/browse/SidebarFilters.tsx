@@ -36,7 +36,6 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
     
     const currentQuery = searchParams.get('q')
 
-    // 📡 SIGNAL_ROUTING: Update URL when filters change (debounced for logic)
     const updateFilters = (updates: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString())
         Object.entries(updates).forEach(([key, val]) => {
@@ -216,7 +215,7 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 />
             </div>
 
-            {/* Tempo_Bounds (Temporal Pulse) */}
+            {/* Tempo & BPM */}
             <div className="space-y-4">
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
                     <Timer size={14} className="text-studio-neon" /> BPM

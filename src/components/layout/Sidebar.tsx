@@ -143,7 +143,7 @@ export function Sidebar() {
                     type="text" 
                     value={searchVal}
                     onChange={(e) => setSearchVal(e.target.value)}
-                    placeholder="SEARCH_CATALOG :: ..." 
+                    placeholder="Search sounds..." 
                     className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none"
                     />
                 ) : (
@@ -232,8 +232,8 @@ export function Sidebar() {
                 </div>
                 )}
                 {[
-                    { id: 'library', label: 'Your_Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
-                    { id: 'profile', label: 'My_Account', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
+                    { id: 'library', label: 'My Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
+                    { id: 'profile', label: 'Settings', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
                 ].map((item) => (
                     <Link
                         key={item.id}
@@ -255,7 +255,7 @@ export function Sidebar() {
                             {isOpen ? (
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-black text-studio-yellow leading-none uppercase">Available Credits</span>
-                                    <span className="text-[8px] font-black text-white/40 mt-1 uppercase tracking-widest">{creditCount !== null ? `${creditCount} TOKENS` : 'FETCHING...'}</span>
+                                    <span className="text-[8px] font-black text-white/40 mt-1 uppercase tracking-widest">{creditCount !== null ? `${creditCount} CREDITS` : 'LOADING...'}</span>
                                 </div>
                             ) : (
                                 <span className="text-[10px] font-black text-studio-yellow">{creditCount}</span>
@@ -273,7 +273,7 @@ export function Sidebar() {
                     onClick={async () => {
                         if (window.confirm("Are you sure you want to LOGOUT?")) {
                             const { error } = await supabase.auth.signOut();
-                            if (error) console.error("SHUTDOWN_ERROR:", error);
+                            if (error) console.error("Logout Error:", error);
                             router.refresh();
                             router.push('/auth/login');
                         }

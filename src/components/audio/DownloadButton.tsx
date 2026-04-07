@@ -44,7 +44,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                     setIsUnlocked(true)
                     updateMetadataUnlocked(sampleId)
                     setNeedsConfirm(false)
-                    showToast('SAMPLE ACQUIRED', 'success')
+                    showToast('Sound Unlocked!', 'success')
                     window.dispatchEvent(new Event('refresh-credits'))
                 }
             } else {
@@ -61,7 +61,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                 showAuthGate()
                 return
             }
-            showToast(err.message || "TRANSACTION FAILED", "error")
+            showToast(err.message || "Error", "error")
         } finally {
             setIsProcessing(false)
         }
@@ -88,7 +88,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                 {isProcessing ? (
                     <div className="flex items-center gap-2 px-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">UNLOCKING...</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest">Unlocking...</span>
                     </div>
                 ) : (isUnlocked || creditCost === 0) ? (
                     <Download className={`h-4 w-4 ${isPlaying ? 'animate-bounce' : ''} text-white group-hover:text-black transition-colors`} />

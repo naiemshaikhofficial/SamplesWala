@@ -105,9 +105,9 @@ export function GlobalPlayer() {
                 </div>
             </div>
 
-            {/* 🕹️ DESKTOP TRANSPORT (HIDDEN ON MOBILE) */}
-            <div className="hidden md:flex flex-grow items-center gap-6">
-                <div className="flex items-center p-0.5 bg-white/5 border border-white/10">
+            {/* 🕹️ CENTERED CONTROL CORE */}
+            <div className="hidden md:flex flex-1 items-center justify-center gap-6">
+                <div className="flex items-center p-1 bg-white/5 border border-white/10 rounded-sm">
                     <button 
                         onClick={prev}
                         className="h-10 w-10 flex items-center justify-center hover:bg-white/10 transition-all text-white/30 hover:text-white"
@@ -129,66 +129,32 @@ export function GlobalPlayer() {
                     >
                         <SkipForward size={16} fill="currentColor" />
                     </button>
-                    <button 
-                        onClick={toggleLoop} 
-                        className={`h-10 w-10 flex items-center justify-center transition-all border-l border-white/10 ${isLooping ? 'bg-studio-neon text-black font-black' : 'hover:bg-white/10'}`}
-                    >
-                        <Repeat size={14} className={isLooping ? 'animate-pulse' : ''} />
-                    </button>
                 </div>
 
-                {/* 📊 ANALYSER_GRID (Desktop & Tablet) */}
-                <div className="flex-grow flex flex-col gap-1">
-                    <div className="relative h-6 group">
-                        <div className="absolute inset-0 bg-white/5 border border-white/5 flex items-center overflow-hidden">
-                            <div className="flex items-end gap-[1px] h-full w-full opacity-10 absolute inset-0 pointer-events-none scale-y-150">
-                                <DAWVisualizer color={activeMetadata?.isUnlocked ? "#a6e22e" : "#ff4d4d"} bars={80} height={20} />
-                            </div>
-                            <input
-                                type="range" min="0" max={duration || 100} step="0.1" value={currentTime}
-                                onChange={(e) => seek(parseFloat(e.target.value))}
-                                className="w-full h-full opacity-0 cursor-crosshair relative z-20"
-                            />
-                            <div className="absolute top-0 left-0 h-full bg-studio-neon/30 border-r-2 border-studio-neon shadow-[0_0_15px_#a6e22e33]" style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
+                {/* Metadata & Timestamp Group */}
+                <div className="flex items-center gap-1">
+                    {activeMetadata?.bpm && (
+                        <div className="flex flex-col items-center justify-center h-12 w-20 bg-black/60 border border-white/5 rounded-sm">
+                            <span className="text-[14px] font-black italic text-studio-neon leading-none">{activeMetadata.bpm}</span>
+                            <span className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">BPM</span>
                         </div>
+                    )}
+                    <div className="flex flex-col items-center justify-center h-12 w-24 bg-black/60 border border-white/5 rounded-sm">
+                        <span className="text-[14px] font-black italic text-white leading-none tabular-nums">{formatTime(currentTime)}</span>
+                        <span className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">TIME</span>
                     </div>
                 </div>
+
+                <button 
+                    onClick={toggleLoop} 
+                    className={`h-12 w-12 flex items-center justify-center transition-all border border-white/10 rounded-sm ${isLooping ? 'bg-studio-neon text-black font-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
+                >
+                    <Repeat size={14} className={isLooping ? 'animate-pulse' : ''} />
+                </button>
             </div>
 
-            {/* 📊 MOBILE PROGRESS BAR (FULL WIDTH) */}
-            <div className="md:hidden w-full relative h-[3px] bg-white/10 mb-2">
-                <div className="absolute inset-0 pointer-events-none">
-                    <input
-                        type="range" min="0" max={duration || 100} step="0.1" value={currentTime}
-                        onChange={(e) => seek(parseFloat(e.target.value))}
-                        className="w-full h-full opacity-0 absolute inset-0 z-20"
-                    />
-                    <div className="absolute top-0 left-0 h-full bg-studio-neon transition-all duration-100" style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
-                </div>
-            </div>
-
-            {/* 🏷️ METADATA_TAGS (Desktop Only) */}
-            <div className="hidden xl:flex items-center gap-6 px-6 border-l border-white/5 h-10">
-                {activeMetadata?.bpm && (
-                    <div className="flex flex-col items-center">
-                        <span className="text-[7px] font-black text-white/30 uppercase tracking-widest mb-1">TEMPO</span>
-                        <span className="text-[14px] font-black italic text-studio-yellow leading-none">{activeMetadata.bpm}</span>
-                    </div>
-                )}
-                {activeMetadata?.audioKey && (
-                    <div className={`flex flex-col items-center border-white/10 pl-6 ${activeMetadata?.bpm ? 'border-l' : ''}`}>
-                        <span className="text-[7px] font-black text-white/30 uppercase tracking-widest mb-1">KEY</span>
-                        <span className="text-[14px] font-black italic text-white leading-none">{activeMetadata.audioKey}</span>
-                    </div>
-                )}
-                <div className="flex flex-col items-center border-l border-white/10 pl-6">
-                    <span className="text-[7px] font-black text-white/30 uppercase tracking-widest mb-1">TIMESTAMP</span>
-                    <span className="text-[14px] font-black italic text-white leading-none tabular-nums">{formatTime(currentTime)}</span>
-                </div>
-            </div>
-
-            {/* 🎚️ MASTER_IO (Desktop & Mobile Sync) */}
-            <div className="flex items-center gap-4 md:gap-6 shrink-0 transition-all border-l border-white/5 pl-6">
+            {/* 🎚️ MASTER_IO (Balanced w-96 for symmetry) */}
+            <div className="flex items-center gap-4 md:gap-6 shrink-0 transition-all border-l border-white/5 pl-6 md:w-96 justify-end">
                 {/* 🔊 VOLUME_SIGNAL_BUS */}
                 <div className="hidden md:flex items-center gap-3 w-28 group relative">
                     <Volume2 size={12} className="text-white/20 group-hover:text-studio-neon transition-colors" />
@@ -212,6 +178,15 @@ export function GlobalPlayer() {
                 <button onClick={() => stop()} className="h-10 w-10 border border-white/10 hover:bg-studio-neon hover:text-black transition-all group flex items-center justify-center">
                     <X size={14} className="opacity-40 group-hover:opacity-100" />
                 </button>
+            </div>
+            {/* 📊 GLOBAL PROGRESS BAR (Absolute Bottom of Player) */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5 z-30">
+                <input
+                    type="range" min="0" max={duration || 100} step="0.1" value={currentTime}
+                    onChange={(e) => seek(parseFloat(e.target.value))}
+                    className="w-full h-full opacity-0 absolute inset-0 z-40 cursor-pointer"
+                />
+                <div className="absolute top-0 left-0 h-full bg-studio-neon transition-all duration-100 shadow-[0_0_10px_#a6e22e]" style={{ width: `${(currentTime / (duration || 1)) * 100}%` }} />
             </div>
           </div>
         </motion.div>

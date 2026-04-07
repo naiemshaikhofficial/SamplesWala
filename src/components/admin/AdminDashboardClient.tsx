@@ -90,7 +90,7 @@ export default function AdminDashboardClient({
   const [editingPack, setEditingPack] = useState<any>(null)
   const [editingSound, setEditingSound] = useState<any>(null)
 
-  const [newPack, setNewPack] = useState({ name: '', description: '', price: 0, cover_url: '' })
+  const [newPack, setNewPack] = useState({ name: '', description: '', price_inr: 0, price_usd: 0, cover_url: '', slug: '' })
   const [newSound, setNewSound] = useState({ 
     name: '', 
     audio_url: '', 
@@ -322,7 +322,7 @@ export default function AdminDashboardClient({
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
             <div className="bg-studio-grey w-full max-w-xl border-8 border-black p-10 relative">
                 <button onClick={() => setShowNewPackModal(false)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Create_New_Pack</h2>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Create New Pack</h2>
                 <form onSubmit={handleCreatePack} className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Pack Name</label>
@@ -335,7 +335,17 @@ export default function AdminDashboardClient({
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Price (INR)</label>
-                            <input required type="number" value={newPack.price} onChange={e => setNewPack({ ...newPack, price: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                            <input required type="number" value={newPack.price_inr} onChange={e => setNewPack({ ...newPack, price_inr: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Price (USD)</label>
+                            <input required type="number" value={newPack.price_usd} onChange={e => setNewPack({ ...newPack, price_usd: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Slug (URL)</label>
+                            <input required value={newPack.slug} onChange={e => setNewPack({ ...newPack, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="e.g. bollywood-master" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover URL</label>
@@ -343,7 +353,7 @@ export default function AdminDashboardClient({
                         </div>
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
-                        {isSubmitting ? 'SYNCING...' : 'REGISTER_PACK'}
+                        {isSubmitting ? 'SAVING...' : 'CREATE PACK'}
                     </button>
                 </form>
             </div>
@@ -355,7 +365,7 @@ export default function AdminDashboardClient({
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
             <div className="bg-studio-grey w-full max-w-3xl border-8 border-black p-10 relative">
                 <button onClick={() => setShowNewSoundModal(false)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Ingest_New_Sound</h2>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Add New Sound</h2>
                 <form onSubmit={handleAddSound} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -418,7 +428,7 @@ export default function AdminDashboardClient({
                         </div>
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
-                        {isSubmitting ? 'INGESTING...' : 'SYNC_TO_CATALOG'}
+                        {isSubmitting ? 'ADDING...' : 'ADD SOUND'}
                     </button>
                 </form>
             </div>
@@ -430,7 +440,7 @@ export default function AdminDashboardClient({
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
             <div className="bg-studio-grey w-full max-w-xl border-8 border-black p-10 relative">
                 <button onClick={() => setEditingPack(null)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Edit_Pack_Metadata</h2>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Edit Pack</h2>
                 <form onSubmit={handleEditPack} className="space-y-6">
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Pack Name</label>
@@ -443,7 +453,17 @@ export default function AdminDashboardClient({
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Price (INR)</label>
-                            <input required type="number" value={editingPack.price} onChange={e => setEditingPack({ ...editingPack, price: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                            <input required type="number" value={editingPack.price_inr} onChange={e => setEditingPack({ ...editingPack, price_inr: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Price (USD)</label>
+                            <input required type="number" value={editingPack.price_usd} onChange={e => setEditingPack({ ...editingPack, price_usd: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Slug (URL)</label>
+                            <input required value={editingPack.slug} onChange={e => setEditingPack({ ...editingPack, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Cover URL</label>
@@ -451,7 +471,7 @@ export default function AdminDashboardClient({
                         </div>
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
-                        {isSubmitting ? 'SYNCING...' : 'SYNC_CATALOG_CALIBRATION'}
+                        {isSubmitting ? 'SAVING...' : 'SAVE CHANGES'}
                     </button>
                     <button type="button" onClick={() => setEditingPack(null)} className="w-full py-4 border border-white/10 text-white/20 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all">Cancel</button>
                 </form>
@@ -464,7 +484,7 @@ export default function AdminDashboardClient({
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
             <div className="bg-studio-grey w-full max-w-3xl border-8 border-black p-10 relative">
                 <button onClick={() => setEditingSound(null)} className="absolute top-4 right-4 text-white/20 hover:text-white"><Zap size={20}/></button>
-                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Calibrate_Sound_Artifact</h2>
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase mb-10 text-studio-neon">Edit Sound</h2>
                 <form onSubmit={handleEditSound} className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -514,7 +534,7 @@ export default function AdminDashboardClient({
                         </div>
                     </div>
                     <button disabled={isSubmitting} type="submit" className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-widest hover:invert transition-all disabled:opacity-50">
-                        {isSubmitting ? 'CALIBRATING...' : 'SYNC_ARTIFACT_RESONANCE'}
+                        {isSubmitting ? 'UPDATING...' : 'SAVE CHANGES'}
                     </button>
                     <button type="button" onClick={() => setEditingSound(null)} className="w-full py-4 border border-white/10 text-white/20 font-black uppercase text-[10px] tracking-widest hover:text-white transition-all">Cancel</button>
                 </form>
@@ -531,7 +551,7 @@ export default function AdminDashboardClient({
                 </div>
                 <div>
                     <span className="font-black uppercase tracking-widest text-sm italic">SAMPLES_WALA</span>
-                    <span className="text-[7px] font-bold uppercase text-white/20 tracking-widest mt-1">V5.2_PRODUCTION_SYSTEM</span>
+                    <span className="text-[7px] font-bold uppercase text-white/20 tracking-widest mt-1">Admin Control Panel</span>
                 </div>
             </Link>
 
@@ -570,7 +590,7 @@ export default function AdminDashboardClient({
                    <Users className="w-5 h-5 opacity-20 group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <div className="text-[8px] font-black uppercase text-white/20 truncate">Authorized ID</div>
+                    <div className="text-[8px] font-black uppercase text-white/20 truncate">Admin Email</div>
                     <div className="text-[11px] font-black italic tracking-tighter truncate leading-tight">{userEmail}</div>
                 </div>
              </div>
@@ -584,7 +604,7 @@ export default function AdminDashboardClient({
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-12 mb-24 relative z-10">
             <div>
                 <div className="flex items-center gap-4 mb-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/20">
-                    <Activity className="h-3 w-3 text-studio-neon animate-pulse" /> STATION :: {activeTab}
+                    <Activity className="h-3 w-3 text-studio-neon animate-pulse" /> ADMIN / {activeTab}
                 </div>
                 <h1 className="text-7xl font-black uppercase tracking-tighter italic leading-none border-l-8 border-studio-yellow pl-10">Admin<br/><span className="text-studio-neon">_{activeTab}</span></h1>
             </div>
@@ -724,14 +744,14 @@ export default function AdminDashboardClient({
                                 </button>
                                 <div>
                                     <h2 className="text-4xl font-black italic tracking-tighter uppercase">{selectedPack.name}</h2>
-                                    <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Signal_Path :: {selectedPack.id}</span>
+                                    <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Pack ID :: {selectedPack.id}</span>
                                 </div>
                             </div>
                             <button 
                                 onClick={() => setShowNewSoundModal(true)}
                                 className="px-10 py-4 bg-studio-neon text-black font-black uppercase text-[10px] tracking-widest hover:invert transition-all flex items-center gap-4"
                             >
-                                <PlusCircle size={16} /> Add_Sound_Artifact
+                                <PlusCircle size={16} /> Add New Sound
                             </button>
                         </div>
 
@@ -739,7 +759,7 @@ export default function AdminDashboardClient({
                             <table className="w-full text-left border-collapse">
                                 <thead className="bg-white/5 border-b border-white/10">
                                     <tr>
-                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Sample</th>
+                                        <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Sound Name</th>
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">BPM</th>
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Key</th>
                                         <th className="p-8 text-[9px] font-black uppercase tracking-[0.2em] text-white/40 text-center">Credits</th>
@@ -751,7 +771,7 @@ export default function AdminDashboardClient({
                                         <tr key={sound.id} className="hover:bg-white/[0.02] transition-colors group">
                                             <td className="p-8">
                                                 <div className="text-sm font-black italic tracking-tight">{sound.name}</div>
-                                                <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest mt-1">Artifact_ID: {sound.id.slice(0, 8)}</div>
+                                                <div className="text-[8px] font-bold text-white/20 uppercase tracking-widest mt-1">ID: {sound.id.slice(0, 8)}</div>
                                             </td>
                                             <td className="p-8 text-center">
                                                 <span className="text-sm font-black italic text-studio-neon">{sound.bpm || '--'}</span>
@@ -810,7 +830,7 @@ export default function AdminDashboardClient({
                                     </div>
                                     <div className="text-right">
                                         <span className="text-[8px] font-black uppercase text-white/20 tracking-widest block">Price</span>
-                                        <span className="text-xl font-black italic tracking-tighter text-studio-neon">₹{pack.price}</span>
+                                        <span className="text-xl font-black italic tracking-tighter text-studio-neon">₹{pack.price_inr || 0}</span>
                                     </div>
                                 </div>
                                 <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-2 truncate relative z-10 pointer-events-none">{pack.name}</h3>

@@ -27,7 +27,7 @@ async function ensureAdmin() {
 }
 
 // 📦 PACK_CATALOG_ACTIONS
-export async function createPackAction(formData: { name: string, description: string, price: number, cover_url: string }) {
+export async function createPackAction(formData: { name: string, description: string, price_inr: number, price_usd: number, cover_url: string, slug: string }) {
     const { supabase } = await ensureAdmin()
     const { data, error } = await supabase
         .from('sample_packs')
