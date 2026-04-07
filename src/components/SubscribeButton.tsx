@@ -53,9 +53,9 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       const options: any = {
         key: orderData.key,
         name: 'Samples Wala',
-        description: isMandate 
-            ? `Mandate Setup: ${planName} (Recurring Activation)` 
-            : `Activation for ${planName}`,
+        description: orderData.isTrialLink 
+            ? `30-Day Free Trial: ${planName} (Auto-renews at ₹${orderData.planPrice}/mo)` 
+            : `Membership Activation: ${planName}`,
         handler: async function (response: any) {
             // 3. Verify Payment on Success (Signature handshake)
             const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, planId)
@@ -115,7 +115,7 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
         ) : (
           <>
             <Sparkles className={`h-4 w-4 ${isFeatured ? 'text-yellow-600' : 'text-white/20'} group-hover:animate-pulse`} />
-            <span>{planName}</span>
+            <span>{planName} {mode === 'subscription' && <span className="ml-2 text-[10px] opacity-40 font-black tracking-widest text-studio-neon animate-pulse">(FREE TRIAL)</span>}</span>
           </>
         )}
       </div>

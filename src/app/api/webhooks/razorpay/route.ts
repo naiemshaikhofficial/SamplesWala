@@ -127,7 +127,8 @@ export async function POST(req: Request) {
                 if (subNotes.user_id) {
                     await supabase.from('user_accounts').update({ 
                         razorpay_subscription_id: activeSub.id,
-                        plan_id: subNotes.plan_id
+                        plan_id: subNotes.plan_id,
+                        is_trial_used: subNotes.is_trial === 'true' // Mark trial consumption
                     }).eq('user_id', subNotes.user_id)
                 }
                 break;

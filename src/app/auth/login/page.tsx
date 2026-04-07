@@ -39,14 +39,9 @@ function LoginForm() {
     setError(null)
     
     const formData = new FormData(e.currentTarget)
-    try {
-        const result = await login(formData)
-        if (result?.error) {
-            setError(result.error)
-        }
-    } catch (err: any) {
-        setError("AUTHENTICATION_FAILED: CHECK_CREDENTIALS")
-    } finally {
+    const result = await login(formData)
+    if (result?.error) {
+        setError(result.error)
         setIsPending(false)
     }
   }

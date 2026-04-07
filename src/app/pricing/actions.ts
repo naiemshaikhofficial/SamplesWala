@@ -31,26 +31,38 @@ export async function createSubscription(planId: string) {
   // 2. DETECT COMMERCE SIGNAL: Use Subscription API if Plan ID is mapped
   try {
     if (plan.razorpay_plan_id) {
-        // 🔥 UPI MANDATE FLOW (₹2 Auth)
+        // 🧬 TRIAL_LOGIC: Apply 30-day trial for new identities (Mandate-led)
+        const { data: account } = await supabase.from('user_accounts').select('is_trial_used, subscription_status').eq('user_id', user.id).single()
+        const isTrialEligible = !account?.is_trial_used && account?.subscription_status !== 'ACTIVE'
+        
+        const trialDays = 30;
+        const startAt = isTrialEligible 
+            ? Math.floor(Date.now() / 1000) + (trialDays * 24 * 60 * 60)
+            : undefined;
+
         const subscription = await razorpay.subscriptions.create({
           plan_id: plan.razorpay_plan_id,
           total_count: 12, // Authorize for 1 year of recurring signals
           quantity: 1,
+          start_at: startAt, // 🔥 Charges start after 30 days if eligible
           customer_notify: 1,
           notes: {
             user_id: user.id,
             plan_id: planId,
-            type: 'subscription_mandate'
+            type: 'subscription_mandate',
+            is_trial: isTrialEligible ? 'true' : 'false'
           }
         })
 
         return { 
             success: true, 
             subscriptionId: subscription.id,
-            amount: plan.price_inr * 100, // For display in checkout
+            amount: isTrialEligible ? 0 : (plan.price_inr * 100), // Display 0 if trial
             key: process.env.RAZORPAY_KEY_ID,
             user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' },
-            isSubscription: true
+            isSubscription: true,
+            isTrialLink: isTrialEligible,
+            planPrice: plan.price_inr
         }
     } else {
         // Fallback to standard order if no plan_id is mapped yet
@@ -187,7 +199,8 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
                 user_id: user.id,
                 plan_id: plan.id,
                 razorpay_subscription_id: subscriptionId || null, // Link recurring signal
-                next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                is_trial_used: true // Consume trial eligibility
             }, { onConflict: 'user_id' })
         
         if (accountError) throw accountError

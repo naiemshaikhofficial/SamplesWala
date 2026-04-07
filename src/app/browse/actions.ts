@@ -15,7 +15,7 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   const supabase = await createClient()
   const cleanQuery = filters.query?.trim()
   
-  let queryBuilder = supabase.from('sample_packs').select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url, categories(name)')
+  let queryBuilder = supabase.from('sample_packs').select('id, name, slug, description, price_inr, price_usd, cover_url, category_id, is_featured, created_at, categories(name)')
   
   if (cleanQuery) {
     queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`)
@@ -49,7 +49,7 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   
   if (error && error.code === 'PGRST200') {
     console.warn('[REPAIRING_RELATIONAL_SIGNATURE] Categories relationship missing. Falling back...');
-    const fallbackQuery = supabase.from('sample_packs').select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
+    const fallbackQuery = supabase.from('sample_packs').select('id, name, slug, description, price_inr, price_usd, cover_url, category_id, is_featured, created_at')
     const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false })
     if (fallbackError) {
         console.error('[BROWSE_ACTION_CRITICAL_FAILURE]', fallbackError);
@@ -217,7 +217,7 @@ export async function getRelatedPacks(currentPackId: string, categoryId: string)
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('sample_packs')
-    .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
+    .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at')
     .eq('category_id', categoryId)
     .neq('id', currentPackId)
     .limit(4)

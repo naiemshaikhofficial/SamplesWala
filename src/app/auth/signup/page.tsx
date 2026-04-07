@@ -39,14 +39,9 @@ function SignupForm() {
     setError(null)
     
     const formData = new FormData(e.currentTarget)
-    try {
-        const result = await signup(formData)
-        if (result?.error) {
-            setError(result.error)
-        }
-    } catch (err: any) {
-        setError("NODE_REGISTRATION_FAILED: SYSTEM_REJECTED")
-    } finally {
+    const result = await signup(formData)
+    if (result?.error) {
+        setError(result.error)
         setIsPending(false)
     }
   }
