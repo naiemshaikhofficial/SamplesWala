@@ -176,8 +176,8 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
     const subscriptionId = paymentRes.razorpay_subscription_id
 
     let body = ''
-    if (subscriptionId) body = `${subscriptionId}|${paymentId}`
-    else body = `${orderId}|${paymentId}`
+    if (subscriptionId) body = `${paymentId}|${subscriptionId}`  // Razorpay subscription format
+    else body = `${orderId}|${paymentId}`                        // Razorpay order format
 
     const expectedSignature = crypto
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
