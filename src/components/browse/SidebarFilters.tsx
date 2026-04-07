@@ -383,16 +383,18 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
             </AnimatePresence>
 
             {/* 🖥️ DESKTOP_SIDEBAR */}
-            <aside className="hidden md:block w-80 border-r-2 border-black bg-[#0d0d0d] p-8 shrink-0 overflow-y-auto max-h-[calc(100vh-140px)] custom-scrollbar">
-                <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-10">
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic text-simple">FILTERS</span>
-                    {(currentCategory || currentType || currentKey || currentGenre) && (
-                        <button onClick={clearFilters} className="text-studio-neon hover:text-white transition-colors text-[10px] font-bold">
-                            CLEAR
-                        </button>
-                    )}
+            <aside className="hidden md:block w-80 border-r-2 border-black bg-[#0d0d0d] shrink-0 h-full relative">
+                <div className="sticky top-[160px] p-8 z-30">
+                    <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-10">
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic text-simple">FILTERS</span>
+                        {(currentCategory || currentType || currentKey || currentGenre) && (
+                            <button onClick={clearFilters} className="text-studio-neon hover:text-white transition-colors text-[10px] font-bold">
+                                CLEAR
+                            </button>
+                        )}
+                    </div>
+                    <FilterSections />
                 </div>
-                <FilterSections />
             </aside>
         </>
     )

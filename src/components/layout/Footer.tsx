@@ -12,7 +12,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="w-full bg-[#050505] border-t border-white/10 relative overflow-hidden font-mono z-30 select-none">
+    <footer className="hidden md:block w-full bg-[#050505] border-t border-white/10 relative overflow-hidden font-mono z-30 select-none">
       
       {/* 🧬 PRIMARY_DAW_CONSOLE_BAR */}
       <div className="flex flex-col md:flex-row items-stretch border-b border-white/5 bg-black/40">
