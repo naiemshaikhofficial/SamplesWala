@@ -233,11 +233,11 @@ export function Sidebar() {
                 )}
                 {[
                     { id: 'library', label: 'My Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
-                    { id: 'profile', label: 'Settings', icon: <Settings2 className="w-3 h-3" />, href: '/settings' },
                 ].map((item) => (
                     <Link
                         key={item.id}
                         href={item.href}
+                        title={item.label}
                         className={`flex flex-col gap-1 p-2 text-[10px] font-black uppercase tracking-tighter transition-all hover:bg-white/5 group border-l-2 border-transparent text-white/40 hover:text-white ${!isOpen ? 'items-center border-l-0 border-b-2' : ''}`}
                     >
                         <div className="flex items-center gap-3">
@@ -247,22 +247,7 @@ export function Sidebar() {
                     </Link>
                 ))}
 
-                {/* 🧧 LIVE_CREDIT_METER */}
-                {user && (
-                    <div className={`p-2 transition-all ${!isOpen ? 'bg-studio-yellow/5 border-b-2 border-studio-yellow/20' : ''}`}>
-                         <div className={`flex items-center gap-3 p-2 bg-studio-yellow/5 border-2 border-studio-yellow/10 rounded-sm group hover:border-studio-yellow/40 transition-all ${!isOpen ? 'border-none bg-transparent justify-center' : ''}`}>
-                            <Key size={12} className="text-studio-yellow animate-pulse" />
-                            {isOpen ? (
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black text-studio-yellow leading-none uppercase">Available Credits</span>
-                                    <span className="text-[8px] font-black text-white/40 mt-1 uppercase tracking-widest">{creditCount !== null ? `${creditCount} CREDITS` : 'LOADING...'}</span>
-                                </div>
-                            ) : (
-                                <span className="text-[10px] font-black text-studio-yellow">{creditCount}</span>
-                            )}
-                         </div>
-                    </div>
-                )}
+                {/* 🧧 LIVE_CREDIT_METER REMOVED (Consolidated to Header) */}
             </div>
         </div>
 

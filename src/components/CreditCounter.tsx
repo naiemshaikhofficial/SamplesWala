@@ -38,19 +38,38 @@ export function CreditCounter() {
   }, [supabase])
 
   useEffect(() => {
-    syncState()
+    let activeChannel: any = null;
 
-    // Real-time synchronization for internal updates
-    const channel = supabase.channel('account-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_accounts' }, () => syncState())
-      .subscribe()
+    const setupRealtime = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-    // Force refresh listener for manual events
+        syncState()
+
+        // 🧬 DYNAMIC_SIGNAL_ISOLATION (Force fresh channel via timestamp)
+        activeChannel = supabase.channel(`acc-sync-${user.id}-${Date.now()}`)
+          .on(
+            'postgres_changes', 
+            { 
+              event: '*', 
+              schema: 'public', 
+              table: 'user_accounts',
+              filter: `user_id=eq.${user.id}`
+            }, 
+            () => syncState()
+          )
+        
+        // 📡 Subscribe after setup
+        activeChannel.subscribe()
+    }
+
+    setupRealtime()
+
     const onManualRefresh = () => syncState();
     window.addEventListener('refresh-credits', onManualRefresh);
 
     return () => { 
-        supabase.removeChannel(channel) 
+        if (activeChannel) supabase.removeChannel(activeChannel) 
         window.removeEventListener('refresh-credits', onManualRefresh);
     }
   }, [supabase, syncState])

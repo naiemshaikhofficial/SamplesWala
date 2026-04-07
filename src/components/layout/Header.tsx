@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Music, User, Activity, Play, Pause, Square, Circle, Cpu, Layers, Disc } from 'lucide-react'
+import { Music, User, Activity, Play, Pause, Square, Circle, Cpu, Layers, Disc, Settings as SettingsIcon, HelpCircle } from 'lucide-react'
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
@@ -50,18 +50,24 @@ export function Header() {
               { label: 'Sounds', href: '/browse' },
               { label: 'Packs', href: '/browse' },
               { label: 'Pricing', href: '/pricing' },
-              { label: 'My Library', href: '/library' },
+              { label: 'Library', href: '/library' },
               { label: 'Account', href: '/profile' }
-            ].map(item => (
-                <Link key={item.label} href={item.href} className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group">
+            ].map((item: any) => (
+                <Link key={item.label} href={item.href} className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group" title={item.label}>
                    <div className="w-1.5 h-1.5 rounded-full bg-studio-neon opacity-20 group-hover:opacity-100 transition-opacity" />
                    {item.label}
                 </Link>
             ))}
         </div>
         <div className="flex items-center gap-6 text-[9px] font-black uppercase text-white/20">
-            <span className="flex items-center gap-2 text-studio-neon"><Activity size={10} /> System Online</span>
-            <span className="flex items-center gap-2"><Disc size={10} className="animate-spin-slow" /> HQ Audio</span>
+            <Link href="/faq" className="hover:text-studio-neon transition-colors" title="Help">
+                <HelpCircle size={14} />
+            </Link>
+            <Link href="/settings" className="hover:text-studio-neon transition-colors" title="Settings">
+                <SettingsIcon size={14} />
+            </Link>
+            <span className="flex items-center gap-2 text-studio-neon"><Activity size={10} /> Online</span>
+            <span className="flex items-center gap-2"><Disc size={10} className="animate-spin-slow" /> 48K</span>
         </div>
       </div>
 

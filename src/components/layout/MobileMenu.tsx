@@ -32,9 +32,10 @@ const sidebarGroups = [
   {
     label: "User Archive",
     items: [
-      { id: 'library', label: 'My Library', icon: <Key className="w-5 h-5" /> },
-      { id: 'purchases', label: 'Purchase History', icon: <Timer className="w-5 h-5" /> },
-      { id: 'favorites', label: 'Liked Sounds', icon: <Sparkles className="w-5 h-5" /> },
+      { id: 'library', label: 'My Library', icon: <Key className="w-5 h-5" />, href: '/library' },
+      { id: 'settings', label: 'Settings', icon: <Settings2 className="w-5 h-5" />, href: '/settings' },
+      { id: 'purchases', label: 'Purchase History', icon: <Timer className="w-5 h-5" />, href: '/library' },
+      { id: 'favorites', label: 'Liked Sounds', icon: <Sparkles className="w-5 h-5" />, href: '/library' },
     ]
   }
 ];
