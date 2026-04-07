@@ -78,6 +78,11 @@ export default async function BrowsePage({
 
   const musicalKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+  const isNewAssets = params.sort === 'newest';
+  const isTrending = params.filter === 'trending';
+  const dynamicTitle = isNewAssets ? 'NEW ARRIVALS' : (isTrending ? 'TOP TRENDS' : 'SOUNDS LIBRARY');
+  const dynamicLabel = isNewAssets ? 'NEW SIGNAL ARCHIVE' : (isTrending ? 'POPULAR SONIC DATA' : 'EXPLORE LIBRARY');
+
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white bg-[#0a0a0a]">
       
@@ -85,13 +90,13 @@ export default async function BrowsePage({
       <header className="mb-16 md:mb-24 shrink-0">
         <div className="flex items-center gap-4 mb-8">
             <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon italic">
-                EXPLORE LIBRARY
+                {dynamicLabel}
             </span>
         </div>
         <div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
             <div className="flex-1">
                 <h1 className="text-5xl md:text-7xl xl:text-[8vw] font-black tracking-tighter uppercase leading-[0.85] md:leading-[0.8] italic text-white shadow-studio-text">
-                    SOUNDS <span className="text-studio-neon">LIBRARY</span>
+                    {dynamicTitle.split(' ')[0]} <span className="text-studio-neon">{dynamicTitle.split(' ')[1]}</span>
                 </h1>
             </div>
 
@@ -196,6 +201,28 @@ export default async function BrowsePage({
                         unlockedSampleIds={unlockedSampleIds} 
                         isFullPackUnlocked={false} 
                     />
+
+                    {samples.length >= (parseInt(params.limit || '25')) && (
+                        <div className="pt-20 pb-12 flex justify-center">
+                            <Link 
+                                href={`/browse?${new URLSearchParams({
+                                    ...params,
+                                    limit: (parseInt(params.limit || '25') + 25).toString()
+                                }).toString()}`}
+                                className="group relative flex flex-col items-center gap-6"
+                            >
+                                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-studio-neon animate-pulse">
+                                    EXPAND_SIGNAL_MATRIX
+                                </span>
+                                <div className="h-16 w-16 rounded-full border-4 border-dashed border-white/10 group-hover:border-studio-neon transition-all flex items-center justify-center group-hover:rotate-180 duration-1000">
+                                    <ArrowRight className="h-8 w-8 text-white/20 group-hover:text-studio-neon group-hover:-rotate-90 transition-all" />
+                                </div>
+                                <span className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white/10 group-hover:text-white transition-colors">
+                                    LOAD_MORE
+                                </span>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             )}
 

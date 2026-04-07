@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getFilteredPacks } from '../browse/actions'
 import Link from 'next/link'
-import { SlidersHorizontal, Music, Zap, Disc } from 'lucide-react'
+import { SlidersHorizontal, Music, Zap, Disc, ArrowRight, Layers, Monitor, Cpu } from 'lucide-react'
 import Image from 'next/image'
 import { PriceDisplay } from '@/components/PriceDisplay'
 
@@ -16,39 +16,93 @@ export default async function SamplePacksPage({
   const { data: categories } = await supabase.from('categories').select('*')
 
   return (
-    <div className="container mx-auto px-4 py-12 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <h1 className="text-4xl font-black tracking-tighter uppercase leading-none italic">All Sample Packs</h1>
-      </div>
+    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white bg-[#0a0a0a]">
+      
+      {/* 🎚️ PACKS_CATALOG_HEADER */}
+      <header className="mb-16 md:mb-24 shrink-0">
+        <div className="flex items-center gap-4 mb-8">
+            <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon italic">
+                ARCHIVE_TERMINAL
+            </span>
+        </div>
+        <div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
+            <div className="flex-1">
+                <h1 className="text-5xl md:text-7xl xl:text-[8vw] font-black tracking-tighter uppercase leading-[0.85] md:leading-[0.8] italic text-white shadow-studio-text">
+                    SOUND <span className="text-studio-neon">PACKS</span>
+                </h1>
+            </div>
 
-      <div className="flex flex-col lg:flex-row gap-12">
-        <main className="flex-grow">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="flex gap-4 h-8 overflow-hidden hidden xl:flex">
+                {[...Array(20)].map((_, i) => (
+                    <div key={i} className="w-1 bg-studio-neon animate-peak opacity-10" style={{ animationDelay: `${i*0.1}s` }} />
+                ))}
+            </div>
+        </div>
+      </header>
+
+      <main className="space-y-16">
+          <div className="flex items-center justify-between border-b-4 border-black pb-8 mb-12">
+              <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter flex items-center gap-4 text-white/40">
+                  <Layers className="h-6 w-6 text-studio-neon" /> Catalog_Archive
+              </h2>
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/20 italic">
+                  TOTAL_PACKS: {packs?.length || 0}
+              </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
             {packs?.map((pack: any) => (
-              <Link key={pack.id} href={`/packs/${pack.slug}`} className="group flex flex-col p-4 rounded-2xl bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-white/20 transition-all active:scale-[0.98]">
-                <div className="aspect-square relative overflow-hidden rounded-xl bg-white/5 mb-4 group-hover:shadow-2xl transition-all">
-                  {pack.cover_url ? (
-                    <Image src={pack.cover_url} alt={pack.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                     <div className="absolute inset-0 flex items-center justify-center text-white/5 font-black italic text-3xl uppercase tracking-tighter mix-blend-overlay">
-                        WALA
+              <div key={pack.id} className="group flex flex-col">
+                <Link href={`/packs/${pack.slug}`}>
+                    <div className="aspect-square relative overflow-hidden studio-panel bg-studio-grey border-2 border-white/10 shadow-2xl group mb-8">
+                        {/* VST Header Header */}
+                        <div className="absolute top-0 inset-x-0 bg-[#111] px-4 py-2 flex items-center justify-between border-b border-black z-20">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-white/30 truncate pr-10">{pack.name}</span>
+                            <div className="flex gap-1.5 opacity-40">
+                                <div className="w-1.5 h-1.5 rounded-full bg-studio-neon" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-studio-yellow" />
+                            </div>
+                        </div>
+                        
+                        {pack.cover_url ? (
+                            <Image 
+                                src={pack.cover_url} 
+                                alt={pack.name} 
+                                fill 
+                                sizes="(max-width: 1024px) 100vw, 33vw"
+                                className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 pt-10" 
+                            />
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center pt-10">
+                                <Monitor className="h-20 w-20 text-white/5" />
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                     </div>
-                  )}
-                </div>
-                <h3 className="font-bold text-lg leading-tight mb-4 uppercase tracking-tight line-clamp-1">{pack.name}</h3>
-                <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
-                  <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} className="text-sm font-black italic" />
-                </div>
-              </Link>
+                    
+                    <h3 className="text-3xl font-black uppercase tracking-tighter mb-4 italic text-white group-hover:text-studio-neon transition-colors leading-[0.9]">
+                        {pack.name}
+                    </h3>
+                    
+                    <div className="flex items-center justify-between border-t border-white/5 pt-6">
+                        <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} className="text-[11px] font-black tracking-widest" />
+                        <div className="text-[8px] font-black uppercase tracking-widest text-white/20 italic group-hover:text-studio-yellow transition-colors">
+                            OPEN_SOURCE <ArrowRight size={14} className="inline ml-1" />
+                        </div>
+                    </div>
+                </Link>
+              </div>
             ))}
           </div>
+
           {(!packs || packs.length === 0) && (
-            <div className="py-20 text-center text-muted-foreground italic border-2 border-dashed border-white/5 rounded-3xl">
-              No sample packs found in the database.
+            <div className="flex flex-col items-center justify-center py-40 border-4 border-dashed border-white/5 bg-black/20 rounded-sm opacity-30 shadow-inner">
+                <Cpu size={64} className="mb-12 text-studio-neon animate-reverse-spin" />
+                <h2 className="text-3xl font-black uppercase tracking-[0.6em] italic text-white">No Archive Found</h2>
+                <p className="text-[10px] uppercase tracking-[0.4em] mt-8 italic text-white/40 leading-relaxed">System scan could not detect active data packets</p>
             </div>
           )}
-        </main>
-      </div>
+      </main>
     </div>
   )
 }
