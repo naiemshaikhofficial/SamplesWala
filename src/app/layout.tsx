@@ -35,10 +35,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
-        <MasterLight />
-        <ScanlineOverlay />
-        <SignalScan />
         <ClientProviders>
+          <MasterLight />
+          <ScanlineOverlay />
+          <SignalScan />
           <div className="flex min-h-screen relative overflow-x-hidden">
             <Suspense fallback={null}>
                 <Sidebar />

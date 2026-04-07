@@ -1,10 +1,14 @@
+
 'use client'
 
 import { useEffect, useState } from 'react'
 import { motion, useSpring, useMotionValue } from 'framer-motion'
+import { useAudio } from '@/components/audio/AudioProvider'
 
 export function MasterLight() {
   const [mounted, setMounted] = useState(false)
+  const { activeMetadata, isPlaying } = useAudio()
+  const activeBpm = activeMetadata?.bpm || null
   
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
@@ -13,32 +17,52 @@ export function MasterLight() {
   const x = useSpring(mouseX, springConfig)
   const y = useSpring(mouseY, springConfig)
 
+  // 🧬 Master BPM Rhythmic Pulse Signal: Calculation from Metadata
+  const pulseDuration = activeBpm ? 60 / activeBpm : 2; 
+
   useEffect(() => {
     setMounted(true)
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMoveWindow = (e: MouseEvent) => {
       mouseX.set(e.clientX)
       mouseY.set(e.clientY)
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', handleMouseMoveWindow)
+    return () => window.removeEventListener('mousemove', handleMouseMoveWindow)
   }, [mouseX, mouseY])
 
   if (!mounted) return null
 
   return (
-    <motion.div 
-      className="fixed inset-0 pointer-events-none z-[10] overflow-hidden"
-      style={{
-        background: `radial-gradient(circle 400px at ${x.get()}px ${y.get()}px, rgba(166, 226, 46, 0.03), transparent 70%)`
-      }}
-    >
-        {/* Subtle Tracking Dot */}
+    <div className="fixed inset-0 pointer-events-none z-[10] overflow-hidden">
+        {/* Dynamic Glow: Follows mouse + Pulses with BPM */}
         <motion.div 
             style={{ x, y }}
-            className="absolute -left-20 -top-20 w-40 h-40 bg-studio-neon opacity-[0.05] rounded-full blur-[60px]"
+            animate={{
+                scale: isPlaying ? [1, 1.15, 1] : [1, 1],
+                opacity: isPlaying ? [0.08, 0.15, 0.08] : [0.05, 0.05]
+            }}
+            transition={{
+                duration: pulseDuration,
+                repeat: Infinity,
+                ease: "easeInOut"
+            }}
+            className="absolute -left-40 -top-40 w-80 h-80 bg-studio-neon rounded-full blur-[100px]"
         />
-    </motion.div>
+
+        {/* Global Ambient Breath Signal: BPM-locked opacity wave */}
+        <motion.div 
+            animate={{
+                opacity: isPlaying ? [0.01, 0.03, 0.01] : [0, 0]
+            }}
+            transition={{
+                duration: pulseDuration,
+                repeat: Infinity,
+                ease: "linear"
+            }}
+            className="absolute inset-0 bg-studio-neon/5"
+        />
+    </div>
   )
 }
 
