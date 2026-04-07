@@ -45,27 +45,31 @@ export function GlobalPlayer() {
           {/* ⚡ DOS SCANLINE OVERLAY */}
           <div className="absolute inset-0 pointer-events-none z-10 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
           
-          {/* Header Strip - COMPACT ON MOBILE */}
-          <div className="bg-white/5 border-b border-white/5 px-4 md:px-6 py-1 flex justify-between items-center text-[7px] md:text-[8px] font-bold tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-40">
+          {/* Header Strip - CLARIFIED WARNINGS */}
+          <div className="bg-white/5 border-b border-white/5 px-4 md:px-6 py-2 flex justify-between items-center text-[8px] md:text-[9px] font-black tracking-widest uppercase">
              <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
-                <span className="hidden xs:inline shrink-0">[ MASTER_BUS_LIVE ]</span>
+                <span className="hidden xs:inline shrink-0 text-white/20">System Active</span>
                 {isLoading ? (
-                    <span className="text-studio-neon animate-pulse">[ BUFFERING ]</span>
+                    <span className="text-studio-neon animate-pulse">Loading Audio...</span>
                 ) : activeMetadata?.isUnlocked ? (
-                    <span className="text-studio-neon animate-pulse">● MASTER_SIGNAL_ACTIVE :: 24-BIT_LOSSLESS</span>
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-studio-neon animate-pulse shadow-[0_0_8px_#a6e22e]" />
+                        <span className="text-studio-neon font-black">Playing: Original Quality (Lossless)</span>
+                    </div>
                 ) : (
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <span className="text-spider-red animate-pulse">● PREVIEW_SIG_ACTIVE</span>
-                        <div className="hidden sm:block h-2 w-px bg-white/20" />
-                        <span className="hidden sm:inline italic text-white/40 truncate">
-                            WATERMARKED_PREVIEW // UNLOCK_TO_REMOVE_SIGNAL_NOISE
-                        </span>
+                    <div className="flex items-center gap-3 overflow-hidden bg-studio-yellow/10 px-3 py-1 rounded-sm border border-studio-yellow/20">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-studio-yellow animate-pulse" />
+                            <span className="text-studio-yellow font-black">Preview Mode</span>
+                        </div>
+                        <div className="h-3 w-px bg-white/10" />
+                        <span className="text-white/60 italic lowercase">watermark active // unlock for high quality</span>
                     </div>
                 )}
              </div>
-             <div className="flex items-center gap-4 shrink-0">
-                <span className="hidden md:inline">BUFFER_OK :: 128_SAMPLES</span>
-                <span className="text-studio-neon">VOL: {(volume * 100).toFixed(0)}%</span>
+             <div className="flex items-center gap-4 shrink-0 text-white/20 font-black">
+                <span className="hidden md:inline">Buffer: 100%</span>
+                <span className="text-studio-neon">Volume: {(volume * 100).toFixed(0)}%</span>
              </div>
           </div>
 
@@ -83,7 +87,7 @@ export function GlobalPlayer() {
                     </div>
                     <div className="overflow-hidden">
                         <span className="text-[7px] font-black text-studio-neon tracking-widest truncate uppercase italic block">
-                            {activeMetadata?.packName || "EXTERNAL"}
+                            {activeMetadata?.packName || "Sample Pack"}
                         </span>
                         <h4 className="text-[12px] md:text-lg font-black tracking-tight truncate leading-none text-white uppercase">
                             {activeMetadata?.name || "UNNAMED"}
@@ -135,12 +139,18 @@ export function GlobalPlayer() {
                 <div className="flex items-center gap-1">
                     {activeMetadata?.bpm && (
                         <div className="flex flex-col items-center justify-center h-12 w-20 bg-black/60 border border-white/5 rounded-sm">
-                            <span className="text-[14px] font-black italic text-studio-neon leading-none">{activeMetadata.bpm}</span>
+                            <span className="text-[12px] font-black italic text-studio-neon leading-none">{activeMetadata.bpm}</span>
                             <span className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">BPM</span>
                         </div>
                     )}
+                    {activeMetadata?.audioKey && (
+                        <div className="flex flex-col items-center justify-center h-12 w-20 bg-black/60 border border-white/5 rounded-sm">
+                            <span className="text-[12px] font-black italic text-white leading-none">{activeMetadata.audioKey}</span>
+                            <span className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">KEY</span>
+                        </div>
+                    )}
                     <div className="flex flex-col items-center justify-center h-12 w-24 bg-black/60 border border-white/5 rounded-sm">
-                        <span className="text-[14px] font-black italic text-white leading-none tabular-nums">{formatTime(currentTime)}</span>
+                        <span className="text-[12px] font-black italic text-white leading-none tabular-nums">{formatTime(currentTime)}</span>
                         <span className="text-[7px] font-black text-white/20 uppercase tracking-widest mt-1">TIME</span>
                     </div>
                 </div>

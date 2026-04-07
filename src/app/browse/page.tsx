@@ -161,6 +161,8 @@ export default async function BrowsePage({
                                             url={sample.audio_url} 
                                             name={sample.name}
                                             packName={sample.sample_packs?.name}
+                                            bpm={sample.bpm}
+                                            audioKey={sample.key}
                                             isUnlocked={isUnlocked}
                                             creditCost={sample.credit_cost}
                                         />
