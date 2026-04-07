@@ -65,7 +65,7 @@ export default function SettingsPage() {
             style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '40px 40px' }} 
         />
 
-        <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+        <div className="w-full px-8 md:px-12 relative z-10 max-w-[1920px]">
             {/* 🏷️ HEAD_SIGNAL */}
             <div className="mb-16 md:mb-20 text-center">
                 <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon mb-6">

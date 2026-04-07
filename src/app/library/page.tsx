@@ -36,7 +36,7 @@ export default function LibraryPage() {
                 style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)', backgroundSize: '40px 40px' }} 
             />
 
-            <div className="container mx-auto px-4 relative z-10 max-w-6xl">
+            <div className="w-full px-8 md:px-12 relative z-10 max-w-[1920px]">
                 
                 {/* 🕹️ TOP_NAVIGATION_SIGNAL */}
                 <div className="mb-12 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
