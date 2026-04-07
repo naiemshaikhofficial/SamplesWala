@@ -233,7 +233,7 @@ export function Sidebar() {
                 )}
                 {[
                     { id: 'library', label: 'My Library', icon: <Folder className="w-3 h-3" />, href: '/library' },
-                    { id: 'profile', label: 'Settings', icon: <UserCheck className="w-3 h-3" />, href: '/profile' },
+                    { id: 'profile', label: 'Settings', icon: <Settings2 className="w-3 h-3" />, href: '/settings' },
                 ].map((item) => (
                     <Link
                         key={item.id}

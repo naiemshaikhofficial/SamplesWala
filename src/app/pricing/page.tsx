@@ -160,11 +160,6 @@ export default async function PricingPage() {
                             </p>
                         )}
 
-                        {isActive && (
-                            <div className="flex justify-center mt-2">
-                                <CancelSubscriptionButton />
-                            </div>
-                        )}
                     </div>
 
                     {/* Animated diagnostic background */}
