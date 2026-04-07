@@ -195,7 +195,7 @@ export async function getFilteredSamples(filters: {
     const fallbackBuilder = supabase.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, created_at, sample_packs(name, category_id, cover_url)')
     if (cleanQuery) fallbackBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`);
     const { data: fbData, error: fbError } = await fallbackBuilder.limit(limitVal);
-    data = fbData;
+    data = fbData as any;
     error = fbError;
   }
 

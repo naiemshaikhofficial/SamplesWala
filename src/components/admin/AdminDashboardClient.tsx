@@ -5,14 +5,16 @@ import {
   createPackAction, editPackAction, deletePackAction,
   addSoundAction, editSoundAction, deleteSoundAction,
   updateCreditsAction, assignSubscriptionAction,
-  getSamplesToProcessAction, processAiSignalAction, getPackSamplesAction
+  getSamplesToProcessAction, processAiSignalAction, getPackSamplesAction,
+  getAllUsersAction, getUserVaultAction, terminateSubscriptionAction, 
+  toggleBanUserAction, deleteUserAction, getUserTransactionsAction
 } from '@/app/admin/actions'
 import Link from 'next/link'
 import { 
   LayoutDashboard, Package, Music, Users, ArrowUpRight, TrendingUp, 
   PlusCircle, ShieldCheck, Zap, Activity, HardDrive, Cpu, 
   Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2, Key,
-  ChevronLeft, Volume1, Volume2
+  ChevronLeft, Volume1, Volume2, ShieldAlert, Trash2, Ban, Unlock, RefreshCw
 } from 'lucide-react'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { useState, useEffect } from 'react'
@@ -28,6 +30,13 @@ export default function AdminDashboardClient({
   const [isScanning, setIsScanning] = useState(false)
   const [activeTab, setActiveTab] = useState<string>('DASHBOARD')
   const [scanProgress, setScanProgress] = useState({ current: 0, total: 0, status: 'IDLE' })
+  const [users, setUsers] = useState<any[]>(allCustomers || [])
+  const [selectedUser, setSelectedUser] = useState<any | null>(null)
+  const [selectedUserVault, setSelectedUserVault] = useState<any[] | null>(null)
+  const [selectedUserTransactions, setSelectedUserTransactions] = useState<any[] | null>(null)
+  const [userModalTab, setUserModalTab] = useState<'VAULT' | 'FINANCE' | 'SUBSCRIPTION'>('VAULT')
+  const [isRefreshingUsers, setIsRefreshingUsers] = useState(false)
+  const [userSearchTerm, setUserSearchTerm] = useState('')
 
   // 🧪 REALTIME_SIMULATOR: Just for visual flair
   const [cpuUsage, setCpuUsage] = useState(12)
@@ -101,7 +110,7 @@ export default function AdminDashboardClient({
     ai_genre: 'Indian Classical / Bollywood', 
     bpm: 120, 
     key: '', 
-    key_type: 'Minor',
+    key_type: 'None',
     credit_cost: 1,
     type: 'loop' 
   })
@@ -214,7 +223,11 @@ export default function AdminDashboardClient({
   const handleAddSound = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    const finalKey = newSound.key.trim() ? `${newSound.key.trim()} ${newSound.key_type}` : null
+    const keyBase = newSound.key.trim()
+    const finalKey = keyBase 
+        ? (newSound.key_type !== 'None' ? `${keyBase} ${newSound.key_type}` : keyBase) 
+        : null
+
     try {
         const { key_type, ...cleanPayload } = newSound // Strip invalid columns
         const payload = { 
@@ -231,6 +244,67 @@ export default function AdminDashboardClient({
         alert(`NODE_ERROR :: ${err.message}`)
     } finally {
         setIsSubmitting(false)
+    }
+  }
+
+  const handleRefreshUsers = async () => {
+    setIsRefreshingUsers(true)
+    try {
+        const data = await getAllUsersAction()
+        setUsers(data)
+    } catch (err: any) {
+        alert(`FETCH_ERROR :: ${err.message}`)
+    } finally {
+        setIsRefreshingUsers(false)
+    }
+  }
+
+  const handleShowVault = async (user: any) => {
+    try {
+        const [vault, transactions] = await Promise.all([
+            getUserVaultAction(user.id),
+            getUserTransactionsAction(user.id)
+        ])
+        setSelectedUser(user)
+        setSelectedUserVault(vault)
+        setSelectedUserTransactions(transactions)
+        setUserModalTab('VAULT')
+    } catch (err: any) {
+        alert(`FETCH_ERROR :: ${err.message}`)
+    }
+  }
+
+  const handleTerminateSub = async (userId: string) => {
+    if (!confirm('TERMINATION_CONFIRM :: End user subscription immediately?')) return
+    try {
+        await terminateSubscriptionAction(userId)
+        handleRefreshUsers()
+        alert('SUCCESS :: Frequency terminated.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    }
+  }
+
+  const handleToggleBan = async (userId: string, currentBanStatus: boolean) => {
+    const msg = currentBanStatus ? 'RESTORE_NODE :: Unban user and restore access?' : 'TERMINAL_LOCKUP :: Ban user from platform?'
+    if (!confirm(msg)) return
+    try {
+        await toggleBanUserAction(userId, !currentBanStatus)
+        handleRefreshUsers()
+        alert('SUCCESS :: Access matrix updated.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
+    }
+  }
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('☢️ NUCLEAR_DELETE :: Permanently wipe user from entire registry? This cannot be undone.')) return
+    try {
+        await deleteUserAction(userId)
+        handleRefreshUsers()
+        alert('SUCCESS :: User node erased.')
+    } catch (err: any) {
+        alert(`NODE_ERROR :: ${err.message}`)
     }
   }
 
@@ -389,7 +463,7 @@ export default function AdminDashboardClient({
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Target Pack</label>
-                            <select required value={newSound.pack_id} onChange={e => setNewSound({ ...newSound, pack_id: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] tracking-widest focus:border-studio-neon outline-none transition-all text-white">
+                            <select required value={newSound.pack_id} onChange={e => setNewSound({ ...newSound, pack_id: e.target.value })} className="w-full studio-select">
                                 <option value="">SELECT_PACK</option>
                                 {allPacks.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
@@ -409,8 +483,8 @@ export default function AdminDashboardClient({
                             <input required value={newSound.download_url} onChange={e => setNewSound({ ...newSound, download_url: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all placeholder:text-white/5" placeholder="https://drive.google.com/..." />
                         </div>
                     </div>
-                    <div className="grid grid-cols-6 gap-6">
-                        <div className="col-span-2 space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Regional Genre</label>
                             <select required value={newSound.ai_genre} onChange={e => setNewSound({ ...newSound, ai_genre: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
                                 <option>Indian Classical / Bollywood</option>
@@ -420,29 +494,43 @@ export default function AdminDashboardClient({
                                 <option>Percussive Instrument</option>
                             </select>
                         </div>
-                        <div className="space-y-2 col-span-1">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Type</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Signal Type</label>
                             <select required value={newSound.type} onChange={e => setNewSound({ ...newSound, type: e.target.value })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-[10px] focus:border-studio-neon outline-none transition-all text-white">
-                                <option value="loop">Loop</option>
-                                <option value="oneshot">Oneshot</option>
+                                <option value="loop">Loop / Phrase</option>
+                                <option value="oneshot">One-shot / Hit</option>
                             </select>
                         </div>
-                        <div className="space-y-2 col-span-1">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key (Opt)</label>
-                            <div className="flex gap-1">
-                                <input value={newSound.key} onChange={e => setNewSound({ ...newSound, key: e.target.value.toUpperCase() })} className="flex-1 bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" placeholder="E.G. C#" />
-                                <select value={newSound.key_type} onChange={e => setNewSound({ ...newSound, key_type: e.target.value })} className="bg-black border border-white/10 p-2 text-[8px] font-black uppercase outline-none focus:border-studio-neon">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">BPM</label>
+                            <input required type="number" value={newSound.bpm} onChange={e => setNewSound({ ...newSound, bpm: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Key Management (Optional)</label>
+                            <div className="flex gap-2">
+                                <input 
+                                    value={newSound.key} 
+                                    onChange={e => setNewSound({ ...newSound, key: e.target.value.toUpperCase() })} 
+                                    className="flex-[2] bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" 
+                                    placeholder="ROOT (E.G. C#)" 
+                                />
+                                <select 
+                                    value={newSound.key_type} 
+                                    onChange={e => setNewSound({ ...newSound, key_type: e.target.value })} 
+                                    className="flex-1 studio-select"
+                                >
+                                    <option>None</option>
                                     <option>Major</option>
                                     <option>Minor</option>
                                 </select>
                             </div>
+                            <p className="text-[8px] font-bold text-white/10 uppercase tracking-widest">Select 'NONE' for percussive or atonal signals.</p>
                         </div>
-                        <div className="space-y-2 col-span-1">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">BPM</label>
-                            <input required type="number" value={newSound.bpm} onChange={e => setNewSound({ ...newSound, bpm: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
-                        </div>
-                        <div className="space-y-2 col-span-1">
-                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Credits</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-white/20 tracking-widest">Credit Resonance</label>
                             <input required type="number" value={newSound.credit_cost} onChange={e => setNewSound({ ...newSound, credit_cost: Number(e.target.value) })} className="w-full bg-black border border-white/10 p-5 font-black uppercase text-xs focus:border-studio-neon outline-none transition-all" />
                         </div>
                     </div>
@@ -1019,6 +1107,96 @@ export default function AdminDashboardClient({
             </div>
         )}
 
+        {/* 👥 CUSTOMERS TAB */}
+        {activeTab === 'USERS' && (
+            <div className="space-y-12 relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                    <div className="flex-1 w-full relative group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-white/10 group-focus-within:text-studio-neon transition-colors" />
+                        <input 
+                            value={userSearchTerm}
+                            onChange={(e) => setUserSearchTerm(e.target.value)}
+                            placeholder="SEARCH_USER_SIGNAL_ID_OR_EMAIL..." 
+                            className="w-full bg-black/40 border-2 border-white/5 p-6 pl-16 font-black uppercase tracking-widest text-xs focus:border-studio-neon outline-none transition-all placeholder:text-white/5" 
+                        />
+                    </div>
+                    <button 
+                        onClick={handleRefreshUsers}
+                        disabled={isRefreshingUsers}
+                        className="px-10 py-6 border-2 border-white/10 text-white/40 font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 hover:border-studio-neon hover:text-studio-neon transition-all hover:-rotate-1"
+                    >
+                        {isRefreshingUsers ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                        Refresh Registry
+                    </button>
+                </div>
+
+                <div className="bg-black/60 border border-white/10 overflow-hidden shadow-2xl">
+                    <div className="hidden md:grid grid-cols-12 gap-6 px-12 py-6 bg-studio-grey/40 border-b border-black text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">
+                        <div className="col-span-3">User Registry ID / Email</div>
+                        <div className="col-span-2 text-center">Plan Status</div>
+                        <div className="col-span-1 text-center">Credits</div>
+                        <div className="col-span-2 text-center">Last Pulse</div>
+                        <div className="col-span-4 text-right">Access Controls</div>
+                    </div>
+
+                    <div className="divide-y divide-black">
+                        {users.filter(u => u.email?.toLowerCase().includes(userSearchTerm.toLowerCase())).map((user) => (
+                            <div key={user.id} className={`p-12 flex flex-col md:grid md:grid-cols-12 gap-8 items-center hover:bg-white/[0.03] transition-all group ${user.is_banned ? 'opacity-40 border-l-4 border-spider-red' : ''}`}>
+                                <div className="md:col-span-3 flex items-center gap-6 min-w-0">
+                                    <div className={`h-12 w-12 flex items-center justify-center border-2 transition-all ${user.is_banned ? 'border-spider-red bg-spider-red/10 overflow-hidden' : 'border-white/10 group-hover:border-studio-neon bg-black'}`}>
+                                        {user.is_banned ? <Ban className="h-5 w-5 text-spider-red scale-150 rotate-12" /> : <Users className="h-5 w-5 text-white/20 group-hover:text-studio-neon" />}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-xl font-black italic tracking-tighter truncate group-hover:text-studio-neon transition-all leading-tight">
+                                            {user.full_name}
+                                        </div>
+                                        <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-1 truncate">
+                                            {user.email}
+                                        </div>
+                                        <div className="text-[8px] font-bold text-white/10 uppercase tracking-widest mt-1">
+                                            ID: {user.id?.slice(0, 8) || 'LOST'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-2 text-center flex flex-col items-center gap-2">
+                                    <span className={`px-4 py-1.5 text-[8px] font-black uppercase tracking-widest border ${user.subscription_status === 'active' ? 'bg-studio-neon/10 border-studio-neon text-studio-neon' : 'bg-white/5 border-white/5 text-white/20'}`}>
+                                        {user.subscription_status || 'INACTIVE'}
+                                    </span>
+                                    {user.subscription_status === 'active' && (
+                                        <div className="text-[7px] font-bold text-white/40 uppercase tracking-[0.2em] italic bg-black px-2 py-0.5 border border-white/5">
+                                            {user.subscription_tier}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="md:col-span-1 text-center font-black text-2xl italic tracking-tighter text-studio-neon">
+                                    {user.credits || 0}
+                                </div>
+                                <div className="md:col-span-2 text-center">
+                                    <div className="text-[9px] font-black uppercase text-white/40 mb-1">{user.last_sign_in ? new Date(user.last_sign_in).toLocaleDateString() : 'N/A'}</div>
+                                    <div className="text-[7px] font-bold text-white/10 tracking-widest uppercase italic">{user.last_sign_in ? new Date(user.last_sign_in).toLocaleTimeString() : 'SIGNAL_LOST'}</div>
+                                </div>
+                                <div className="md:col-span-4 flex items-center justify-end gap-3 flex-wrap">
+                                    <button onClick={() => handleShowVault(user)} className="h-10 px-6 bg-black border border-white/10 hover:border-studio-neon text-[8px] font-black uppercase tracking-widest hover:text-studio-neon transition-all group/btn flex items-center gap-2">
+                                        <Disc className="w-3 h-3 group-hover/btn:animate-spin" /> Vault
+                                    </button>
+                                    <button onClick={() => handleToggleBan(user.id, !!user.is_banned)} className={`h-10 px-6 border ${user.is_banned ? 'bg-studio-neon text-black border-studio-neon' : 'bg-black border-white/10 text-white/20 hover:border-spider-red hover:text-spider-red'} text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2`}>
+                                        {user.is_banned ? <Unlock className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                                        {user.is_banned ? 'Unban' : 'Ban'}
+                                    </button>
+                                    <button onClick={() => handleTerminateSub(user.id)} className="h-10 px-6 bg-black border border-white/10 hover:border-spider-red text-white/20 hover:text-spider-red text-[8px] font-black uppercase tracking-widest transition-all group/btn flex items-center gap-2">
+                                        <Lock className="w-3 h-3" /> Kill_Sub
+                                    </button>
+                                    <button onClick={() => handleDeleteUser(user.id)} className="p-3 bg-white/5 border border-white/5 text-white/10 hover:bg-spider-red hover:text-black hover:border-spider-red transition-all group/btn">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )}
+
         {/* ⚙️ SETTINGS TAB */}
         {activeTab === 'SETTINGS' && (
             <div className="max-w-3xl space-y-12">
@@ -1079,6 +1257,131 @@ export default function AdminDashboardClient({
         </div>
 
       </main>
+
+      {/* 📟 USER_OVERSIGHT_MODAL (VAULT + TRANSACTIONS + SUBSCRIPTION) */}
+      {(selectedUserVault || selectedUserTransactions) && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4">
+            <div className="bg-studio-grey w-full max-w-5xl border-8 border-black p-12 relative overflow-hidden">
+                {/* 🧬 DECOR SIGNAL */}
+                <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
+                    <Disc className="h-64 w-64 animate-spin-slow" />
+                </div>
+
+                <div className="relative z-10 h-full flex flex-col">
+                    <div className="flex items-start justify-between mb-12">
+                        <div>
+                            <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.5em] text-studio-neon mb-4">
+                                <Activity className="h-3 w-3 animate-pulse" /> TARGET_OVERSIGHT :: {userModalTab}
+                            </div>
+                            <h2 className="text-6xl font-black italic tracking-tighter uppercase leading-none">Account<br/><span className="text-studio-neon">_Diagnostic</span></h2>
+                        </div>
+                        <div className="flex flex-col items-end gap-6 text-right">
+                            <button onClick={() => { setSelectedUser(null); setSelectedUserVault(null); setSelectedUserTransactions(null); }} className="h-16 w-16 bg-black border-2 border-white/10 flex items-center justify-center hover:border-studio-neon transition-all hover:rotate-90">
+                                <Zap className="text-white/40" />
+                            </button>
+                            <div className="flex gap-2 p-1 bg-black/40 border border-white/5">
+                                <button onClick={() => setUserModalTab('VAULT')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'VAULT' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Artifact Vault</button>
+                                <button onClick={() => setUserModalTab('FINANCE')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'FINANCE' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Financial Registry</button>
+                                <button onClick={() => setUserModalTab('SUBSCRIPTION')} className={`px-8 py-3 text-[9px] font-black uppercase tracking-widest transition-all ${userModalTab === 'SUBSCRIPTION' ? 'bg-studio-neon text-black' : 'text-white/20 hover:text-white'}`}>Subscription Hub</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 max-h-[45vh] overflow-y-auto studio-panel bg-black/40 border border-white/5 custom-scrollbar min-h-[400px]">
+                        {userModalTab === 'VAULT' && (
+                            <div className="animate-in fade-in duration-300">
+                                <div className="grid grid-cols-12 gap-6 px-10 py-5 bg-studio-grey border-b border-black text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic sticky top-0 z-20">
+                                    <div className="col-span-8">Artifact Name / Signal ID</div>
+                                    <div className="col-span-2 text-center">Type</div>
+                                    <div className="col-span-2 text-right">Unlocked</div>
+                                </div>
+                                <div className="divide-y divide-black">
+                                    {selectedUserVault?.length ? selectedUserVault.map((item, i) => (
+                                        <div key={i} className="px-10 py-6 grid grid-cols-12 gap-6 items-center hover:bg-white/5 transition-all group">
+                                            <div className="col-span-8 flex items-center gap-6">
+                                                <div className="h-3 w-3 bg-studio-neon/20 border border-studio-neon/40 shadow-[0_0_5px_#a6e22e/20] rounded-full group-hover:scale-125 transition-transform" />
+                                                <div className="min-w-0">
+                                                    <div className="text-2xl font-black uppercase italic tracking-tighter truncate leading-none group-hover:text-studio-neon transition-all">{item.name}</div>
+                                                    <div className="text-[8px] font-bold text-white/10 uppercase tracking-widest mt-2">ID: {item.item_id?.slice(0, 8)}</div>
+                                                </div>
+                                            </div>
+                                            <div className="col-span-2 text-center text-[8px] font-black uppercase text-white/40">{item.item_type}</div>
+                                            <div className="col-span-2 text-right text-[10px] font-black uppercase text-white/20 italic">{new Date(item.added_at).toLocaleDateString()}</div>
+                                        </div>
+                                    )) : <div className="p-32 text-center text-[11px] font-black uppercase tracking-widest text-white/10 italic">VAULT_EMPTY :: NO_SIGNALS_DETECTED</div>}
+                                </div>
+                            </div>
+                        )}
+
+                        {userModalTab === 'FINANCE' && (
+                            <div className="animate-in fade-in duration-300">
+                                <div className="grid grid-cols-12 gap-6 px-10 py-5 bg-studio-grey border-b border-black text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic sticky top-0 z-20">
+                                    <div className="col-span-6">Order ID / Payment Node</div>
+                                    <div className="col-span-2 text-center">Amount</div>
+                                    <div className="col-span-2 text-center">Credits</div>
+                                    <div className="col-span-2 text-right">Timestamp</div>
+                                </div>
+                                <div className="divide-y divide-black">
+                                    {selectedUserTransactions?.length ? selectedUserTransactions.map((tx, i) => (
+                                        <div key={i} className="px-10 py-6 grid grid-cols-12 gap-6 items-center hover:bg-white/5 transition-all group">
+                                            <div className="col-span-6">
+                                                <div className="text-xl font-black uppercase italic tracking-tighter text-white/60 group-hover:text-studio-neon transition-all">{tx.order_id || 'RENEWAL'}</div>
+                                                <div className="text-[8px] font-bold text-white/10 uppercase tracking-widest mt-1">PAY_ID: {tx.payment_id?.slice(0, 12)}...</div>
+                                            </div>
+                                            <div className="col-span-2 text-center text-2xl font-black italic tracking-tighter text-white">₹{tx.amount_inr}</div>
+                                            <div className="col-span-2 text-center"><span className="px-4 py-1.5 bg-studio-neon/10 border border-studio-neon text-studio-neon text-[9px] font-black tracking-widest leading-none">+{tx.credits_awarded} CR</span></div>
+                                            <div className="col-span-2 text-right text-[10px] font-black uppercase text-white/20 italic">{new Date(tx.created_at).toLocaleDateString()}</div>
+                                        </div>
+                                    )) : <div className="p-32 text-center text-[11px] font-black uppercase tracking-widest text-white/10 italic">REGISTRY_EMPTY :: NO_DEPOSITS_DETECTED</div>}
+                                </div>
+                            </div>
+                        )}
+
+                        {userModalTab === 'SUBSCRIPTION' && (
+                            <div className="p-20 space-y-12 animate-in fade-in duration-300">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                    <div className="p-10 bg-black/40 border border-white/5 space-y-6 group hover:border-studio-neon transition-all">
+                                        <span className="text-[9px] font-black uppercase text-white/20 tracking-widest">Active Plan Node</span>
+                                        <div className="flex flex-col gap-4">
+                                            <div className="text-5xl font-black italic tracking-tighter text-studio-neon uppercase leading-none">{selectedUser?.subscription_tier || 'NO_TIER'}</div>
+                                            <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest truncate italic">Registry Email: {selectedUser?.email}</div>
+                                        </div>
+                                        <div className="flex items-center gap-4 pt-6 border-t border-white/5">
+                                            <div className="h-10 w-10 bg-studio-neon flex items-center justify-center font-black text-black italic">!</div>
+                                            <div className="text-[10px] font-black uppercase tracking-widest">Yield: {selectedUser?.subscription_credits || 0} CR / MONTH</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-10 bg-black/40 border-2 border-dashed border-white/10 space-y-6">
+                                        <span className="text-[9px] font-black uppercase text-white/40 tracking-widest flex items-center gap-4"><RefreshCw className="h-3 w-3 animate-spin-slow" /> Next Billing Pulse</span>
+                                        <div className="text-5xl font-black italic tracking-tighter text-white uppercase leading-none">{selectedUser?.next_billing ? new Date(selectedUser.next_billing).toLocaleDateString() : 'NO_CYCLE'}</div>
+                                        <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                            <div className={`text-[8px] font-black uppercase tracking-widest ${selectedUser?.subscription_status === 'ACTIVE' ? 'text-studio-neon' : 'text-spider-red'}`}>Status: {selectedUser?.subscription_status}</div>
+                                            <div className="text-[10px] font-black text-white/20 italic transition-all cursor-help">NODE: {selectedUser?.razorpay_subscription_id?.slice(0, 10) || 'DIRECT_LINK'}...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="p-12 bg-spider-red/5 border border-spider-red/20 space-y-6">
+                                     <div className="flex items-center gap-4 text-spider-red"><Lock className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Dangerous Node Suppression</span></div>
+                                     <p className="text-[10px] font-medium text-white/40 leading-relaxed max-w-xl italic lowercase">Terminating this node will instantly revoke high-bandwidth artifact access. User credits will be preserved but cycles will halt immediately.</p>
+                                     <button onClick={() => handleTerminateSub(selectedUser?.id)} className="px-12 py-5 border-2 border-spider-red text-spider-red font-black uppercase text-[10px] tracking-widest hover:bg-spider-red hover:text-black transition-all">Terminate Node Lifecycle</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-12 flex justify-between items-center bg-black p-8 border border-white/5">
+                        <div className="flex gap-20">
+                            <div className="flex flex-col"><span className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Total Unlocks</span><span className="text-4xl font-black italic tracking-tighter text-studio-neon leading-none">{selectedUserVault?.length || 0}</span></div>
+                            <div className="flex flex-col"><span className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Lifetime Deposits</span><span className="text-4xl font-black italic tracking-tighter text-studio-neon leading-none text-white">₹{selectedUserTransactions?.reduce((acc, curr) => acc + (curr.amount_inr || 0), 0) || 0}</span></div>
+                        </div>
+                        <button onClick={() => { setSelectedUser(null); setSelectedUserVault(null); setSelectedUserTransactions(null); }} className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.4em] hover:bg-studio-neon transition-all">Exit Diagnostic</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -27,7 +27,7 @@ export default async function Home() {
         .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
         .order('created_at', { ascending: false })
         .limit(4)
-      latestPacks = secondScan;
+      latestPacks = secondScan as any;
   }
 
   // 💿 AUTOMATIC POPULARITY ENGINE

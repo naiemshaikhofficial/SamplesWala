@@ -7,7 +7,7 @@ import { Music, User, Activity, Play, Pause, Square, Circle, Cpu, Layers, Disc }
 import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useAudio } from '@/components/audio/AudioProvider'
 import { useSidebar } from './SidebarContext'
 import { Menu } from 'lucide-react'
@@ -134,7 +134,9 @@ export function Header() {
                 </Link>
             )}
             <div className="hidden sm:block">
+            <Suspense fallback={<div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />}>
               <MobileMenu user={user} />
+            </Suspense>
             </div>
         </div>
       </div>
