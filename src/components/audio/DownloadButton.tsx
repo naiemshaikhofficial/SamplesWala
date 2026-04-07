@@ -17,7 +17,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
     const [isUnlocked, setIsUnlocked] = useState(isUnlockedInitial)
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
-    const { isPlaying, updateMetadataUnlocked } = useAudio()
+    const { isPlaying, updateMetadataUnlocked, user } = useAudio()
     const { showToast, showConfirm, showAuthGate } = useNotify()
 
     // 🧬 SYNC STATE WITH PARENT RE-FETCH
@@ -28,6 +28,11 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
         
+        if (!user) {
+            showAuthGate()
+            return
+        }
+
         if (!isUnlocked && !needsConfirm) {
             setNeedsConfirm(true)
             setTimeout(() => setNeedsConfirm(false), 3000)

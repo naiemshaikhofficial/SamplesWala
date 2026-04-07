@@ -37,6 +37,7 @@ type AudioContextType = {
   updateMetadataUnlocked: (id: string) => void
   next: () => void
   prev: () => void
+  user: any | null
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -87,9 +88,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         userRef.current = data.user;
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-        setUser(session?.user ?? null);
-        userRef.current = session?.user ?? null;
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        userRef.current = currentUser;
+
+        if (event === 'SIGNED_OUT') {
+            stop();
+            setPlaylist([]);
+            window.location.reload(); // Hard refresh to clear all server components
+        }
     });
 
     return () => {
@@ -336,7 +344,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         <AudioContext.Provider value={{ 
             activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
             isLooping, volume, playlist, play, pause, seek, setVolume, toggleLoop, 
-            setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev 
+            setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev, user
         }}>
             {children}
         </AudioContext.Provider>
