@@ -109,19 +109,19 @@ export default function AdminDashboardClient({
                     <ShieldCheck className="h-6 w-6 text-studio-neon -rotate-45 group-hover:rotate-0 transition-all" />
                 </div>
                 <div>
-                    <span className="font-black uppercase tracking-[0.4em] text-xs italic block">WALA_CORE</span>
+                    <span className="font-black uppercase tracking-widest text-sm italic">SAMPLES_WALA</span>
                     <span className="text-[7px] font-bold uppercase text-white/20 tracking-widest mt-1">V5.2_PRODUCTION_SYSTEM</span>
                 </div>
             </div>
 
             <nav className="space-y-2">
                 {[
-                    { id: 'DASHBOARD', icon: LayoutDashboard, label: 'MASTER_CONSOLE', href: '/admin' },
-                    { id: 'PACKS', icon: Package, label: 'COLLECTIONS', href: '/admin' },
-                    { id: 'SAMPLES', icon: Music, label: 'ARTIFACTS', href: '/admin' },
-                    { id: 'USERS', icon: Users, label: 'CLIENTS', href: '/admin' },
-                    { id: 'LOGS', icon: Terminal, label: 'SYSTEM_LOGS', href: '/admin' },
-                    { id: 'SETTINGS', icon: Settings, label: 'CORE_CONFIG', href: '/admin' }
+                    { id: 'DASHBOARD', icon: LayoutDashboard, label: 'DASHBOARD', href: '/admin' },
+                    { id: 'PACKS', icon: Package, label: 'SAMPLE PACKS', href: '/admin' },
+                    { id: 'SAMPLES', icon: Music, label: 'SOUNDS', href: '/admin' },
+                    { id: 'USERS', icon: Users, label: 'CUSTOMERS', href: '/admin' },
+                    { id: 'LOGS', icon: Terminal, label: 'SYSTEM LOGS', href: '/admin' },
+                    { id: 'SETTINGS', icon: Settings, label: 'SETTINGS', href: '/admin' }
                 ].map((item) => (
                     <button 
                         key={item.id}
@@ -167,7 +167,7 @@ export default function AdminDashboardClient({
                 <div className="flex items-center gap-4 mb-4 text-[10px] font-black uppercase tracking-[0.5em] text-white/20">
                     <Activity className="h-3 w-3 text-studio-neon animate-pulse" /> STABLE_NODE_LINKED
                 </div>
-                <h1 className="text-7xl font-black uppercase tracking-tighter italic leading-none border-l-8 border-studio-yellow pl-10">Command<br/><span className="text-studio-neon">_Center</span></h1>
+                <h1 className="text-7xl font-black uppercase tracking-tighter italic leading-none border-l-8 border-studio-yellow pl-10">Admin<br/><span className="text-studio-neon">_Control</span></h1>
             </div>
 
             <div className="flex flex-wrap items-center gap-6">
@@ -198,7 +198,7 @@ export default function AdminDashboardClient({
                     </button>
                 </div>
                 <button className="px-12 py-5 bg-white text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center gap-4 hover:-translate-y-2 transition-all shadow-2xl border-r-8 border-studio-yellow">
-                    <PlusCircle className="h-4 w-4" /> NEW_ARTIFACT
+                    <PlusCircle className="h-4 w-4" /> NEW_SOUND
                 </button>
             </div>
         </header>
@@ -206,10 +206,10 @@ export default function AdminDashboardClient({
         {/* 📊 TELEMETRY DATA */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24 relative z-10">
             {[
-                { label: 'Signal Collection', value: packsCount, icon: Package, color: 'text-white' },
-                { label: 'Artifact Density', value: samplesCount, icon: Music, color: 'text-white' },
-                { label: 'AI Resolution', value: unprocessedAiCount, icon: Activity, color: unprocessedAiCount > 0 ? (isScanning ? 'text-studio-yellow animate-pulse' : 'text-studio-neon') : 'text-white/20', accent: true },
-                { label: 'Acquisition Yield', value: recentPurchases?.length, icon: TrendingUp, color: 'text-[#00FF00]' }
+                { label: 'Sample Packs', value: packsCount, icon: Package, color: 'text-white' },
+                { label: 'Total Sounds', value: samplesCount, icon: Music, color: 'text-white' },
+                { label: 'AI Processing', value: unprocessedAiCount, icon: Activity, color: unprocessedAiCount > 0 ? (isScanning ? 'text-studio-yellow animate-pulse' : 'text-studio-neon') : 'text-white/20', accent: true },
+                { label: 'Total Sales', value: recentPurchases?.length, icon: TrendingUp, color: 'text-[#00FF00]' }
             ].map((stat, i) => (
                 <div key={i} className={`p-10 border border-white/5 bg-black/40 backdrop-blur-3xl group hover:border-studio-neon transition-all relative overflow-hidden ${stat.accent ? 'border-studio-neon/20' : ''}`}>
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-opacity">
@@ -230,9 +230,9 @@ export default function AdminDashboardClient({
             <div className="px-12 py-10 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-studio-grey/40">
                 <div className="flex flex-col">
                     <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-2 group cursor-pointer hover:text-studio-neon transition-all flex items-center gap-4">
-                        <Disc className="w-6 h-6 animate-spin-slow opacity-20" /> LATEST_ACQUISITIONS
+                        <Disc className="w-6 h-6 animate-spin-slow opacity-20" /> RECENT_SALES
                     </h2>
-                    <span className="text-[9px] font-black uppercase text-white/20 tracking-[0.5em] italic">Realtime_Node :: Authorized_Streams</span>
+                    <span className="text-[9px] font-black uppercase text-white/20 tracking-widest italic">Live :: New Purchases</span>
                 </div>
                 <div className="flex gap-2 p-1 bg-black/40 border border-white/5 self-start md:self-center">
                     <button className="px-6 py-2 text-[9px] font-black uppercase bg-white text-black">SUCCESS</button>
@@ -287,12 +287,12 @@ export default function AdminDashboardClient({
                 <div className="flex gap-1 h-4 items-end">
                     {[3, 7, 5, 9, 4, 8, 2, 6].map((h, i) => <div key={i} className="w-1 bg-studio-neon animate-peak" style={{ height: `${h * 10}%`, animationDelay: `${i * 0.1}s` }} />)}
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">Wala_Engine_Status :: Nominal</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">Website Status :: Online</span>
             </div>
             <div className="flex items-center gap-10 text-[8px] font-black uppercase tracking-widest">
-                <span>Memory_State: Optimized</span>
-                <span className="text-studio-neon">Latency: 14ms</span>
-                <span>Buffer: Ready</span>
+                <span>Database: Connected</span>
+                <span className="text-studio-neon">Speed: fast</span>
+                <span>Security: active</span>
             </div>
         </div>
 

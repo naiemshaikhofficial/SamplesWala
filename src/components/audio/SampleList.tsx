@@ -56,7 +56,7 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
             {/* 🎛️ SIGNAL_FILTER_BAR */}
             <div className="flex items-center gap-2 p-1 bg-black/40 border border-white/5 self-start rounded-sm">
                 {[
-                    { id: 'all', label: 'All Artifacts', count: samples.length },
+                    { id: 'all', label: 'All Sounds', count: samples.length },
                     { id: 'loops', label: 'Loops', count: samples.filter(s => s.bpm).length },
                     { id: 'oneshots', label: 'One-shots', count: samples.filter(s => !s.bpm).length }
                 ].map((t) => (
@@ -74,12 +74,12 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
             <div className="bg-black/60 studio-panel border-2 border-white/5 overflow-hidden">
                 {/* Desktop Header */}
                 <div className="hidden md:grid grid-cols-12 gap-3 px-10 py-5 border-b-2 border-black text-[9px] uppercase font-black tracking-widest text-white/20 bg-studio-grey/40">
-                    <div className="col-span-1 text-center">STS</div>
-                    <div className="col-span-4 text-white/40 italic">Signature Artifact</div>
+                    <div className="col-span-1 text-center">#</div>
+                    <div className="col-span-4 text-white/40 italic">Sound Name</div>
                     <div className="col-span-1 text-center">BPM</div>
                     <div className="col-span-1 text-center">Key</div>
-                    <div className="col-span-4 text-center">Spectral Data</div>
-                    <div className="col-span-1 text-right">Access</div>
+                    <div className="col-span-4 text-center">Waveform</div>
+                    <div className="col-span-1 text-right">Download</div>
                 </div>
 
                 <div className="divide-y divide-black">
@@ -140,7 +140,7 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
 
                 {filteredSamples.length === 0 && (
                     <div className="p-32 text-center text-[11px] font-black uppercase tracking-[0.5em] text-white/10 italic">
-                        NO_ARTIFACTS_FOUND_IN_SELECTED_CHANNEL.
+                        No sounds found.
                     </div>
                 )}
             </div>

@@ -45,7 +45,7 @@ export function Header() {
               { label: 'Packs', href: '/browse' },
               { label: 'Pricing', href: '/pricing' },
               { label: 'My Library', href: '/library' },
-              { label: 'ACCOUNT', href: '/profile' }
+              { label: 'Account', href: '/profile' }
             ].map(item => (
                 <Link key={item.label} href={item.href} className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group">
                    <div className="w-1.5 h-1.5 rounded-full bg-studio-neon opacity-20 group-hover:opacity-100 transition-opacity" />
@@ -54,8 +54,8 @@ export function Header() {
             ))}
         </div>
         <div className="flex items-center gap-6 text-[9px] font-black uppercase text-white/20">
-            <span className="flex items-center gap-2 text-studio-neon"><Activity size={10} /> MASTER_BUS_LIVE</span>
-            <span className="flex items-center gap-2"><Disc size={10} className="animate-spin-slow" /> AUDIO_ENCODED</span>
+            <span className="flex items-center gap-2 text-studio-neon"><Activity size={10} /> System Online</span>
+            <span className="flex items-center gap-2"><Disc size={10} className="animate-spin-slow" /> HQ Audio</span>
         </div>
       </div>
 
@@ -112,7 +112,7 @@ export function Header() {
         {/* 🧬 AUTH & RACK STATS */}
         <div className="flex items-center gap-3 md:gap-6">
             <div className="hidden xxl:flex items-center gap-5 px-5 py-1.5 bg-black/40 border-l border-white/10 scale-90">
-                <span className="text-[7px] font-black uppercase text-white/15 tracking-widest">ENGINE_BUS_ACTIVE</span>
+                <span className="text-[7px] font-black uppercase text-white/15 tracking-widest">Status Ready</span>
             </div>
 
             {user ? (

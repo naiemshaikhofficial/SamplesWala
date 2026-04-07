@@ -26,7 +26,7 @@ const sidebarGroups = [
   {
     label: "Navigation",
     items: [
-      { id: 'all', label: 'All Artifacts', icon: <Layout className="w-3 h-3" /> },
+      { id: 'all', label: 'All Sounds', icon: <Layout className="w-3 h-3" /> },
       { id: 'packs', label: 'Sound Packs', icon: <Disc className="w-3 h-3" /> },
       { id: 'trending', label: 'Trending', icon: <Sparkles className="w-3 h-3" /> },
       { id: 'bundles', label: 'Bundles', icon: <Layers className="w-3 h-3" /> },
@@ -189,12 +189,12 @@ export function Sidebar() {
             <div className="space-y-1">
                 {isOpen && (
                 <div className="px-2 py-1 flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Navigation</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Menu</span>
                     <div className="h-px flex-1 bg-white/5"></div>
                 </div>
                 )}
                 {[
-                    { id: 'all', label: 'All Artifacts', icon: <Layout className="w-3 h-3" />, href: '/browse' },
+                    { id: 'all', label: 'All Sounds', icon: <Layout className="w-3 h-3" />, href: '/browse' },
                     { id: 'packs', label: 'Sound Packs', icon: <Disc className="w-3 h-3" />, href: '/browse?mode=packs' },
                     { id: 'trending', label: 'Trending', icon: <Sparkles className="w-3 h-3" />, href: '/browse?filter=trending' },
                     { id: 'bundles', label: 'Bundles', icon: <Layers className="w-3 h-3" />, href: '/browse?filter=bundles' },
@@ -222,7 +222,7 @@ export function Sidebar() {
             <div className="space-y-1">
                 {isOpen && (
                 <div className="px-2 py-1 flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Sample_Library</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Library</span>
                     <div className="h-px flex-1 bg-white/5"></div>
                 </div>
                 )}
@@ -258,7 +258,7 @@ export function Sidebar() {
             <div className="space-y-1">
                 {isOpen && (
                 <div className="px-2 py-1 flex items-center gap-2">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">System_Health</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">My Account</span>
                     <div className="h-px flex-1 bg-white/5"></div>
                 </div>
                 )}
@@ -285,7 +285,7 @@ export function Sidebar() {
                             <Key size={12} className="text-studio-yellow animate-pulse" />
                             {isOpen ? (
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black text-studio-yellow leading-none uppercase">Credit_Balance</span>
+                                    <span className="text-[10px] font-black text-studio-yellow leading-none uppercase">Available Credits</span>
                                     <span className="text-[8px] font-black text-white/40 mt-1 uppercase tracking-widest">{creditCount !== null ? `${creditCount} TOKENS` : 'FETCHING...'}</span>
                                 </div>
                             ) : (
