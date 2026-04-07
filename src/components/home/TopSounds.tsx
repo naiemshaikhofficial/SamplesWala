@@ -50,7 +50,7 @@ export function TopSounds({
     useEffect(() => { setIsMounted(true) }, [])
 
   return (
-    <SectionReveal className="relative py-24 bg-transparent overflow-hidden">
+    <SectionReveal className="relative py-24 bg-transparent overflow-hidden block" style={{ position: 'relative' }}>
         {/* 🧬 BACKGROUND SIGNAL METER */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-end justify-around gap-1 px-4">
             {heights.map((h, i) => (

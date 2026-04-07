@@ -6,10 +6,11 @@ interface SectionRevealProps {
   children: React.ReactNode
   className?: string
   delay?: 0 | 1 | 2 | 3
+  style?: React.CSSProperties
 }
 
 export const SectionReveal = forwardRef<HTMLDivElement, SectionRevealProps>(
-  ({ children, className = '', delay = 0 }, ref) => {
+  ({ children, className = '', delay = 0, style }, ref) => {
     const [isVisible, setIsVisible] = useState(false)
     const internalRef = useRef<HTMLDivElement>(null)
 
@@ -33,6 +34,7 @@ export const SectionReveal = forwardRef<HTMLDivElement, SectionRevealProps>(
       <div
         ref={internalRef}
         className={`section-reveal ${isVisible ? 'active' : ''} reveal-delay-${delay} ${className}`}
+        style={style}
       >
         {children}
       </div>

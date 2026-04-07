@@ -18,7 +18,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
   const textY = useTransform(scrollYProgress, [0, 1], [-100, 100])
 
   return (
-    <SectionReveal className="relative py-24 bg-transparent overflow-hidden" ref={containerRef}>
+    <SectionReveal className="relative py-24 bg-transparent overflow-hidden block" ref={containerRef} style={{ position: 'relative' }}>
         {/* 🧬 BACKGROUND PARALLAX TEXT */}
         <motion.div 
             style={{ y: textY }}

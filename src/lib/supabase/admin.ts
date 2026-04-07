@@ -46,23 +46,33 @@ export async function getTopPopularSounds(limit = 10) {
     .slice(0, limit)
     .map(([id]) => id)
 
-  // 4. Fetch the full sample data with their packs
+  // 4. Fetch the full sample data with Multilevel Failure Protection
   if (topIds.length === 0) {
     // Fallback: If no sounds unlocked yet, return newest
-    const { data: newest } = await supabase
+    let { data: newest, error: newestError } = await supabase
       .from('samples')
-      .select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, created_at, sample_packs(name, cover_url, slug)')
+      .select('*, sample_packs(name, cover_url, slug)')
       .order('created_at', { ascending: false })
       .limit(limit)
+
+    if (newestError || !newest || newest.length === 0) {
+        if (newestError) console.warn('[SIGNAL_REPAIR] Popular newest fetch failed join, using bypass:', newestError.message);
+        const { data: rawNewest } = await supabase.from('samples').select('*').order('created_at', { ascending: false }).limit(limit)
+        return rawNewest || []
+    }
     return newest || []
   }
 
-  const { data: samples, error: sampleError } = await supabase
+  let { data: samples, error: sampleError } = await supabase
     .from('samples')
-    .select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, created_at, sample_packs(name, cover_url, slug)')
+    .select('*, sample_packs(name, cover_url, slug)')
     .in('id', topIds)
 
-  if (sampleError) return []
+  if (sampleError || !samples || samples.length === 0) {
+      if (sampleError) console.warn('[SIGNAL_REPAIR] Popular top IDs fetch failed join, using bypass:', sampleError.message);
+      const { data: rawSamples } = await supabase.from('samples').select('*').in('id', topIds)
+      return rawSamples || []
+  }
 
   // Final Sort: Re-sort the fetched samples by their original popularity rank
   return samples.sort((a, b) => topIds.indexOf(a.id) - topIds.indexOf(b.id))

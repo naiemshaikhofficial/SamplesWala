@@ -13,21 +13,22 @@ import { Suspense } from 'react'
 export default async function Home() {
   const supabase = await createClient()
   
-  // 📀 Fetch Latest Packs with Relational Fallback
-  let { data: latestPacks } = await supabase
+  // 📀 Fetch Latest Packs with Multilevel Failure Protection
+  let { data: latestPacks, error: packsError } = await supabase
     .from('sample_packs')
-    .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url, categories(name)')
+    .select('*, categories(name)')
     .order('created_at', { ascending: false })
     .limit(4)
 
-  // Secondary Scan if primary fails or returns no relational data
-  if (!latestPacks || latestPacks.length === 0) {
-      const { data: secondScan } = await supabase
+  // Critical Fallback if the relationship query fails or returns empty
+  if (packsError || !latestPacks || latestPacks.length === 0) {
+      if (packsError) console.warn('[SIGNAL_REPAIR] Packs relational fetch failed, using bypass:', packsError.message)
+      const { data: fallbackScan } = await supabase
         .from('sample_packs')
-        .select('id, name, slug, description, price_inr, cover_url, category_id, is_featured, created_at, specifications, demo_audio_url')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(4)
-      latestPacks = secondScan as any;
+      latestPacks = fallbackScan as any;
   }
 
   // 💿 AUTOMATIC POPULARITY ENGINE
