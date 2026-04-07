@@ -31,9 +31,9 @@ export async function createSubscription(planId: string) {
   // 2. DETECT COMMERCE SIGNAL: Use Subscription API if Plan ID is mapped
   try {
     if (plan.razorpay_plan_id) {
-        // 🧬 TRIAL_LOGIC: Apply 30-day trial for new identities (Mandate-led)
+        // 🧬 TRIAL_LOGIC: Apply 30-day trial for 'Starter' identities only
         const { data: account } = await supabase.from('user_accounts').select('is_trial_used, subscription_status').eq('user_id', user.id).single()
-        const isTrialEligible = !account?.is_trial_used && account?.subscription_status !== 'ACTIVE'
+        const isTrialEligible = plan.name === 'Starter' && !account?.is_trial_used && account?.subscription_status !== 'ACTIVE'
         
         const trialDays = 30;
         const startAt = isTrialEligible 
@@ -42,7 +42,7 @@ export async function createSubscription(planId: string) {
 
         const subscription = await razorpay.subscriptions.create({
           plan_id: plan.razorpay_plan_id,
-          total_count: 12, // Authorize for 1 year of recurring signals
+          total_count: 60, // Authorize for 1 year of recurring signals
           quantity: 1,
           start_at: startAt, // 🔥 Charges start after 30 days if eligible
           customer_notify: 1,
@@ -57,7 +57,7 @@ export async function createSubscription(planId: string) {
         return { 
             success: true, 
             subscriptionId: subscription.id,
-            amount: isTrialEligible ? 0 : (plan.price_inr * 100), // Display 0 if trial
+            amount: isTrialEligible ? 500 : (plan.price_inr * 100), // Display ₹5 refundable auth fee for trials
             key: process.env.RAZORPAY_KEY_ID,
             user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' },
             isSubscription: true,

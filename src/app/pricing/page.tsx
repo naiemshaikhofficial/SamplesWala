@@ -134,11 +134,23 @@ export default async function PricingPage() {
                     <div className="space-y-4 mt-auto">
                         <SubscribeButton 
                             planId={plan.id} 
-                            planName={isActive ? 'Active' : isUpgrade && currentPlanName !== 'Free' ? `UPGRADE` : isLower ? '—' : `INITIALIZE`}
+                            planName={
+                                isActive ? 'Active' : 
+                                isUpgrade && currentPlanName !== 'Free' ? 'UPGRADE' : 
+                                isLower ? '—' : 
+                                (plan.name === 'Starter' && !activeSub?.is_trial_used) ? 'START FREE TRIAL' : 
+                                'INITIALIZE'
+                            }
                             isFeatured={plan.name === 'Professional' || isActive} 
                             mode="subscription"
                             disabled={isActive || isLower}
                         />
+
+                        {plan.name === 'Starter' && !isActive && !isLower && !activeSub?.is_trial_used && (
+                            <p className="text-[8px] font-black uppercase tracking-widest text-white/25 text-center leading-relaxed px-2">
+                                ₹5 refundable auth fee by Razorpay · First 30 days free · Cancel anytime
+                            </p>
+                        )}
 
                         {isActive && (
                             <div className="flex justify-center mt-2">
