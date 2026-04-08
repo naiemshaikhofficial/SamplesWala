@@ -37,7 +37,8 @@ export async function GET(req: Request) {
             const uniqueItemIds = Array.from(new Set(staleTokens.map(t => t.item_id)));
             
             for (const itemId of uniqueItemIds) {
-                const targetItem = (staleTokens as any[]).find((t: any) => t.item_id === itemId);
+                // Explicitly type to avoid "referenced in own initializer" build error
+                const targetItem: any = (staleTokens as any[]).find((t: any) => t.item_id === itemId);
                 if (!targetItem) continue;
 
                 const table = targetItem.item_type === 'sample' ? 'samples' : 'sample_packs';

@@ -94,10 +94,13 @@ export async function GET(req: NextRequest) {
     const host = req.headers.get('host') || '';
     
     // 🛡️ SECURITY LAYER 2: Same-Origin & Anti-Hijack
-    // Check if the request comes from our own app. Browsers block referer on direct navigation.
+    // Check if the request comes from our own app. 
+    // Note: Some browsers strip referer on media/fetch redirects. 
+    // We trust the JWT token as the primary security layer.
+    const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
     const isInternal = referer.includes(host) || origin.includes(host);
     
-    if (!isInternal) {
+    if (!isInternal && !isLocal && process.env.NODE_ENV === 'production') {
         console.error("[AUDIO PROXY] Direct Access Hijack Blocked:", { referer, origin, host });
         return new NextResponse('Direct Access Blocked (Security Code 102)', { status: 403 });
     }
