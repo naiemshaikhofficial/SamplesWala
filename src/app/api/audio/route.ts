@@ -119,71 +119,37 @@ export async function GET(req: NextRequest) {
 
     const isDownload = decoded.purpose === 'download' || isHq;
     const dbUrl = (isHq || isDownload) ? sample.download_url : sample.audio_url;
-    
-    let finalUrl = dbUrl, cookie = '', fileId = '';
     const extractedId = getDriveFileId(dbUrl);
 
-    if (extractedId) {
-      fileId = extractedId;
-      const cached = urlCache.get(fileId);
-      if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
-        finalUrl = cached.url; cookie = cached.cookie;
-      } else {
-        const resolved = await resolveFinalDriveUrl(`https://drive.google.com/uc?export=download&id=${fileId}`);
-        finalUrl = resolved.url; cookie = resolved.cookie;
-        urlCache.set(fileId, { url: finalUrl, cookie, timestamp: Date.now() });
-      }
+    /** 
+     * 🛰️ PREVIEW_SIGNAL_BRIDGE (V9_CLOUDFLARE_HYBRID)
+     * Total Zero-Egress logic: Instead of proxying here, we sign a signal for Cloudflare.
+     **/
+    const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
+    const proxySecret = process.env.PROXY_SECRET;
+
+    if (workerUrl && proxySecret && extractedId) {
+        // 🔐 Generate HMAC-SHA256 Signature for the preview
+        const crypto = await import('crypto');
+        const hmac = crypto.createHmac('sha256', proxySecret);
+        hmac.update(extractedId);
+        const sig = hmac.digest('base64')
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+
+        // Branding & Name
+        const brandName = `SamplesWala - ${sample.name || 'Preview'}`;
+        const encodedName = encodeURIComponent(brandName);
+
+        // Redirect to Cloudflare (With download flag if applicable)
+        const redirectUrl = `${workerUrl}?id=${extractedId}&sig=${sig}&name=${encodedName}${isDownload ? '&download=1' : ''}`;
+        return NextResponse.redirect(redirectUrl);
     }
 
-    console.log(`[AUDIO PROXY] ${isDownload ? "DOWNLOAD" : "PREVIEW"} from: ${finalUrl.substring(0, 50)}...`);
+    // Fallback: Direct Drive (Only if Cloudflare is down)
+    return NextResponse.redirect(`https://drive.google.com/uc?export=download&id=${extractedId}`);
 
-    // 🛡️ SECURITY LAYER 3: Rate Limiting & Signal Frequency Check
-    // (Simple per-IP limiter using Cache)
-    const clientIp = req.headers.get("x-forwarded-for")?.split(',')[0] || "unknown"
-    const rateKey = `rate_limit_${clientIp}`;
-    const rateCount = (urlCache.get(rateKey) as any)?.count || 0;
-    if (rateCount > 100) { // Limit to 100 signals per cache window
-        return new NextResponse('Signal Interference: Too many requests.', { status: 429 });
-    }
-    urlCache.set(rateKey, { count: rateCount + 1, timestamp: Date.now() } as any);
-
-    const range = req.headers.get('range');
-    const requestHeaders: HeadersInit = { 'User-Agent': USER_AGENT };
-    if (cookie) requestHeaders['Cookie'] = cookie;
-    if (range) requestHeaders['Range'] = range;
-
-    const upstreamResponse = await fetch(finalUrl, { headers: requestHeaders });
-    if (!upstreamResponse.ok) {
-        console.error("[AUDIO PROXY] Upstream Error:", upstreamResponse.status);
-        return new NextResponse(`Error: ${upstreamResponse.status}`, { status: upstreamResponse.status });
-    }
-
-    // 🌊 STARTING PREVIEW WATERMARKING HUB
-    let finalBody = upstreamResponse.body;
-    
-    // If it's a preview AND it's NOT a download request, we can inject tags
-    // For now, we'll implement the "Invisible Fingerprint" even for previews
-    if (!isDownload) {
-        console.log(`[WATERMARK] Monitoring Signal: ${sample.name}`);
-        // We could use an Audio Transform Stream here to mix "Samples Wala" tags
-    }
-
-    const responseHeaders = new Headers();
-    ['content-type', 'content-length', 'content-range', 'accept-ranges'].forEach(h => {
-        const val = upstreamResponse.headers.get(h);
-        if (val) responseHeaders.set(h, val);
-    });
-    
-    responseHeaders.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    responseHeaders.set('Pragma', 'no-cache');
-    responseHeaders.set('Expires', '0');
-    
-    if (isDownload) {
-        responseHeaders.set('Content-Disposition', `attachment; filename="${sample.name}.wav"`);
-        responseHeaders.set('Content-Type', 'audio/wav');
-    }
-
-    return new NextResponse(finalBody, { status: upstreamResponse.status, headers: responseHeaders });
   } catch (error: any) {
     console.error('[AUDIO PROXY] Global Error:', error.message);
     return new NextResponse(`Internal Error: ${error.message}`, { status: 500 });
