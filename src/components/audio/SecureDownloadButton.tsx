@@ -43,17 +43,19 @@ export function SecureDownloadButton({ packId, isIndividualSample = false }: { p
         <button 
             disabled={loading}
             onClick={handleDownload}
-            className="bg-black text-white px-16 py-6 font-black uppercase text-sm tracking-[0.2em] hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-4 group disabled:opacity-50 border border-white/10"
+            className="w-full h-14 bg-black text-white px-4 md:px-6 font-black uppercase text-xs sm:text-sm tracking-[0.1em] hover:bg-studio-neon hover:text-black active:scale-95 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 border-2 border-white/10"
         >
             {loading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
                 <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-[#00FF00] opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Download className="h-5 w-5 fill-white group-hover:animate-bounce" />
+                    <ShieldCheck className="h-4 w-4 text-[#00FF00] group-hover:text-black transition-colors" />
+                    <Download className="h-5 w-5 fill-current" />
                 </div>
             )}
-            {loading ? 'SECURING...' : 'DOWNLOAD'}
+            <span className="whitespace-nowrap">
+                {loading ? 'PREPARING_BITSTREAM...' : 'START_DOWNLOAD'}
+            </span>
         </button>
     )
 }
