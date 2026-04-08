@@ -3,7 +3,8 @@
 import React, { useState } from 'react'
 import { Download, Lock, Loader2, Sparkles, Diamond, ArrowRight } from 'lucide-react'
 import { useAudio } from './AudioProvider'
-import { unlockSample, getDownloadUrl } from '@/app/packs/[slug]/actions'
+import { unlockSample } from '@/app/packs/[slug]/actions'
+import { getSecureDownloadUrl } from '@/app/packs/actions'
 
 import { useNotify } from '@/components/ui/NotificationProvider'
 
@@ -53,11 +54,11 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                     window.dispatchEvent(new Event('refresh-credits'))
                 }
             } else {
-                // 📥 Flow 2: Download unlocked sample
+                // 📥 Flow 2: Download unlocked sample via Secure Signal Bridge
                 showToast('Initiating Download...', 'success')
-                const response = await getDownloadUrl(sampleId)
-                if (response.url) {
-                    window.location.assign(response.url)
+                const secureUrl = await getSecureDownloadUrl(sampleId, true)
+                if (secureUrl) {
+                    window.location.assign(secureUrl)
                 }
             }
         } catch (err: any) {

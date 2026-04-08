@@ -67,10 +67,12 @@ export async function unlockSample(sampleId: string) {
         }
     }
 
-    // 4. AUTOMATED_SIGNAL_PERMISSION (Hook for Google Drive Auto-Access)
+    // 4. AUTOMATED_SIGNAL_PERMISSION (DISABLED: Using Direct Proxy V4 instead)
+    /*
     if (user.email) {
         await grantDrivePermission(user.email, sampleId, false);
     }
+    */
 
     revalidatePath('/', 'layout')
     return { success: true }
@@ -141,10 +143,12 @@ export async function unlockFullPack(packId: string) {
 
     if (vaultError) throw new Error("Ownership Registration Failed: " + vaultError.message)
 
-    // 3. AUTOMATED_SIGNAL_PERMISSION (Full Pack Auto-Access)
+    // 3. AUTOMATED_SIGNAL_PERMISSION (DISABLED: Using Direct Proxy V4 instead)
+    /*
     if (user.email) {
         await grantDrivePermission(user.email, packId, true);
     }
+    */
 
     revalidatePath(`/packs/${pack.slug}`)
     return { success: true }

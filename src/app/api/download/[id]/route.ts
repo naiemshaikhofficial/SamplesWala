@@ -60,16 +60,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { responseType: 'stream' }
     )
 
-    // Convert Node.js stream to Web stream
-    const stream = driveResponse.data as unknown as Readable;
+    // 📠 Convert Node.js stream to Web stream for standard-compliant response
+    // @ts-ignore
+    const webStream = Readable.toWeb(driveResponse.data as Readable);
 
     const fileName = name?.endsWith('.rar') || name?.endsWith('.zip') || name?.endsWith('.wav') 
         ? name 
         : `${name}.${isSample ? 'wav' : 'zip'}`;
 
-    return new Response(stream as any, {
+    return new Response(webStream as any, {
       headers: {
         'Content-Type': driveResponse.headers['content-type'] || 'application/octet-stream',
+        'Content-Length': driveResponse.headers['content-length'] || '',
         'Content-Disposition': `attachment; filename="${fileName}"`,
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
