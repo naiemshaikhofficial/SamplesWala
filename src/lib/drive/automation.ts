@@ -72,25 +72,46 @@ export async function grantDrivePermission(userEmail: string, itemId: string, is
             return { success: true, bypassed: true };
         }
 
-        /** 📠 LIVE SIGNAL TRANSMISSION **/
-        console.log(`[DRIVE_AUTH_V5] Syncing permission for: ${userEmail}`);
+        /** 🧬 ANONYMOUS_LINK_PROTOCOL: Use 'anyone' with 'view' role **/
+        console.log(`[DRIVE_AUTH_V5] Setting Public-Link access for: ${itemName}`);
         
         await drive.permissions.create({
             fileId: driveId,
             sendNotificationEmail: false,
             requestBody: {
                 role: 'reader',
-                type: 'user',
-                emailAddress: userEmail
+                type: 'anyone', // 🔥 No individual emails in the list!
             }
         });
 
-        console.log(`\x1b[32m[DRIVE_ACCESS_SYNCED]\x1b[0m ${userEmail} synchronized with ${itemName}`);
+        console.log(`\x1b[32m[DRIVE_PUBLIC_SYNCED]\x1b[0m ${itemName} is now available via Stealth Link.`);
         
-        return { success: true, driveId, userEmail };
+        return { success: true, driveId };
 
     } catch (err: any) {
         console.error("[DRIVE_ENGINE_FAULT]", err.message)
         return { error: 'Engine Fault', details: err.message }
+    }
+}
+
+/**
+ * 🔒 Security Harden: Reset a file to 'Restricted' mode.
+ */
+export async function restrictFileAccess(driveId: string) {
+    try {
+        const drive = getDriveClient();
+        const { data: permissions } = await drive.permissions.list({ fileId: driveId });
+        
+        // Find the 'anyone' permission and delete it
+        const anyonePermission = permissions.permissions?.find(p => p.type === 'anyone');
+        if (anyonePermission?.id) {
+            await drive.permissions.delete({
+                fileId: driveId,
+                permissionId: anyonePermission.id
+            });
+            console.log(`[DRIVE_HARDENED] File ${driveId} is now RESTRICTED.`);
+        }
+    } catch (err: any) {
+        console.error("[DRIVE_HARDEN_FAULT]", err.message);
     }
 }

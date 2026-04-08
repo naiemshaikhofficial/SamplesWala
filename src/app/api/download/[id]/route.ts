@@ -61,50 +61,26 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (!downloadUrl) return new NextResponse("Registry Sync Error: File not found", { status: 404 })
 
-    // 🚀 STEP 3: RESOLVE DRIVE IDENTITY
-    const driveId = downloadUrl.match(/[-\w]{25,}/)?.[0]
+    const driveIdMatch = downloadUrl.match(/[-\w]{25,}/)?.[0]
     
-    if (!driveId || !downloadUrl.includes('drive.google.com')) {
+    if (!driveIdMatch || !downloadUrl.includes('drive.google.com')) {
       return NextResponse.redirect(downloadUrl, { status: 302 })
     }
 
     /** 
-     * 🛰️ ZERO-EGRESS REDIRECT HUB (Free Tier Optimization)
-     * For large files (GBs), we redirect to Drive to save Vercel bandwidth.
-     * Fingerprinting is disabled in this mode because the server never touches the bytes.
-     * To re-enable security proxy, uncomment the 'Mode A/B' blocks below and comment the redirect.
+     * 🛰️ PURE_STEALTH_REDIRECT (V6_TOTAL_BYPASS)
+     * Total Zero-Egress Architecture. 
+     * No Proxying. No Fingerprinting. 0% Vercel Bandwidth Usage.
      **/
     
-    const driveIdMatch = downloadUrl.match(/[-\w]{25,}/)?.[0];
-    if (!driveIdMatch) return NextResponse.redirect(downloadUrl);
+    const { grantDrivePermission } = await import('@/lib/drive/automation');
+    // Grant anonymous access
+    await grantDrivePermission(user?.email || 'guest', targetId, !isSample);
 
-    // 🧬 ZERO-EGRESS SYNC: Grant viewer access so they can download directly from Google
-    // This offloads all bandwidth (GBs) to Google Drive.
-    if (user?.email) {
-        const { grantDrivePermission } = await import('@/lib/drive/automation');
-        await grantDrivePermission(user.email, targetId, !isSample);
-    }
-
-    // 🔗 Secure Direct Action: Send user to a direct Drive download signal
+    // 🔗 Final Transfer: Direct Redirect to Google Drive
     const secureDriveLink = `https://drive.google.com/uc?export=download&id=${driveIdMatch}`;
     
     return NextResponse.redirect(secureDriveLink);
-
-    /* --- 🧬 FUTURE PROXY HUB (UNCOMMENT TO RE-ENABLE FINGERPRINTING) ---
-    const drive = getDriveClient();
-    const fileName = name?.endsWith('.rar') || name?.endsWith('.zip') || name?.endsWith('.wav') 
-        ? name 
-        : `${name}.${isSample ? 'wav' : 'zip'}`;
-
-    const metadata = `SIGN:USER_ID:${tokenRecord.user_id}|EMAIL:${user?.email || 'unknown'}|LICENSE:SAMPLES_WALA_V1`;
-    const metadataBuffer = Buffer.from(metadata, 'utf8');
-
-    if (isSample) {
-        // ... (In-Memory Logic)
-    } else {
-        // ... (Streaming Logic)
-    }
-    ------------------------------------------------------------------ */
 
   } catch (error: any) {
     console.error("[SHIELD_BRIDGE_FAULT]:", error.message)

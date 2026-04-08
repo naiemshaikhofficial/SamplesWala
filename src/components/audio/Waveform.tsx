@@ -51,7 +51,7 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       {isActive && isPlaying && (
           <div 
             className="absolute inset-y-0 left-0 bg-[#a6e22e]/[0.05] blur-xl pointer-events-none transition-all duration-300"
-            style={{ width: `${progress}%` }}
+            style={{ width: `${progress.toFixed(2)}%` }}
           />
       )}
 
@@ -75,12 +75,12 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
                 key={i}
                 className={`w-[2px] rounded-full transition-all duration-75`}
                 style={{ 
-                  height: `${realTimeHeight}%`,
+                  height: `${realTimeHeight.toFixed(2)}%`,
                   backgroundColor: isPast 
                     ? '#a6e22e' 
                     : 'rgba(255,255,255,0.1)',
                   boxShadow: (isPast && isActive && isPlaying) ? '0 0 10px rgba(166,226,46,0.3)' : 'none',
-                  transform: `scaleY(${pulseFactor})`,
+                  transform: `scaleY(${pulseFactor.toFixed(2)})`,
                   opacity: isPast ? 1 : 0.3
                 }}
               />
@@ -92,7 +92,7 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       {isActive && (
           <div 
             className="absolute top-0 bottom-0 w-[1px] bg-[#a6e22e] z-30 shadow-[0_0_10px_#a6e22e]"
-            style={{ left: `${progress}%` }}
+            style={{ left: `${progress.toFixed(2)}%` }}
           />
       )}
     </div>
