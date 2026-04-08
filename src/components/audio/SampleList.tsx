@@ -53,9 +53,10 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds = ne
                                     name={sample.name} 
                                     packName={packName}
                                     coverUrl={coverUrl}
-                                    bpm={sample.metadata?.bpm}
-                                    audioKey={sample.metadata?.key}
+                                    bpm={sample.bpm}
+                                    audioKey={sample.key}
                                     isUnlocked={isUnlocked}
+                                    creditCost={sample.credit_cost}
                                 />
                             </div>
 
@@ -65,7 +66,7 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds = ne
                                     {sample.name}
                                 </span>
                                 <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-white/30 italic">
-                                    <span className="truncate">{sample.metadata?.type || 'Loop'}</span>
+                                    <span className="truncate">{sample.type || 'Loop'}</span>
                                     <span className="text-white/10 hidden sm:inline">|</span>
                                     <span className="hidden sm:inline opacity-60">ID:{sample.id.split('-')[0]}</span>
                                 </div>
@@ -74,12 +75,12 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds = ne
                             {/* ⏱️ SPECS (Hidden on small, md only) */}
                             <div className="hidden md:flex col-span-1 items-center justify-center">
                                 <span className="text-[11px] font-black text-white/60 tabular-nums">
-                                    {sample.metadata?.bpm || '--'}
+                                    {sample.bpm || '--'}
                                 </span>
                             </div>
                             <div className="hidden md:flex col-span-1 items-center justify-center">
                                 <span className="text-[11px] font-black text-studio-yellow">
-                                    {sample.metadata?.key || '--'}
+                                    {sample.key || '--'}
                                 </span>
                             </div>
 
@@ -93,7 +94,7 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds = ne
                                 <DownloadButton 
                                     sampleId={sample.id}
                                     isUnlockedInitial={isUnlocked}
-                                    creditCost={1}
+                                    creditCost={sample.credit_cost || 1}
                                 />
                             </div>
                         </div>
