@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyDownloadToken } from '@/lib/jwt'
 import { getDriveClient } from '@/lib/drive/automation'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { Readable } from 'stream'
 
 export const dynamic = 'force-dynamic'
@@ -13,31 +14,47 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: token } = await params
+    const { id: tokenId } = await params
     const clientIp = request.headers.get("x-forwarded-for")?.split(',')[0] || "unknown"
 
-    // 1. 🛡️ VERIFY TOKEN & IP LOCK
-    const payload = await verifyDownloadToken(token) as any
-    if (!payload || !payload.id) return new NextResponse("Unauthorized Pulse", { status: 403 })
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const admin = getAdminClient();
 
-    if (payload.ip && payload.ip !== clientIp && clientIp !== "unknown" && payload.ip !== "unknown") {
+    // 1. 🛡️ STATEFUL_TOKEN_VERIFICATION (V5_HARDENED)
+    const { data: tokenRecord, error: tokenError } = await admin
+        .from('secure_download_tokens')
+        .select('*')
+        .eq('id', tokenId)
+        .is('used_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+    if (tokenError || !tokenRecord) {
+        console.error("[SHIELD_BRIDGE_DENIED]:", tokenError?.message || "Token used or expired");
+        return new NextResponse("Unauthorized or Expired Signal", { status: 403 })
+    }
+
+    if (tokenRecord.client_ip && tokenRecord.client_ip !== clientIp && clientIp !== "unknown" && tokenRecord.client_ip !== "unknown") {
        return new NextResponse("Unauthorized: IP Lock Conflict", { status: 403 })
     }
 
-    const targetId = payload.id as string
-    const isSample = payload.isSample as boolean
-    const supabase = await createClient()
+    // 🧬 Update used_at AFTER validation to avoid race conditions with pre-fetchers
+    await admin.from('secure_download_tokens').update({ used_at: new Date().toISOString() }).eq('id', tokenId);
 
-    // 2. 📡 GET SECURE SOURCE
+    const targetId = tokenRecord.item_id
+    const isSample = tokenRecord.item_type === 'sample'
+
+    // 2. 📡 GET SECURE SOURCE (Using Admin Signal to bypass RLS on protected columns)
     let downloadUrl: string | undefined;
     let name: string | undefined;
 
     if (isSample) {
-        const { data: sample } = await supabase.from('samples').select('name, download_url').eq('id', targetId).maybeSingle()
+        const { data: sample } = await admin.from('samples').select('name, download_url').eq('id', targetId).maybeSingle()
         downloadUrl = sample?.download_url;
         name = sample?.name;
     } else {
-        const { data: pack } = await supabase.from('sample_packs').select('name, full_pack_download_url').eq('id', targetId).maybeSingle()
+        const { data: pack } = await admin.from('sample_packs').select('name, full_pack_download_url').eq('id', targetId).maybeSingle()
         downloadUrl = pack?.full_pack_download_url;
         name = pack?.name;
     }
@@ -51,27 +68,34 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.redirect(downloadUrl, { status: 302 })
     }
 
-    /** 📠 STARTING DIRECT SIGNAL PIPE (V4 Authenticated) **/
+    /** 📠 STARTING DIRECT SIGNAL PIPE (V4 Authenticated + Fingerprinting) **/
     const drive = getDriveClient();
     console.log(`[DRIVE_BRIDGE] Initialized V4 Stream for: ${name}`);
 
     const driveResponse = await drive.files.get(
       { fileId: driveId, alt: 'media' },
-      { responseType: 'stream' }
+      { responseType: 'arraybuffer' } // Fetch as arraybuffer for fingerprinting
     )
 
-    // 📠 Convert Node.js stream to Web stream for standard-compliant response
-    // @ts-ignore
-    const webStream = Readable.toWeb(driveResponse.data as Readable);
+    let finalData = Buffer.from(driveResponse.data as any);
+    
+    // 🧬 INJECT IDENTITY FINGERPRINT (Only for individual samples to save memory)
+    if (isSample) {
+        const { injectFingerprint } = await import('@/lib/audio/fingerprint'); 
+        finalData = injectFingerprint(finalData, { 
+            id: tokenRecord.user_id || 'unknown', 
+            email: user?.email || 'unknown' 
+        });
+    }
 
     const fileName = name?.endsWith('.rar') || name?.endsWith('.zip') || name?.endsWith('.wav') 
         ? name 
         : `${name}.${isSample ? 'wav' : 'zip'}`;
 
-    return new Response(webStream as any, {
+    return new Response(finalData, {
       headers: {
         'Content-Type': driveResponse.headers['content-type'] || 'application/octet-stream',
-        'Content-Length': driveResponse.headers['content-length'] || '',
+        'Content-Length': finalData.length.toString(),
         'Content-Disposition': `attachment; filename="${fileName}"`,
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       },

@@ -137,6 +137,16 @@ export async function GET(req: NextRequest) {
 
     console.log(`[AUDIO PROXY] ${isDownload ? "DOWNLOAD" : "PREVIEW"} from: ${finalUrl.substring(0, 50)}...`);
 
+    // 🛡️ SECURITY LAYER 3: Rate Limiting & Signal Frequency Check
+    // (Simple per-IP limiter using Cache)
+    const clientIp = req.headers.get("x-forwarded-for")?.split(',')[0] || "unknown"
+    const rateKey = `rate_limit_${clientIp}`;
+    const rateCount = (urlCache.get(rateKey) as any)?.count || 0;
+    if (rateCount > 100) { // Limit to 100 signals per cache window
+        return new NextResponse('Signal Interference: Too many requests.', { status: 429 });
+    }
+    urlCache.set(rateKey, { count: rateCount + 1, timestamp: Date.now() } as any);
+
     const range = req.headers.get('range');
     const requestHeaders: HeadersInit = { 'User-Agent': USER_AGENT };
     if (cookie) requestHeaders['Cookie'] = cookie;
@@ -146,6 +156,16 @@ export async function GET(req: NextRequest) {
     if (!upstreamResponse.ok) {
         console.error("[AUDIO PROXY] Upstream Error:", upstreamResponse.status);
         return new NextResponse(`Error: ${upstreamResponse.status}`, { status: upstreamResponse.status });
+    }
+
+    // 🌊 STARTING PREVIEW WATERMARKING HUB
+    let finalBody = upstreamResponse.body;
+    
+    // If it's a preview AND it's NOT a download request, we can inject tags
+    // For now, we'll implement the "Invisible Fingerprint" even for previews
+    if (!isDownload) {
+        console.log(`[WATERMARK] Monitoring Signal: ${sample.name}`);
+        // We could use an Audio Transform Stream here to mix "Samples Wala" tags
     }
 
     const responseHeaders = new Headers();
@@ -160,11 +180,10 @@ export async function GET(req: NextRequest) {
     
     if (isDownload) {
         responseHeaders.set('Content-Disposition', `attachment; filename="${sample.name}.wav"`);
-        // For downloads, we might want to override the preview content type to force binary
         responseHeaders.set('Content-Type', 'audio/wav');
     }
 
-    return new NextResponse(upstreamResponse.body, { status: upstreamResponse.status, headers: responseHeaders });
+    return new NextResponse(finalBody, { status: upstreamResponse.status, headers: responseHeaders });
   } catch (error: any) {
     console.error('[AUDIO PROXY] Global Error:', error.message);
     return new NextResponse(`Internal Error: ${error.message}`, { status: 500 });
