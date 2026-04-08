@@ -76,10 +76,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const proxySecret = process.env.PROXY_SECRET;
 
     if (workerUrl && proxySecret && driveIdMatch) {
-        // 🔐 Generate HMAC-SHA256 Signature
+        // 🔐 Generate EXPIRING HMAC-SHA256 Signature (Valid for 1 Hour)
+        const timestamp = Math.floor(Date.now() / 1000) + 3600;
         const crypto = await import('crypto');
         const hmac = crypto.createHmac('sha256', proxySecret);
-        hmac.update(driveIdMatch);
+        hmac.update(`${driveIdMatch}:${timestamp}`);
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
             .replace(/\//g, "_")
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const fileName = brandName + (isSample ? '.wav' : '.zip');
         const encodedName = encodeURIComponent(fileName);
 
-        return NextResponse.redirect(`${workerUrl}?id=${driveIdMatch}&sig=${sig}&name=${encodedName}`);
+        return NextResponse.redirect(`${workerUrl}?id=${driveIdMatch}&sig=${sig}&exp=${timestamp}&name=${encodedName}&download=1`);
     }
 
     // 🔄 Fallback: Direct Drive

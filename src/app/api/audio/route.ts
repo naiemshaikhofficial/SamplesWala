@@ -129,10 +129,11 @@ export async function GET(req: NextRequest) {
     const proxySecret = process.env.PROXY_SECRET;
 
     if (workerUrl && proxySecret && extractedId) {
-        // 🔐 Generate HMAC-SHA256 Signature for the preview
+        // 🔐 Generate EXPIRING HMAC-SHA256 Signature (Valid for 1 Hour)
+        const timestamp = Math.floor(Date.now() / 1000) + 3600;
         const crypto = await import('crypto');
         const hmac = crypto.createHmac('sha256', proxySecret);
-        hmac.update(extractedId);
+        hmac.update(`${extractedId}:${timestamp}`);
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
             .replace(/\//g, "_")
@@ -142,8 +143,8 @@ export async function GET(req: NextRequest) {
         const brandName = `SamplesWala - ${sample.name || 'Preview'}`;
         const encodedName = encodeURIComponent(brandName);
 
-        // Redirect to Cloudflare (With download flag if applicable)
-        const redirectUrl = `${workerUrl}?id=${extractedId}&sig=${sig}&name=${encodedName}${isDownload ? '&download=1' : ''}`;
+        // Redirect to Cloudflare
+        const redirectUrl = `${workerUrl}?id=${extractedId}&sig=${sig}&exp=${timestamp}&name=${encodedName}${isDownload ? '&download=1' : ''}`;
         return NextResponse.redirect(redirectUrl);
     }
 
