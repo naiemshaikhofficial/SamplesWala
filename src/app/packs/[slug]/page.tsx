@@ -252,21 +252,16 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                           </div>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row items-center gap-6 mt-12 pt-10 border-t border-white/10">
+                      <div className="flex flex-col sm:flex-row items-center gap-6 mt-12 pt-10 pb-4 border-t border-white/10">
                          {isFullPackUnlocked ? (
-                                <div className="w-full grid grid-cols-1 md:grid-cols-[1.2fr_1fr] items-center gap-6 md:gap-8">
-                                    <div className="h-14 px-8 bg-studio-yellow text-black font-black uppercase tracking-[0.4em] text-[10px] flex items-center justify-center gap-3 shadow-[0_0_50px_rgba(234,179,8,0.2)] rounded-sm">
-                                        <ShieldCheck className="h-5 w-5" /> ACCESS_GRANTED
-                                    </div>
-                                    <div className="flex-1 w-full scale-100">
-                                        <SecureDownloadButton packId={pack.id} />
-                                    </div>
-                                </div>
+                                 <div className="w-full max-w-2xl mx-auto">
+                                     <SecureDownloadButton packId={pack.id} variant="yellow" />
+                                 </div>
                          ) : (
-                            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 relative">
+                             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative">
                                 <div className="flex flex-col gap-3">
                                      <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-                                     <span className="text-[8px] text-white/20 uppercase tracking-widest italic text-center">PAY_WITH_CREDITS</span>
+                                     <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">PAY_WITH_CREDITS</span>
                                 </div>
                                 <div className="flex flex-col gap-3">
                                     <SubscribeButton 
@@ -275,7 +270,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                                         mode="sample_pack"
                                         isFeatured
                                     />
-                                    <span className="text-[8px] text-white/20 uppercase tracking-widest italic text-center">INSTANT_DELIVERY</span>
+                                    <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">INSTANT_DELIVERY</span>
                                 </div>
                             </div>
                          )}
