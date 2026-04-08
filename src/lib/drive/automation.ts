@@ -77,7 +77,7 @@ export async function grantDrivePermission(userEmail: string, itemId: string, is
         
         await drive.permissions.create({
             fileId: driveId,
-            sendNotificationEmail: true,
+            sendNotificationEmail: false,
             requestBody: {
                 role: 'reader',
                 type: 'user',
