@@ -68,18 +68,33 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     /** 
-     * 🛰️ PURE_STEALTH_REDIRECT (V6_TOTAL_BYPASS)
-     * Total Zero-Egress Architecture. 
-     * No Proxying. No Fingerprinting. 0% Vercel Bandwidth Usage.
+     * 🛰️ ULTRA_STEALTH_HUB (V8_HMAC_ENCRYPTED)
+     * Security Upgrade: We now use a HMAC signature instead of a plaintext secret.
+     * Your master secret stays hidden on the server!
      **/
-    
-    const { grantDrivePermission } = await import('@/lib/drive/automation');
-    // Grant anonymous access
-    await grantDrivePermission(user?.email || 'guest', targetId, !isSample);
+    const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
+    const proxySecret = process.env.PROXY_SECRET;
 
-    // 🔗 Final Transfer: Direct Redirect to Google Drive
+    if (workerUrl && proxySecret && driveIdMatch) {
+        // 🔐 Generate HMAC-SHA256 Signature
+        const crypto = await import('crypto');
+        const hmac = crypto.createHmac('sha256', proxySecret);
+        hmac.update(driveIdMatch);
+        const sig = hmac.digest('base64')
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=/g, "");
+
+        // 🏷️ Add Branding, Filename & Extension (e.g. SamplesWala - DrumKit.zip)
+        const brandName = `SamplesWala - ${name || 'Asset'}`;
+        const fileName = brandName + (isSample ? '.wav' : '.zip');
+        const encodedName = encodeURIComponent(fileName);
+
+        return NextResponse.redirect(`${workerUrl}?id=${driveIdMatch}&sig=${sig}&name=${encodedName}`);
+    }
+
+    // 🔄 Fallback: Direct Drive
     const secureDriveLink = `https://drive.google.com/uc?export=download&id=${driveIdMatch}`;
-    
     return NextResponse.redirect(secureDriveLink);
 
   } catch (error: any) {
