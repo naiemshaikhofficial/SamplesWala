@@ -1,105 +1,166 @@
 'use client'
 
-import { Play, Pause, Waves, Zap, Box, Lock, Music2, Timer, Layers, Download, CreditCard } from 'lucide-react'
-import { useAudio } from './AudioProvider'
+import React, { useState, useMemo, useEffect } from 'react'
+import { Layers, Play, Pause, Music, Zap, Download } from 'lucide-react'
 import { PlayButton } from './PlayButton'
-import { Waveform } from './Waveform'
 import { DownloadButton } from './DownloadButton'
-import Link from 'next/link'
+import { Waveform } from './Waveform'
+import { useAudio } from './AudioProvider'
 
-interface SampleListProps {
-    samples: any[]
-    packName: string
-    coverUrl: string | null
-    unlockedSampleIds?: Set<string>
-    isFullPackUnlocked?: boolean
+type Sample = {
+    id: string
+    name: string
+    audio_url?: string
+    bpm?: number | null
+    key?: string | null
+    credit_cost?: number
 }
 
-export function SampleList({ samples, packName, coverUrl, unlockedSampleIds = new Set(), isFullPackUnlocked = false }: SampleListProps) {
-    const { activeId, isPlaying, pause } = useAudio()
+type SampleListProps = {
+    samples: Sample[]
+    packName: string
+    coverUrl?: string | null
+    unlockedSampleIds: Set<string>
+    isFullPackUnlocked: boolean
+}
+
+export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isFullPackUnlocked }: SampleListProps) {
+    const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots'>('all')
+    const { setPlaylist, activeId } = useAudio()
+
+    // 🧬 SPLICE-STYLE CATEGORIZATION
+    const filteredSamples = useMemo(() => {
+        if (filter === 'all') return samples
+        if (filter === 'loops') return samples.filter(s => s.bpm)
+        if (filter === 'oneshots') return samples.filter(s => !s.bpm)
+        return samples
+    }, [samples, filter])
+
+    // 📡 SIGNAL_SYNC (Keep playlist updated for Next/Prev)
+    useEffect(() => {
+        const playlistData = filteredSamples.map(s => ({
+            id: s.id,
+            url: s.audio_url,
+            name: s.name,
+            packName: packName,
+            coverUrl: coverUrl,
+            bpm: s.bpm,
+            audioKey: s.key,
+            isUnlocked: unlockedSampleIds.has(s.id) || isFullPackUnlocked
+        }))
+        setPlaylist(playlistData)
+    }, [filteredSamples, packName, coverUrl, unlockedSampleIds, isFullPackUnlocked, setPlaylist])
 
     return (
-        <div className="w-full space-y-2">
-            {/* 🛰️ HEADER_RACK (Desktop Only) */}
-            <div className="hidden md:grid grid-cols-12 items-center gap-4 px-10 py-4 border-b-2 border-white/5 text-[9px] font-black uppercase tracking-[0.2em] text-white/20 italic">
-                <div className="col-span-1">#</div>
-                <div className="col-span-4">Signal_Name / Metadata</div>
-                <div className="col-span-1 text-center">BPM</div>
-                <div className="col-span-1 text-center">Key</div>
-                <div className="col-span-4 text-center">Visualizer</div>
-                <div className="col-span-1 text-right">Action</div>
+        <div className="space-y-6 md:space-y-8 w-full">
+            {/* 🎛️ SIGNAL_FILTER_BAR (Full-Width Balance) */}
+            <div className="w-full flex items-center p-1 bg-black/40 border border-white/5 rounded-sm">
+                {[
+                    { id: 'all', label: 'All', count: samples.length },
+                    { id: 'loops', label: 'Loops', count: samples.filter(s => s.bpm).length },
+                    { id: 'oneshots', label: '1-shots', count: samples.filter(s => !s.bpm).length }
+                ].map((t) => (
+                    <button
+                        key={t.id}
+                        onClick={() => setFilter(t.id as any)}
+                        className={`flex-1 min-w-0 py-3 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 md:gap-3 whitespace-nowrap ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'}`}
+                    >
+                        <span className="truncate">{t.label}</span>
+                        <span className={`text-[8px] opacity-40 ${filter === t.id ? 'text-black/60' : ''}`}>({t.count})</span>
+                    </button>
+                ))}
             </div>
 
-            {/* 🧬 SIGNAL_MATRIX_ROWS */}
-            <div className="space-y-[1px] bg-white/5 border border-white/5 rounded-sm overflow-hidden">
-                {samples.map((sample, index) => {
-                    const isActive = activeId === sample.id;
-                    const isUnlocked = isFullPackUnlocked || unlockedSampleIds.has(sample.id);
+            <div className="bg-black/60 studio-panel border-2 border-white/5 overflow-hidden w-full">
+                {/* Desktop Header */}
+                <div className="hidden md:grid grid-cols-12 gap-3 px-10 py-5 border-b-2 border-black text-[9px] uppercase font-black tracking-widest text-white/20 bg-studio-grey/40">
+                    <div className="col-span-1 text-center">#</div>
+                    <div className="col-span-4 text-white/40 italic">Sound Name</div>
+                    <div className="col-span-1 text-center">BPM</div>
+                    <div className="col-span-1 text-center">Key</div>
+                    <div className="col-span-4 text-center">Waveform</div>
+                    <div className="col-span-1 text-right">Download</div>
+                </div>
 
-                    return (
-                        <div 
-                            key={sample.id} 
-                            className={`group grid grid-cols-12 items-center gap-2 md:gap-4 px-3 md:px-10 py-3.5 md:py-5 transition-all relative overflow-hidden ${isActive ? 'bg-studio-neon/10' : 'bg-black hover:bg-white/[0.03]'}`}
-                        >
-                            {/* Visual Glow for Active Track */}
-                            {isActive && (
-                                <div className="absolute inset-y-0 left-0 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
-                            )}
-
-                            {/* 🎹 PLAY_NODE (Col 2 Mobile, 1 Desktop) */}
-                            <div className="col-span-2 md:col-span-1 flex items-center justify-start">
-                                <PlayButton 
-                                    id={sample.id} 
-                                    name={sample.name} 
-                                    packName={packName}
-                                    coverUrl={coverUrl}
-                                    bpm={sample.bpm}
-                                    audioKey={sample.key}
-                                    isUnlocked={isUnlocked}
-                                    creditCost={sample.credit_cost}
-                                />
-                            </div>
-
-                            {/* 🧬 METADATA_CLUSTER (Col 7 Mobile, 4 Desktop) */}
-                            <div className="col-span-7 md:col-span-4 flex flex-col gap-1 overflow-hidden">
-                                <span className={`text-[11px] md:text-sm font-bold uppercase tracking-tight truncate ${isActive ? 'text-studio-neon' : 'text-white'}`}>
-                                    {sample.name}
-                                </span>
-                                <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-white/30 italic">
-                                    <span className="truncate">{sample.type || 'Loop'}</span>
-                                    <span className="text-white/10 hidden sm:inline">|</span>
-                                    <span className="hidden sm:inline opacity-60">ID:{sample.id.split('-')[0]}</span>
+                <div className="divide-y divide-black">
+                    {filteredSamples.map((sample, idx) => {
+                        const isUnlocked = unlockedSampleIds.has(sample.id) || isFullPackUnlocked
+                        const isActive = activeId === sample.id
+                        
+                        return (
+                            <div 
+                                key={sample.id} 
+                                className={`group grid grid-cols-12 items-center gap-2 md:gap-4 px-3 md:px-10 py-3.5 md:py-4 transition-all border-b border-white/5 md:border-none ${isActive ? 'bg-studio-neon/5' : 'hover:bg-white/[0.03]'}`}
+                            >
+                                {/* 🕹️ PLAY NODE */}
+                                <div className="col-span-2 md:col-span-1 flex items-center justify-start md:justify-center">
+                                    <div className="scale-75 md:scale-100 origin-left">
+                                        <PlayButton 
+                                            id={sample.id} 
+                                            url={sample.audio_url} 
+                                            name={sample.name}
+                                            packName={packName}
+                                            coverUrl={coverUrl}
+                                            bpm={sample.bpm}
+                                            audioKey={sample.key}
+                                            isUnlocked={isUnlocked}
+                                            creditCost={sample.credit_cost}
+                                        />
+                                    </div>
+                                </div>
+                                
+                                {/* 🧬 METADATA CLUSTER */}
+                                <div className="col-span-7 md:col-span-4 flex flex-col min-w-0 pr-1">
+                                    <div className="flex items-center gap-2 mb-0.5 whitespace-nowrap min-w-0">
+                                        <span className={`text-[11px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
+                                            {sample.name}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[7px] md:text-[8px] font-bold uppercase text-white/10 tracking-[0.1em] md:tracking-[0.2em] italic whitespace-nowrap">
+                                            TRK_0{idx+1}
+                                        </span>
+                                        {(sample.bpm || sample.key) && (
+                                            <span className="text-[7px] md:hidden font-black text-studio-neon/60 uppercase tracking-tighter whitespace-nowrap">
+                                                {sample.bpm && `${sample.bpm}`} {sample.key && `// ${sample.key}`}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {/* 🎹 DESKTOP EXCLUSIVE DATA */}
+                                <div className="hidden md:block md:col-span-1 text-center font-black text-[12px] text-white/30 italic">
+                                    {sample.bpm || <span className="opacity-10">-</span>}
+                                </div>
+                                <div className="hidden md:block md:col-span-1 text-center font-black text-[12px] text-studio-neon tracking-tighter italic">
+                                    {sample.key || <span className="opacity-10 opacity-10 text-white/30">-</span>}
+                                </div>
+                                
+                                {/* 📊 WAVEFORM (HIDDEN ON MOBILE) */}
+                                <div className="hidden md:block md:col-span-4">
+                                    <Waveform id={sample.id} active={true} />
+                                </div>
+                                
+                                {/* 📥 ACQUISITION NODE */}
+                                <div className="col-span-3 md:col-span-1 flex justify-end">
+                                    <div className="scale-75 md:scale-100 origin-right">
+                                        <DownloadButton 
+                                            sampleId={sample.id} 
+                                            isUnlockedInitial={isUnlocked} 
+                                            creditCost={sample.credit_cost}
+                                        />
+                                    </div>
                                 </div>
                             </div>
+                        )
+                    })}
+                </div>
 
-                            {/* ⏱️ SPECS (Hidden on small, md only) */}
-                            <div className="hidden md:flex col-span-1 items-center justify-center">
-                                <span className="text-[11px] font-black text-white/60 tabular-nums">
-                                    {sample.bpm || '--'}
-                                </span>
-                            </div>
-                            <div className="hidden md:flex col-span-1 items-center justify-center">
-                                <span className="text-[11px] font-black text-studio-yellow">
-                                    {sample.key || '--'}
-                                </span>
-                            </div>
-
-                            {/* 📈 WAVEFORM (Desktop/Wide Tablet) */}
-                            <div className="hidden lg:block col-span-4 px-6 opacity-30 group-hover:opacity-100 transition-opacity">
-                                <Waveform id={sample.id} active={isActive} />
-                            </div>
-
-                            {/* 💎 ACQUISITION_NODE (Col 3 Mobile, 1 Desktop) */}
-                            <div className="col-span-3 lg:col-span-1 flex items-center justify-end">
-                                <DownloadButton 
-                                    sampleId={sample.id}
-                                    isUnlockedInitial={isUnlocked}
-                                    creditCost={sample.credit_cost || 1}
-                                />
-                            </div>
-                        </div>
-                    )
-                })}
+                {filteredSamples.length === 0 && (
+                    <div className="p-32 text-center text-[11px] font-black uppercase tracking-[0.5em] text-white/10 italic">
+                        No sounds found.
+                    </div>
+                )}
             </div>
         </div>
     )

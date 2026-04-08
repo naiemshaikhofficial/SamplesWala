@@ -1,219 +1,401 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { 
-    Filter, SlidersHorizontal, Music2, Timer, Key, 
-    X, ChevronRight, Zap, Radio, Boxes, Layers, 
-    Search, Mic2, Activity, Terminal
+    Layers, Activity, Keyboard, Timer, X, Sparkles, ArrowRight,
+    Filter as FilterIcon, SlidersHorizontal, ChevronDown,
+    ShieldCheck, UserCheck, Search, Disc, Settings2, Mic2
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
-interface SidebarFiltersProps {
-    categories: any[]
-}
+type Category = { id: string, name: string }
 
-export function SidebarFilters({ categories }: SidebarFiltersProps) {
+const musicalKeys = [
+    'A', 'Am', 'A#', 'A#m', 'B', 'Bm', 'C', 'Cm', 'C#', 'C#m', 
+    'D', 'Dm', 'D#', 'D#m', 'E', 'Em', 'F', 'Fm', 'F#', 'F#m', 'G', 'Gm', 'G#', 'G#m'
+]
+
+const genres = [
+    'Bollywood', 'Bhangra', 'Desi Hip Hop', 'Indian Classical', 'Sufi', 
+    'Ghazal', 'Qawwali', 'South Indian', 'Haryanvi', 'Punjabi Pop',
+    'Trap', 'Hip Hop', 'Drill', 'RnB', 'Lo-Fi', 'Pop', 'Cinematic', 
+    '8Bit', 'Acid', 'Acoustic', 'Afrobeat', 'Ambient', 'Big Room'
+]
+
+const popularTags = ['Guitar', 'Bells', 'Synth', 'Bass', 'Vocal', 'Flute', 'Piano', 'Drum Kit', 'FX']
+
+export function SidebarFilters({ categories }: { categories: Category[] }) {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const [isMobileOpen, setIsMobileOpen] = useState(false)
     
-    const [q, setQ] = useState(searchParams.get('q') || '')
-    const [category, setCategory] = useState(searchParams.get('category') || 'all')
-    const [type, setType] = useState(searchParams.get('type') || 'all')
-    const [bpmRange, setBpmRange] = useState({ 
-        min: searchParams.get('bpm_min') || '', 
-        max: searchParams.get('bpm_max') || '' 
-    })
-    const [key, setKey] = useState(searchParams.get('key') || 'all')
+    const currentCategory = searchParams.get('category')
+    const currentType = searchParams.get('type')
+    const currentKey = searchParams.get('key')
+    const currentTag = searchParams.get('tag')
+    const currentGenre = searchParams.get('genre')
+    
+    // 🧬 Filter Settings
+    const [bpmMin, setBpmMin] = useState(searchParams.get('bpm_min') || '')
+    const [bpmMax, setBpmMax] = useState(searchParams.get('bpm_max') || '')
+    const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-    const musicalKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-
-    const applyFilters = () => {
-        const params = new URLSearchParams()
-        if (q) params.set('q', q)
-        if (category !== 'all') params.set('category', category)
-        if (type !== 'all') params.set('type', type)
-        if (bpmRange.min) params.set('bpm_min', bpmRange.min)
-        if (bpmRange.max) params.set('bpm_max', bpmRange.max)
-        if (key !== 'all') params.set('key', key)
-        
+    const updateFilters = (updates: Record<string, string | null>) => {
+        const params = new URLSearchParams(searchParams.toString())
+        Object.entries(updates).forEach(([key, val]) => {
+            if (val === null || val === '') params.delete(key)
+            else params.set(key, val)
+        })
         router.push(`/browse?${params.toString()}`)
-        setIsMobileOpen(false)
     }
 
     const clearFilters = () => {
-        setQ('')
-        setCategory('all')
-        setType('all')
-        setBpmRange({ min: '', max: '' })
-        setKey('all')
         router.push('/browse')
+        setBpmMin('')
+        setBpmMax('')
         setIsMobileOpen(false)
     }
 
+    // 🎹 KEY SIGNATURE TERMINAL
+    const KeySelector = () => (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-l-2 border-studio-neon pl-3">
+                KEY SIGNATURE
+            </div>
+            <div className="grid grid-cols-4 gap-1">
+                {musicalKeys.map(key => (
+                    <button
+                        key={key}
+                        onClick={() => updateFilters({ key: currentKey === key ? null : key })}
+                        className={`py-3 text-[10px] font-bold border transition-all ${
+                            currentKey === key 
+                            ? 'bg-studio-neon text-black border-studio-neon shadow-[0_0_10px_rgba(166,226,46,0.2)]' 
+                            : 'bg-black/40 text-white/40 border-white/5 hover:border-white/20'
+                        }`}
+                    >
+                        {key}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+
+    // 🎭 STYLE & GENRE MATRIX
+    const GenreSelector = () => (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-l-2 border-studio-neon pl-3">
+                STUDIO STYLE
+            </div>
+            <div className="flex flex-wrap gap-2">
+                {genres.map(genre => (
+                    <button
+                        key={genre}
+                        onClick={() => updateFilters({ genre: currentGenre === genre ? null : genre })}
+                        className={`px-4 py-2 text-[9px] font-black uppercase tracking-widest border transition-all ${
+                            currentGenre === genre 
+                            ? 'bg-white text-black border-white' 
+                            : 'bg-black/60 text-white/30 border-white/5 hover:border-white/20'
+                        }`}
+                    >
+                        {genre}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+
+    // 🏎️ BPM RANGE INPUTS
+    const BPMControls = () => (
+        <div className="space-y-6">
+            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 border-l-2 border-studio-neon pl-3">
+                BPM THRESHOLD
+            </div>
+            <div className="flex items-center gap-2">
+                <input 
+                    type="number" 
+                    placeholder="MIN" 
+                    value={bpmMin}
+                    onChange={(e) => setBpmMin(e.target.value)}
+                    className="w-full bg-black/80 border border-white/5 p-3 text-[10px] font-black focus:border-studio-neon outline-none"
+                />
+                <div className="w-4 h-[2px] bg-white/10" />
+                <input 
+                    type="number" 
+                    placeholder="MAX" 
+                    value={bpmMax}
+                    onChange={(e) => setBpmMax(e.target.value)}
+                    className="w-full bg-black/80 border border-white/5 p-3 text-[10px] font-black focus:border-studio-neon outline-none"
+                />
+                <button 
+                   onClick={() => updateFilters({ bpm_min: bpmMin, bpm_max: bpmMax })}
+                   className="bg-studio-neon text-black p-3"
+                >
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    )
+    const FilterSections = () => (
+        <div className="space-y-12 pb-24 md:pb-0">
+            {/* KEY SIGNATURE */}
+            <KeySelector />
+
+            {/* GENRE */}
+            <GenreSelector />
+
+            {/* BPM */}
+            <BPMControls />
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Sparkles size={14} className="text-studio-neon" /> GENRE
+                </div>
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                    {genres.map((genre) => {
+                        const genreVal = genre.toLowerCase();
+                        const isActive = currentGenre === genreVal;
+                        return (
+                            <Link 
+                                key={genre}
+                                href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), genre: genreVal }).toString()}`}
+                                onClick={() => setIsMobileOpen(false)}
+                                className={`px-3 py-2.5 text-[9px] uppercase font-black tracking-widest transition-all border text-center ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
+                            >
+                                {genre}
+                            </Link>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* TAGS */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Activity size={14} className="text-studio-neon" /> POPULAR TAGS
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                    {popularTags.map((tag) => {
+                        const isActive = currentTag === tag.toLowerCase();
+                        return (
+                            <Link 
+                                key={tag}
+                                href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), tag: tag.toLowerCase() }).toString()}`}
+                                onClick={() => setIsMobileOpen(false)}
+                                className={`px-3 py-1.5 text-[9px] uppercase font-black tracking-widest border transition-all ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
+                            >
+                                #{tag}
+                            </Link>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* INSTRUMENT */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Layers size={14} className="text-studio-neon" /> INSTRUMENT
+                </div>
+                <div className="flex flex-col gap-1 max-h-72 overflow-y-auto custom-scrollbar pr-2">
+                    <Link 
+                        href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), category: '' }).toString()}`} 
+                        onClick={() => setIsMobileOpen(false)}
+                        className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest transition-all ${!currentCategory ? 'bg-studio-neon text-black' : 'text-white/40 hover:bg-white/5 border border-white/10'}`}
+                    >
+                        ALL INSTRUMENTS
+                    </Link>
+                    {categories?.map((cat) => (
+                        <Link 
+                            key={cat.id} 
+                            href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), category: cat.id }).toString()}`}
+                            onClick={() => setIsMobileOpen(false)}
+                            className={`px-4 py-2.5 text-[10px] uppercase font-black tracking-widest transition-all border border-transparent ${currentCategory === cat.id ? 'bg-studio-neon text-black' : 'text-white/40 hover:bg-white/5 border-white/10'}`}
+                        >
+                            {cat.name}
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+            {/* KEY */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Keyboard size={14} className="text-studio-neon" /> MUSICAL KEY
+                </div>
+                <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    {musicalKeys.map((k) => (
+                        <Link 
+                            key={k}
+                            href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), key: k }).toString()}`}
+                            onClick={() => setIsMobileOpen(false)}
+                            className={`h-9 flex items-center justify-center text-[9px] border font-black transition-all ${currentKey === k ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/30 border-white/10 hover:bg-white/5'}`}
+                        >
+                            {k}
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+            {/* FORMAT */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Activity size={14} className="text-studio-neon" /> FORMAT
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    {['Loops', 'Oneshots'].map((type) => {
+                        const typeVal = type.toLowerCase();
+                        const isActive = currentType === typeVal;
+                        return (
+                            <Link 
+                                key={type}
+                                href={`/browse?${new URLSearchParams({ ...Object.fromEntries(searchParams.entries()), type: typeVal }).toString()}`}
+                                onClick={() => setIsMobileOpen(false)}
+                                className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest text-center transition-all border ${isActive ? 'bg-studio-neon text-black border-studio-neon' : 'text-white/40 border-white/10 hover:border-white/30'}`}
+                            >
+                                {type}
+                            </Link>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* BPM */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
+                    <Timer size={14} className="text-studio-neon" /> BPM RANGE
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <input 
+                        type="number" 
+                        value={bpmMin}
+                        onChange={(e) => setBpmMin(e.target.value)}
+                        onBlur={() => updateFilters({ bpm_min: bpmMin })}
+                        placeholder="MIN" 
+                        className="w-full bg-black border border-white/10 p-3 text-[11px] font-black text-white focus:border-studio-neon focus:outline-none transition-all placeholder:text-white/10"
+                    />
+                    <input 
+                        type="number" 
+                        value={bpmMax}
+                        onChange={(e) => setBpmMax(e.target.value)}
+                        onBlur={() => updateFilters({ bpm_max: bpmMax })}
+                        placeholder="MAX" 
+                        className="w-full bg-black border border-white/10 p-3 text-[11px] font-black text-white focus:border-studio-neon focus:outline-none transition-all placeholder:text-white/10"
+                    />
+                </div>
+            </div>
+
+            {/* SORT & LIMIT */}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/60">SORT BY</span>
+                    <select 
+                        value={searchParams.get('sort') || 'newest'}
+                        onChange={(e) => updateFilters({ sort: e.target.value })}
+                        className="w-full bg-black border border-white/10 p-2 text-[9px] font-black text-white/60 focus:text-studio-neon focus:outline-none transition-all appearance-none cursor-pointer"
+                    >
+                        <option value="newest">Newest First</option>
+                        <option value="bpm">BPM</option>
+                        <option value="key">Key</option>
+                    </select>
+                </div>
+                <div className="space-y-3">
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20 italic">SHOW</span>
+                    <select 
+                        value={searchParams.get('limit') || '25'}
+                        onChange={(e) => updateFilters({ limit: e.target.value })}
+                        className="w-full bg-black border border-white/10 p-2 text-[9px] font-black text-white/60 focus:text-studio-neon focus:outline-none transition-all appearance-none cursor-pointer"
+                    >
+                        <option value="10">10 sounds</option>
+                        <option value="25">25 sounds</option>
+                        <option value="50">50 sounds</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* RESET */}
+            <div className="pt-8 border-t border-white/5">
+                 <button 
+                  onClick={clearFilters}
+                  className="w-full py-4 bg-red-950/20 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-[0.5em] hover:bg-red-500 hover:text-white transition-all italic flex items-center justify-center gap-4"
+                >
+                    <X size={16} /> Reset Filters
+                </button>
+            </div>
+        </div>
+    )
+
     return (
         <>
-            {/* 🛠️ MOBILE_FILTER_TRIGGER (Always available in content flow) */}
-            <div className="lg:hidden mb-10 sticky top-28 z-[100] px-4">
+            {/* 🛠️ MOBILE_FILTER_TOGGLE (Now Inline, not fixed) */}
+            <div className="md:hidden px-8 py-6 bg-[#080808] border-b border-white/5">
                 <button 
                     onClick={() => setIsMobileOpen(true)}
-                    className="w-full h-14 bg-black border-2 border-studio-neon/30 text-white flex items-center justify-between px-6 font-black uppercase text-[10px] tracking-[0.3em] hover:border-studio-neon transition-all shadow-[0_15px_40px_rgba(0,0,0,0.5)] active:scale-95"
+                    className="w-full h-14 bg-black border-2 border-white/10 text-white flex items-center justify-between px-6 font-black uppercase text-[10px] tracking-widest hover:border-studio-neon group transition-all"
                 >
                     <div className="flex items-center gap-4">
-                        <SlidersHorizontal size={16} className="text-studio-neon" />
-                        <span>Filter_Signals</span>
+                        <SlidersHorizontal size={14} className="text-studio-neon group-hover:scale-110 transition-transform" />
+                        <span>Filter Sounds</span>
                     </div>
-                    <ChevronRight size={16} className="text-white/20" />
+                    {(currentCategory || currentType || currentKey || currentGenre) && (
+                        <div className="h-2 w-2 bg-studio-neon rounded-full animate-pulse" />
+                    )}
                 </button>
             </div>
 
-            {/* 🧬 MOBILE_FILTER_MODAL */}
-            {isMobileOpen && (
-                <div className="fixed inset-0 z-[600] flex flex-col bg-studio-charcoal">
-                    <div className="flex items-center justify-between p-6 border-b-4 border-black bg-studio-grey">
-                        <div className="flex items-center gap-4">
-                            <Terminal className="text-studio-neon h-5 w-5" />
-                            <h2 className="text-xl font-black uppercase tracking-widest italic">Signal_Matrix</h2>
-                        </div>
-                        <button onClick={() => setIsMobileOpen(false)} className="p-2 bg-black border border-white/10 text-white/40">
-                            <X size={20} />
-                        </button>
-                    </div>
-                    
-                    <div className="flex-1 overflow-y-auto p-6 space-y-12 bg-studio-charcoal step-grid">
-                        <FilterContent 
-                            categories={categories}
-                            category={category} setCategory={setCategory}
-                            type={type} setType={setType}
-                            bpmRange={bpmRange} setBpmRange={setBpmRange}
-                            keyParam={key} setKey={setKey}
-                            musicalKeys={musicalKeys}
+            {/* 📱 MOBILE_DRAWER_OVERLAY */}
+            <AnimatePresence>
+                {isMobileOpen && (
+                    <div className="fixed inset-0 z-[200] lg:hidden">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsMobileOpen(false)}
+                            className="absolute inset-0 bg-black/95 backdrop-blur-3xl"
                         />
+                        
+                        <motion.div 
+                            initial={{ y: '100%' }}
+                            animate={{ y: 0 }}
+                            exit={{ y: '100%' }}
+                            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                            className="absolute bottom-0 left-0 right-0 h-[90vh] bg-studio-grey border-t-2 border-studio-neon p-8 overflow-y-auto custom-scrollbar"
+                        >
+                            <div className="flex justify-between items-center mb-10 sticky top-0 bg-studio-grey z-10 pb-4 border-b border-white/5">
+                                <h3 className="text-xl font-black uppercase italic tracking-tighter">FILTERS</h3>
+                                <button onClick={() => setIsMobileOpen(false)} className="h-10 w-10 border border-white/10 flex items-center justify-center hover:bg-studio-neon hover:text-black transition-all">
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            
+                            <FilterSections />
+                            
+                            <div className="fixed bottom-0 left-0 right-0 py-6 px-8 bg-studio-grey border-t border-white/10 shadow-[0_-20px_40px_rgba(0,0,0,0.8)] z-20">
+                                <button 
+                                    onClick={() => setIsMobileOpen(false)}
+                                    className="w-full h-16 bg-white text-black font-black uppercase tracking-widest text-[11px] hover:bg-studio-neon transition-all"
+                                >
+                                    APPLY FILTERS
+                                </button>
+                            </div>
+                        </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
 
-                    <div className="p-6 bg-studio-grey border-t-8 border-black grid grid-cols-2 gap-4">
-                        <button onClick={clearFilters} className="h-14 bg-black border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40">RESET</button>
-                        <button onClick={applyFilters} className="h-14 bg-studio-neon text-black text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(166,226,46,0.3)]">ENGAGE_FILTER</button>
+            {/* 🖥️ DESKTOP_SIDEBAR */}
+            <aside className="hidden md:block w-80 border-r-2 border-black bg-[#0d0d0d] shrink-0 h-full relative">
+                <div className="sticky top-[160px] p-8 z-30">
+                    <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-10">
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic text-simple">FILTERS</span>
+                        {(currentCategory || currentType || currentKey || currentGenre) && (
+                            <button onClick={clearFilters} className="text-studio-neon hover:text-white transition-colors text-[10px] font-bold">
+                                CLEAR
+                            </button>
+                        )}
                     </div>
-                </div>
-            )}
-
-            {/* 🖥️ DESKTOP_SIDEBAR (Col 1-3) */}
-            <aside className="hidden lg:block space-y-12 pr-6">
-                <div className="bg-[#111] border-2 border-white/5 p-8 rounded-sm shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <Activity size={80} />
-                    </div>
-                    <FilterContent 
-                        categories={categories}
-                        category={category} setCategory={setCategory}
-                        type={type} setType={setType}
-                        bpmRange={bpmRange} setBpmRange={setBpmRange}
-                        keyParam={key} setKey={setKey}
-                        musicalKeys={musicalKeys}
-                    />
-                    <div className="grid grid-cols-1 gap-4 mt-12">
-                         <button onClick={applyFilters} className="h-14 bg-studio-neon text-black text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(166,226,46,0.2)] hover:scale-105 transition-all">ENGAGE_SEARCH</button>
-                         <button onClick={clearFilters} className="text-[8px] font-black uppercase tracking-widest text-white/20 hover:text-white transition-colors">Clear_Archive_Mask</button>
-                    </div>
+                    <FilterSections />
                 </div>
             </aside>
         </>
-    )
-}
-
-function FilterContent({ 
-    categories, category, setCategory, type, setType, bpmRange, setBpmRange, keyParam, setKey, musicalKeys 
-}: any) {
-    return (
-        <div className="space-y-12">
-            {/* Logic Type */}
-            <div className="space-y-6">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon flex items-center gap-3">
-                    <Music2 size={12} /> Signal_Origin
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                    {['all', 'loop', 'one-shot'].map((t) => (
-                        <button 
-                            key={t}
-                            onClick={() => setType(t)}
-                            className={`h-11 border transition-all text-[9px] font-black uppercase tracking-widest ${type === t ? 'bg-studio-neon text-black border-studio-neon' : 'bg-black border-white/10 text-white/40 hover:border-white/20'}`}
-                        >
-                            {t}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Signal Category */}
-            <div className="space-y-6">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon flex items-center gap-3">
-                    <Boxes size={12} /> Logic_Category
-                </label>
-                <select 
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full h-12 bg-black border-2 border-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest px-4 focus:border-studio-neon focus:ring-0 outline-none"
-                >
-                    <option value="all">ALL_CATEGORIES</option>
-                    {categories.map((cat: any) => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Harmonic Key */}
-            <div className="space-y-6">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon flex items-center gap-3">
-                    <Key size={12} /> Frequency_Root
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                    <button 
-                        onClick={() => setKey('all')}
-                        className={`col-span-4 h-11 border transition-all text-[9px] font-black uppercase tracking-widest ${keyParam === 'all' ? 'bg-studio-neon text-black border-studio-neon' : 'bg-black border-white/5 text-white/40'}`}
-                    >
-                        ALL_FREQUENCIES
-                    </button>
-                    {musicalKeys.map((k: string) => (
-                        <button 
-                            key={k}
-                            onClick={() => setKey(k)}
-                            className={`h-10 border transition-all text-[9px] font-black uppercase tracking-widest ${keyParam === k ? 'bg-studio-neon text-black border-studio-neon' : 'bg-black border-white/5 text-white/40 hover:border-white/20'}`}
-                        >
-                            {k}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Tempo Specs */}
-            <div className="space-y-6">
-                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon flex items-center gap-3">
-                    <Timer size={12} /> Tempo_Clock
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <span className="text-[6px] font-black text-white/20 uppercase tracking-widest">MIN_BPM</span>
-                        <input 
-                            type="number"
-                            value={bpmRange.min}
-                            onChange={(e) => setBpmRange({...bpmRange, min: e.target.value})}
-                            placeholder="0"
-                            className="w-full h-11 bg-black border border-white/10 text-white px-4 text-[11px] font-black outline-none focus:border-studio-neon"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <span className="text-[6px] font-black text-white/20 uppercase tracking-widest">MAX_BPM</span>
-                        <input 
-                            type="number"
-                            value={bpmRange.max}
-                            onChange={(e) => setBpmRange({...bpmRange, max: e.target.value})}
-                            placeholder="999"
-                            className="w-full h-11 bg-black border border-white/10 text-white px-4 text-[11px] font-black outline-none focus:border-studio-neon"
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
     )
 }

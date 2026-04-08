@@ -20,7 +20,7 @@ export function AdaptiveHero() {
   }, [])
 
   return (
-    <section className="relative min-h-[350px] md:min-h-[calc(100vh-300px)] flex flex-col items-center justify-center pt-6 pb-10 md:pt-8 md:pb-16 md:pb-24 overflow-hidden bg-studio-charcoal step-grid">
+    <section className="relative min-h-[calc(100vh-300px)] flex flex-col items-center justify-center pt-8 pb-16 md:pb-24 overflow-hidden bg-studio-charcoal step-grid">
         
         {/* 🧬 STUDIO ATMOSPHERE (Master Display Backdrop) */}
         <div className="absolute inset-0 pointer-events-none z-0">
@@ -37,7 +37,7 @@ export function AdaptiveHero() {
 
         <div className="relative z-20 flex flex-col items-center text-center px-4 md:px-6 max-w-7xl mx-auto w-full">
             
-            <div className="mb-6 md:mb-8 relative group scale-90 sm:scale-95 md:scale-100 transition-transform">
+            <div className="mb-6 md:mb-8 relative group scale-[0.65] sm:scale-75 md:scale-100">
                 <div className="absolute -inset-10 bg-studio-neon/5 blur-[50px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                 <AnimatedHeroLogo />
             </div>
@@ -62,7 +62,7 @@ export function AdaptiveHero() {
                     </div>
                 </div>
 
-                <h1 className="text-3xl sm:text-6xl md:text-8xl lg:text-[7rem] font-black uppercase tracking-tighter leading-[0.9] italic text-white md:text-transparent">
+                <h1 className="text-4xl sm:text-6xl md:text-8xl lg:text-[7rem] font-black uppercase tracking-tighter leading-[0.9] italic">
                     <TextScramble text="THE WORLD'S BEST" duration={1200} /><br />
                     <span className="text-studio-neon bg-black px-4 sm:px-8 py-2 md:py-3 border-r-[12px] md:border-r-[24px] border-studio-yellow transform -skew-x-12 inline-flex items-center gap-4 md:gap-6 mt-3 md:mt-4 group/h1">
                         <TextScramble text="SOUNDS" delay={400} />

@@ -18,20 +18,8 @@ export const SectionReveal = forwardRef<HTMLDivElement, SectionRevealProps>(
     useImperativeHandle(ref, () => internalRef.current)
 
     useEffect(() => {
-      // 📱 SAFETY: Force visibility on mobile to prevent clipping
-      const checkMobile = () => {
-        if (window.innerWidth < 768) {
-            setIsVisible(true)
-        }
-      }
-      
-      checkMobile()
-
       const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            // Keep it visible once it has intersected
-            if (entry.isIntersecting) setIsVisible(true)
-        })
+        entries.forEach(entry => setIsVisible(entry.isIntersecting))
       }, { threshold: 0.1 })
 
       const { current } = internalRef
