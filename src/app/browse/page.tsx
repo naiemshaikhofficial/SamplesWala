@@ -84,11 +84,11 @@ export default async function BrowsePage({
   const dynamicLabel = isNewAssets ? 'NEW SIGNAL ARCHIVE' : (isTrending ? 'POPULAR SONIC DATA' : 'EXPLORE LIBRARY');
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white bg-[#0a0a0a]">
+    <div className="w-full max-w-[1440px] mx-auto px-4 md:px-6 py-6 md:py-12 min-h-screen font-mono text-white bg-[#0a0a0a]">
       
       {/* 🎚️ BROWSER_TERMINAL_HEADER */}
-      <header className="mb-16 md:mb-24 shrink-0">
-        <div className="flex items-center gap-4 mb-8">
+      <header className="mb-10 md:mb-24 shrink-0 px-2 sm:px-0">
+        <div className="flex items-center gap-4 mb-4 md:mb-8">
             <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon italic">
                 {dynamicLabel}
             </span>
@@ -115,7 +115,7 @@ export default async function BrowsePage({
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 items-start relative">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-12 items-start relative">
         
         {/* 🎛️ Search Filters (Col 1) */}
         <div className="lg:col-span-1">

@@ -27,6 +27,12 @@ export const metadata: Metadata = {
   description: 'High-performance, royalty-free audio samples, loops, and sample packs for modern music producers.',
 }
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
