@@ -19,29 +19,29 @@ export default async function Home() {
   // 📀 Fetch Latest Packs with Admin Signal (Bypass RLS)
   let { data: latestPacks, error: packsError } = await adminClient
     .from('sample_packs')
-    .select('*, categories(name)')
+    .select('*, categories(name), samples(bpm, key)')
     .order('created_at', { ascending: false })
-    .limit(4)
+    .limit(12)
 
   // Critical Fallback if the relationship query fails or returns empty
   if (packsError || !latestPacks || latestPacks.length === 0) {
       const { data: fallbackScan } = await adminClient
         .from('sample_packs')
-        .select('*')
+        .select('*, samples(bpm, key)')
         .order('created_at', { ascending: false })
-        .limit(4)
+        .limit(12)
       latestPacks = fallbackScan as any;
   }
 
   // 💿 AUTOMATIC POPULARITY ENGINE
-  const topSamples = await getTopPopularSounds(12)
+  const topSamples = await getTopPopularSounds(20)
 
   // 📡 FRESH SOUNDS SIGNAL: Fetch newest individual samples with Admin Signal
   let { data: freshSounds, error: freshError } = await adminClient
     .from('samples')
     .select('*, sample_packs(name, slug, cover_url)')
     .order('created_at', { ascending: false })
-    .limit(12)
+    .limit(20)
 
   if (freshError || !freshSounds || freshSounds.length === 0) {
       const { data: rawFresh } = await adminClient.from('samples').select('*').order('created_at', { ascending: false }).limit(12)

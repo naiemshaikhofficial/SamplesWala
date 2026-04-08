@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRef } from 'react'
 import { SectionReveal } from '@/components/ui/SectionReveal'
+import { Carousel } from '@/components/ui/Carousel'
 import { Music2, Play, Plus, Info, Layers, ArrowRight } from 'lucide-react'
 
 export function NewArrivals({ packs }: { packs: any[] }) {
@@ -27,11 +28,11 @@ export function NewArrivals({ packs }: { packs: any[] }) {
             NEW PACKS
         </motion.div>
 
-        <div className="relative z-10 container mx-auto">
+        <div className="relative z-10 container mx-auto px-4 md:px-0">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-16 gap-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/40 px-4 py-1 self-start border-l-4 border-studio-neon">
-                        Fresh Drops :: New Packs
+                        Fresh Drops :: New Arrival Signal
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
@@ -40,63 +41,79 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                         </h2>
                     </div>
                 </div>
-                <Link href="/browse" className="group flex items-center gap-4 px-8 py-4 md:px-10 md:py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden self-start">
-                    <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest relative z-10">See All Packs</span>
+                <Link href="/browse?sort=newest" className="group flex items-center gap-4 px-8 py-4 md:px-10 md:py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden self-start">
+                    <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest relative z-10">Expand_Archive_Matrix</span>
                     <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-2 transition-transform" />
                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            <div className="w-full">
                 {packs && packs.length > 0 ? (
-                    packs.map((pack, i) => (
-                        <div key={pack.id} className="studio-panel bg-studio-grey border-2 border-white/10 group shadow-2xl relative">
-                            {/* VST Header Bar */}
-                            <div className="bg-[#111] px-4 py-2 flex items-center justify-between border-b border-black">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white/30 truncate pr-10">{pack.name}</span>
-                                <div className="flex gap-1.5 opacity-40">
-                                    <div className="w-2 h-2 rounded-full bg-white/20" />
-                                    <div className="w-2 h-2 rounded-full bg-white/20" />
-                                    <div className="w-2 h-2 rounded-full bg-white/20" />
-                                </div>
-                            </div>
-                            
-                            <Link href={`/packs/${pack.slug}`} className="block p-4 bg-black/40 hover:bg-black transition-all">
-                                <div className="aspect-square relative overflow-hidden mb-6 border border-white/5">
-                                    {pack.cover_url ? (
-                                        <Image 
-                                            src={pack.cover_url} 
-                                            alt={pack.name} 
-                                            fill 
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                            className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 opacity-60 group-hover:opacity-100" 
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                            <Music2 className="h-16 w-16 text-white/5" />
-                                        </div>
-                                    )}
-                                    
-                                    {/* 🧬 SIGNAL ANALYZE FILTER (Hover) */}
-                                    <div className="absolute inset-x-0 bottom-0 h-1 bg-studio-neon scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+                    <Carousel className="mt-8">
+                        {packs.map((pack, i) => (
+                            <div key={pack.id} className="studio-panel bg-studio-grey border-2 border-white/10 group shadow-2xl relative h-full">
+                                {/* VST Header Bar */}
+                                <div className="bg-[#111] px-4 py-2 flex items-center justify-between border-b border-black">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30 truncate pr-10">{pack.name}</span>
+                                    <div className="flex gap-1.5 opacity-40">
+                                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                                    </div>
                                 </div>
                                 
-                                <div className="flex items-center justify-between border-t border-white/5 pt-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">TYPE: {pack.categories?.name || 'PACK'}</span>
-                                        <span className="text-xl font-black text-white tracking-tighter">₹{pack.price_inr}</span>
+                                <Link href={`/packs/${pack.slug}`} className="block p-4 bg-black/40 hover:bg-black transition-all">
+                                    <div className="aspect-square relative overflow-hidden mb-6 border border-white/5">
+                                        {pack.cover_url ? (
+                                            <Image 
+                                                src={pack.cover_url} 
+                                                alt={pack.name} 
+                                                fill 
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 25vw, 25vw"
+                                                className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 opacity-60 group-hover:opacity-100" 
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                <Music2 className="h-16 w-16 text-white/5" />
+                                            </div>
+                                        )}
+                                        
+                                        {/* 🧬 SIGNAL ANALYZE FILTER (Hover) */}
+                                        <div className="absolute inset-x-0 bottom-0 h-1 bg-studio-neon scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
                                     </div>
-                                    <div className="h-10 w-10 flex items-center justify-center rounded-full bg-studio-neon text-black opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Plus className="w-6 h-6" />
+                                    
+                                    <div className="flex items-center justify-between border-t border-white/5 pt-4">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[8px] font-black text-studio-neon uppercase tracking-widest">{pack.categories?.name || 'PACK'}</span>
+                                                {pack.samples?.[0]?.bpm && (
+                                                    <>
+                                                        <div className="w-1 h-1 rounded-full bg-white/10" />
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{pack.samples[0].bpm} BPM</span>
+                                                    </>
+                                                )}
+                                                {pack.samples?.[0]?.key && (
+                                                    <>
+                                                        <div className="w-1 h-1 rounded-full bg-white/10" />
+                                                        <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">{pack.samples[0].key}</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <span className="text-xl font-black text-white tracking-tighter italic">₹{pack.price_inr}</span>
+                                        </div>
+                                        <div className="h-10 w-10 flex items-center justify-center rounded-full bg-studio-neon text-black opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Plus className="w-6 h-6" />
+                                        </div>
                                     </div>
-                                </div>
-                            </Link>
-                        </div>
-                    ))
+                                </Link>
+                            </div>
+                        ))}
+                    </Carousel>
                 ) : (
-                    <div className="col-span-full h-64 flex flex-col items-center justify-center border-4 border-dashed border-white/5 text-white/10 uppercase font-black tracking-widest italic">
+                    <div className="h-64 flex flex-col items-center justify-center border-4 border-dashed border-white/5 text-white/10 uppercase font-black tracking-widest italic">
                         <Layers className="w-16 h-16 mb-4 opacity-10" />
-                        Loading items...
+                        Awaiting Signal...
                     </div>
                 )}
             </div>

@@ -27,6 +27,8 @@ export async function generateDownloadToken(sampleId: string) {
     return jwt.sign(payload, JWT_SECRET)
 }
 
+import { grantDrivePermission } from '@/lib/drive/automation'
+
 /** 💳 THE NEW MINIMALIST UNLOCK SYSTEM (2-Table Strategy) **/
 export async function unlockSample(sampleId: string) {
     const supabase = await createClient()
@@ -63,6 +65,11 @@ export async function unlockSample(sampleId: string) {
             console.error("[VAULT_LOG_FAILED]", vaultError.message)
             throw new Error('Ownership Registration Failed: ' + vaultError.message)
         }
+    }
+
+    // 4. AUTOMATED_SIGNAL_PERMISSION (Hook for Google Drive Auto-Access)
+    if (user.email) {
+        await grantDrivePermission(user.email, sampleId, false);
     }
 
     revalidatePath('/', 'layout')
@@ -133,6 +140,11 @@ export async function unlockFullPack(packId: string) {
     })
 
     if (vaultError) throw new Error("Ownership Registration Failed: " + vaultError.message)
+
+    // 3. AUTOMATED_SIGNAL_PERMISSION (Full Pack Auto-Access)
+    if (user.email) {
+        await grantDrivePermission(user.email, packId, true);
+    }
 
     revalidatePath(`/packs/${pack.slug}`)
     return { success: true }

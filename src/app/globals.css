@@ -146,6 +146,40 @@
   .studio-select option {
     @apply bg-studio-charcoal text-white font-black uppercase py-4;
   }
+
+  /* 💿 BRUSHED METAL TEXTURE */
+  .brushed-metal {
+    background-color: #1a1a1a;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.01) 0px,
+      rgba(255, 255, 255, 0.01) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    @apply border border-white/5;
+  }
+
+  /* 💎 PREMIUM STUDIO GLASS */
+  .studio-glass {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+  }
+
+  /* ⚡ VIBE GLOW TEXT */
+  .vibe-glow {
+    text-shadow: 0 0 10px rgba(166, 226, 46, 0.5), 0 0 20px rgba(166, 226, 46, 0.2);
+  }
+
+  /* 🏁 CUSTOM SCROLLBAR CLASS (Used in layout.tsx) */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-black;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/10 hover:bg-studio-neon transition-colors;
+  }
 }
 
 /* 🎰 Custom Utilities */

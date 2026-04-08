@@ -247,11 +247,12 @@ export function GlobalPlayer() {
                                          </div>
                                          <div className="min-w-0">
                                             <h4 className="text-[10px] font-black text-white truncate uppercase mb-1">{s.name}</h4>
-                                            <div className="flex items-center gap-2 text-[8px] font-black text-white/30 uppercase tracking-widest italic">
-                                                <span>{s.bpm || 'VAR'}</span>
-                                                <div className="w-1 h-1 rounded-full bg-white/10" />
-                                                <span>{s.key || 'C MIN'}</span>
-                                            </div>
+                                             <div className="flex items-center gap-2 text-[8px] font-black text-white/30 uppercase tracking-widest italic">
+                                                {s.bpm && <span>{s.bpm} BPM</span>}
+                                                {s.bpm && s.key && <div className="w-1 h-1 rounded-full bg-white/10" />}
+                                                {s.key && <span>{s.key}</span>}
+                                                {!s.bpm && !s.key && <span>-</span>}
+                                             </div>
                                          </div>
                                      </div>
                                      <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
