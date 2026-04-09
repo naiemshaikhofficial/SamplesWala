@@ -16,6 +16,7 @@ export default function PromoVideoGenerator() {
     const [recordProgress, setRecordProgress] = useState(0)
     const [isLogoLoaded, setIsLogoLoaded] = useState(false)
     const [coverImg, setCoverImg] = useState<HTMLImageElement | null>(null)
+    const [dominantColor, setDominantColor] = useState('#a6e22e') // Defaults to studio neon
     const [audioStatus, setAudioStatus] = useState<'IDLE' | 'LOADING' | 'READY' | 'ERROR'>('IDLE')
     
     // Canvas & Audio Refs
@@ -75,10 +76,26 @@ export default function PromoVideoGenerator() {
                 const img = new (window.Image || (window as any).Image)();
                 img.crossOrigin = "anonymous";
                 img.src = selectedSample.cover_url;
-                img.onload = () => setCoverImg(img);
-                img.onerror = () => setCoverImg(null);
+                img.onload = () => {
+                    setCoverImg(img);
+                    // 🎨 Extract color signal
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        canvas.width = 1; canvas.height = 1;
+                        ctx.drawImage(img, 0, 0, 1, 1);
+                        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+                        const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                        setDominantColor(hex);
+                    }
+                };
+                img.onerror = () => {
+                    setCoverImg(null);
+                    setDominantColor('#a6e22e');
+                };
             } else {
                 setCoverImg(null);
+                setDominantColor('#a6e22e');
             }
         }
     }, [selectedSample])
@@ -120,6 +137,14 @@ export default function PromoVideoGenerator() {
         
         draw()
     }
+
+    // 📺 HIGH_DEFINITION_INIT: Establish 1080p Base
+    useEffect(() => {
+        if (canvasRef.current) {
+            canvasRef.current.width = 1920;
+            canvasRef.current.height = 1080;
+        }
+    }, [])
 
     const draw = () => {
         const canvas = canvasRef.current
@@ -167,10 +192,10 @@ export default function PromoVideoGenerator() {
                 ctx.restore()
             }
             
-            // Subtle Radial Glow
+            // Subtle Radial Glow (Matches Art)
             ctx.beginPath()
-            const bgGlow = ctx.createRadialGradient(leftX, centerY, 0, leftX, centerY, width * 0.6)
-            bgGlow.addColorStop(0, `rgba(166, 226, 46, ${beatIntensity * 0.25})`)
+            const bgGlow = ctx.createRadialGradient(leftX, centerY, 0, leftX, centerY, width * 0.7)
+            bgGlow.addColorStop(0, `${dominantColor}${Math.floor(beatIntensity * 60).toString(16).padStart(2, '0')}`)
             bgGlow.addColorStop(1, 'transparent')
             ctx.fillStyle = bgGlow
             ctx.fillRect(0, 0, width, height)
@@ -191,12 +216,15 @@ export default function PromoVideoGenerator() {
                 const y2 = (radius + barHeight) * Math.sin(angle)
 
                 ctx.beginPath()
-                ctx.strokeStyle = `hsla(${120 + i}, 80%, 60%, ${0.2 + beatIntensity})`
+                // Synchronize bars to artwork color
+                ctx.strokeStyle = dominantColor
+                ctx.globalAlpha = 0.3 + (beatIntensity * 0.7)
                 ctx.lineWidth = 2
                 ctx.moveTo(x1, y1)
                 ctx.lineTo(x2, y2)
                 ctx.stroke()
             }
+            ctx.globalAlpha = 1
             ctx.restore()
 
             // 3. Draw Cover Art (Extreme Pulse + Wobble)
@@ -218,10 +246,10 @@ export default function PromoVideoGenerator() {
                 ctx.drawImage(img, -artPulse/2, -artPulse/2, artPulse, artPulse)
                 ctx.restore()
 
-                // Neon Ring
+                // Neon Ring (Matches Art)
                 ctx.beginPath()
                 ctx.arc(leftX, centerY, artPulse/2 + 5, 0, Math.PI * 2)
-                ctx.strokeStyle = '#a6e22e'
+                ctx.strokeStyle = dominantColor
                 ctx.lineWidth = 12
                 ctx.stroke()
             }
@@ -245,7 +273,7 @@ export default function PromoVideoGenerator() {
                 // 🏷️ BRAND_CTA_OVERLAY (Centered Below Name)
                 ctx.textAlign = 'center'
                 ctx.font = '900 12px Inter, sans-serif'
-                ctx.fillStyle = '#a6e22e'
+                ctx.fillStyle = dominantColor
                 ctx.letterSpacing = '4px'
                 
                 // Position X = Start of name + Half of name width
@@ -286,7 +314,7 @@ export default function PromoVideoGenerator() {
         setRecordProgress(0)
         chunksRef.current = []
 
-        const canvasStream = canvasRef.current.captureStream(60)
+        const canvasStream = canvasRef.current.captureStream(60) // 60fps for smoothness
         
         // Create a destination for the recorder
         const dest = audioContextRef.current.createMediaStreamDestination()
@@ -300,21 +328,37 @@ export default function PromoVideoGenerator() {
             ...dest.stream.getAudioTracks()
         ])
 
-        const options = { mimeType: 'video/webm;codecs=vp9,opus' }
-        mediaRecorderRef.current = new MediaRecorder(combinedStream, options)
+        // 🧬 STUDIO_QUALITY_CALIBRATION
+        const videoBitsPerSecond = 10000000; // 10Mbps for Full HD
+        const mimeType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+        
+        try {
+            const options = MediaRecorder.isTypeSupported(mimeType) 
+                ? { mimeType, videoBitsPerSecond }
+                : { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond };
+
+            mediaRecorderRef.current = new MediaRecorder(combinedStream, options)
+        } catch (e) {
+            console.warn('⚠️ MP4_ENCODER_UNAVAILABLE : Falling back to standard WebM.', e);
+            mediaRecorderRef.current = new MediaRecorder(combinedStream, { videoBitsPerSecond });
+        }
 
         mediaRecorderRef.current.ondataavailable = (e) => {
             if (e.data.size > 0) chunksRef.current.push(e.data)
         }
 
         mediaRecorderRef.current.onstop = () => {
-            const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+            const isMp4Supported = MediaRecorder.isTypeSupported(mimeType);
+            const blob = new Blob(chunksRef.current, { 
+                type: isMp4Supported ? 'video/mp4' : 'video/webm' 
+            })
             const url = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = `PROMO_${selectedSample.name.replace(/\s+/g, '_')}.webm`
+            a.download = `SAMPLESWALA_PROMO_${selectedSample.name.replace(/\s+/g, '_')}.${isMp4Supported ? 'mp4' : 'webm'}`
             a.click()
             setIsRecording(false)
+            setRecordProgress(0)
             // Disconnect dest to prevent accumulation
             analyserRef.current?.disconnect(dest)
         }
@@ -507,26 +551,25 @@ export default function PromoVideoGenerator() {
                             </div>
                         </div>
 
-                        <div className="flex gap-4 w-full md:w-auto">
-                            <button 
-                                onClick={startRecording}
-                                disabled={!selectedSample || isRecording}
-                                className="flex-1 md:flex-none px-12 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all shadow-xl disabled:opacity-20"
-                            >
-                                <Video className="h-4 w-4" /> Start Rendering
-                            </button>
-                            {isRecording && (
+                             {isRecording ? (
                                 <button 
-                                    onClick={stopRecording}
-                                    className="px-8 py-5 bg-spider-red text-white font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all"
+                                    onClick={() => mediaRecorderRef.current?.stop()}
+                                    className="px-8 py-5 bg-spider-red text-white font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all flex-1 md:flex-none animate-pulse"
                                 >
-                                    Stop
+                                    Stop Rendering
                                 </button>
-                            )}
+                             ) : (
+                                <button 
+                                    onClick={startRecording}
+                                    disabled={!selectedSample || isRecording}
+                                    className="flex-1 md:flex-none px-12 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all shadow-xl disabled:opacity-20"
+                                >
+                                    <Video className="h-4 w-4" /> 1080P FULL HD EXPORT
+                                </button>
+                             )}
                         </div>
                     </div>
                 </div>
-            </div>
 
             {/* 🧬 ASSETS (Hidden) */}
             <div className="hidden">
