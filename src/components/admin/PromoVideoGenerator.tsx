@@ -590,6 +590,7 @@ export default function PromoVideoGenerator() {
                      />
                  )}
             </div>
+            </div>
         </div>
     )
 }
