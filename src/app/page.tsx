@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import Link from "next/link";
 import { 
-  ShieldCheck, Disc, Activity, Zap, AudioLines, ArrowRight,
+  ShieldCheck, Activity, Zap, AudioLines, ArrowRight,
   Database, Cpu, Globe, BarChart3
 } from "lucide-react";
 import { NewArrivals } from "@/components/home/NewArrivals";
@@ -21,14 +21,12 @@ export default async function Home() {
   const supabase = await createClient()
   const adminClient = getAdminClient()
   
-  // 📀 Fetch Latest Packs with Admin Signal (Bypass RLS)
   let { data: latestPacks, error: packsError } = await adminClient
     .from('sample_packs')
     .select('*, categories(name), samples(bpm, key)')
     .order('created_at', { ascending: false })
     .limit(12)
 
-  // Critical Fallback if the relationship query fails or returns empty
   if (packsError || !latestPacks || latestPacks.length === 0) {
       const { data: fallbackScan } = await adminClient
         .from('sample_packs')
@@ -38,10 +36,8 @@ export default async function Home() {
       latestPacks = fallbackScan as any;
   }
 
-  // 💿 AUTOMATIC POPULARITY ENGINE
   const topSamples = await getTopPopularSounds(20)
 
-  // 📡 FRESH SOUNDS SIGNAL: Fetch newest individual samples with Admin Signal
   let { data: freshSounds, error: freshError } = await adminClient
     .from('samples')
     .select('*, sample_packs(name, slug, cover_url)')
@@ -76,11 +72,9 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
         
-        {/* 🧬 CONSOLE GRID OVERLAY - Minimal for mobile */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 footer-grid hidden md:block" />
         <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-black/20 to-black h-full w-full" />
 
-        {/* 🏆 MASTER CONSOLE HERO */}
         <div className="relative z-10">
           <Suspense fallback={<div className="h-[600px] bg-black flex items-center justify-center"><Activity className="animate-pulse text-studio-neon" /></div>}>
               <AdaptiveHero />
@@ -112,26 +106,20 @@ export default async function Home() {
             </div>
         </section>
 
-        {/* 🎚️ MIXER MATRIX (FX RACK) */}
+        {/* 🎚️ MIXER MATRIX (FX RACK) - FORCED ROW ON MOBILE */}
         <section className="relative z-20 border-b-4 border-white/5 bg-studio-charcoal overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-3 md:divide-x-4 divide-black">
+            <div className="grid grid-cols-3 divide-x-2 md:divide-x-4 divide-black">
                 {/* EQ MODULE */}
-                <div className="p-8 md:p-12 border-b-4 md:border-b-0 border-black group">
-                    <div className="flex items-center justify-between mb-8 md:mb-12">
-                        <div className="flex items-center gap-3">
-                            <BarChart3 className="w-5 h-5 text-studio-neon" />
-                            <h3 className="text-[11px] md:text-xs font-black uppercase tracking-widest">EQ_STRIP_MASTER</h3>
-                        </div>
+                <div className="p-3 md:p-12 group">
+                    <div className="flex items-center gap-2 mb-4 md:mb-12">
+                        <BarChart3 className="w-3 h-3 md:w-5 md:h-5 text-studio-neon" />
+                        <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">EQ_STRIP</h3>
                     </div>
                     
-                    <div className="space-y-4 md:space-y-6">
-                        {[85, 40, 65, 90, 30, 75].map((val, i) => (
-                            <div key={i} className="space-y-2">
-                                <div className="flex justify-between text-[10px] md:text-[8px] font-black text-white/40 uppercase tracking-tighter">
-                                    <span>BAND_{i+1}</span>
-                                    <span>{val}%</span>
-                                </div>
-                                <div className="h-4 md:h-2 bg-black border border-white/5 relative overflow-hidden">
+                    <div className="space-y-2 md:space-y-6">
+                        {[85, 40, 65, 90, 30].map((val, i) => (
+                            <div key={i} className="space-y-1">
+                                <div className="h-3 md:h-2 bg-black border border-white/5 relative overflow-hidden">
                                     <div 
                                         className="absolute inset-y-0 left-0 bg-studio-neon/70 group-hover:bg-studio-neon transition-all duration-500" 
                                         style={{ width: `${val}%` }} 
@@ -143,50 +131,37 @@ export default async function Home() {
                 </div>
 
                 {/* COMPRESSOR MODULE */}
-                <div className="p-10 md:p-12 md:bg-black/10 border-b-4 md:border-b-0 border-black flex flex-col items-center group">
-                    <div className="w-full flex items-center gap-3 mb-8 md:mb-12">
-                        <Zap className="w-5 h-5 text-studio-yellow" />
-                        <h3 className="text-[11px] md:text-xs font-black uppercase tracking-widest">DYNAMICS_CTRL</h3>
+                <div className="p-3 md:p-12 md:bg-black/10 flex flex-col items-center group">
+                    <div className="w-full flex items-center gap-2 mb-4 md:mb-12">
+                        <Zap className="w-3 h-3 md:w-5 md:h-5 text-studio-yellow" />
+                        <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">DYNAMICS</h3>
                     </div>
                     
-                    <div className="relative w-44 h-44 md:w-64 md:h-64 rounded-full border-4 md:border-8 border-black shadow-2xl flex items-center justify-center bg-[#181818] group-hover:scale-105 transition-transform">
-                        <div className="absolute inset-2 border border-white/5 rounded-full" />
-                        <div className="w-2 h-24 md:h-32 bg-gradient-to-t from-transparent via-spider-red to-spider-red origin-bottom -rotate-45 transform transition-transform group-hover:rotate-[150deg] duration-[2s]" />
-                        <div className="absolute bottom-6 md:bottom-10 text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Threshold</div>
+                    <div className="relative w-12 h-12 md:w-64 md:h-64 rounded-full border-2 md:border-8 border-black shadow-2xl flex items-center justify-center bg-[#181818]">
+                        <div className="absolute inset-1 border border-white/5 rounded-full" />
+                        <div className="w-0.5 md:w-2 h-6 md:h-32 bg-gradient-to-t from-transparent via-spider-red to-spider-red origin-bottom -rotate-45 transform transition-transform group-hover:rotate-[150deg] duration-[2s]" />
                     </div>
                 </div>
 
                 {/* LIMITER MODULE */}
-                <div className="p-8 md:p-12 hover:bg-black/10 transition-colors group">
-                    <div className="flex items-center justify-between mb-8 md:mb-12">
-                        <div className="flex items-center gap-3">
-                            <AudioLines className="w-5 h-5 text-spider-red" />
-                            <h3 className="text-[11px] md:text-xs font-black uppercase tracking-widest">OUTPUT_CEILING</h3>
+                <div className="p-3 md:p-12 hover:bg-black/10 transition-colors group">
+                    <div className="flex items-center justify-between mb-4 md:mb-12">
+                        <div className="flex items-center gap-2">
+                            <AudioLines className="w-3 h-3 md:w-5 md:h-5 text-spider-red" />
+                            <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">LIMITER</h3>
                         </div>
-                        <span className="px-2 py-0.5 bg-spider-red text-[10px] font-black text-white">CLIP</span>
                     </div>
                     
-                    <div className="h-32 md:h-48 border-2 border-black bg-black flex items-end gap-[4px] md:gap-1 p-3 md:p-4 overflow-hidden relative">
-                        {[...Array(12)].map((_, i) => (
+                    <div className="h-12 md:h-48 border border-black bg-black flex items-end gap-[1px] md:gap-1 p-1 md:p-4 overflow-hidden relative">
+                        {[...Array(8)].map((_, i) => (
                             <div 
                                 key={i} 
                                 className="flex-1 bg-spider-red/40 group-hover:bg-spider-red transition-all" 
                                 style={{ 
-                                    height: `${30 + Math.random() * 70}%`,
-                                    transitionDelay: `${i * 0.05}s`
+                                    height: `${30 + Math.random() * 70}%`
                                 }} 
                             />
                         ))}
-                    </div>
-                    <div className="mt-8 flex justify-between">
-                        <div className="space-y-1">
-                            <p className="text-[9px] font-black text-white/30 uppercase">Gain_Level</p>
-                            <p className="text-xl font-bold text-studio-neon">+4.5 DB</p>
-                        </div>
-                        <div className="space-y-1 text-right">
-                            <p className="text-[9px] font-black text-white/30 uppercase">Latency</p>
-                            <p className="text-xl font-bold">0.2 MS</p>
-                        </div>
                     </div>
                 </div>
             </div>
