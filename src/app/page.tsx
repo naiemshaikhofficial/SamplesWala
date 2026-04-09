@@ -89,7 +89,7 @@ export default async function Home() {
                         <div className="w-2.5 h-2.5 rounded-full bg-studio-neon animate-pulse" />
                         <div className="w-2.5 h-2.5 rounded-full bg-studio-neon/20" />
                     </div>
-                    <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">Buffer_01 :: LatestArrivals</span>
+                    <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">LATEST ARRIVALS</span>
                 </div>
                 
                 <NewArrivals packs={latestPacks || []} />
@@ -113,7 +113,7 @@ export default async function Home() {
                 <div className="p-3 md:p-12 group">
                     <div className="flex items-center gap-2 mb-4 md:mb-12">
                         <BarChart3 className="w-3 h-3 md:w-5 md:h-5 text-studio-neon" />
-                        <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">EQ_STRIP</h3>
+                        <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">EQUALIZER</h3>
                     </div>
                     
                     <div className="space-y-2 md:space-y-6">
@@ -148,7 +148,7 @@ export default async function Home() {
                     <div className="flex items-center justify-between mb-4 md:mb-12">
                         <div className="flex items-center gap-2">
                             <AudioLines className="w-3 h-3 md:w-5 md:h-5 text-spider-red" />
-                            <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">LIMITER</h3>
+                            <h3 className="text-[6px] md:text-xs font-black uppercase tracking-widest hidden xs:block">VOLUME LIMITER</h3>
                         </div>
                     </div>
                     

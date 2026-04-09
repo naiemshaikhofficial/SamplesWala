@@ -80,9 +80,7 @@ export function TopSounds({
         <div className="relative z-10 container mx-auto px-4 md:px-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-8">
                 <div className="space-y-4">
-                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-yellow bg-black/40 px-4 py-1 self-start border-l-4 border-studio-yellow">
-                        Master_Chart :: Top Sounds
-                    </div>
+                        TOP TRENDING SOUNDS
                 </div>
             </div>
 
@@ -132,9 +130,7 @@ export function TopSounds({
                                 <h3 className={`font-black tracking-tight truncate uppercase text-xs md:text-base transition-colors leading-none italic mb-1 ${shouldSlideUp ? 'text-studio-yellow' : 'text-white md:group-hover:text-studio-yellow'}`}>
                                     {sound.name}
                                 </h3>
-                                <p className="text-[8px] md:text-[10px] text-white/30 truncate font-mono uppercase tracking-widest">
-                                    PACK: {sound.sample_packs?.name || 'TRENDING_SIGNAL'}
-                                </p>
+                                    PACK: {sound.sample_packs?.name || 'TRENDING'}
                             </div>
 
                             <div className="hidden sm:flex items-center justify-center gap-6 w-48 text-center border-x border-white/5">

@@ -58,7 +58,7 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/60 px-4 py-1 self-start border-l-4 border-studio-neon">
-                        Signal_Buffer :: Fresh Sounds
+                        NEW RELEASES
                     </div>
                     <div className="flex items-center gap-4 md:gap-6">
                         <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />

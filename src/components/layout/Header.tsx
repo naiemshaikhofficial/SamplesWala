@@ -41,7 +41,7 @@ export function Header() {
   }
 
   return (
-    <header className={`fixed top-0 right-0 z-[500] bg-studio-grey text-white border-b-4 border-black shadow-2xl transition-all duration-300 pointer-events-auto ${isOpen ? 'left-0 lg:left-64' : 'left-0 lg:left-20'}`}>
+    <header className={`fixed top-0 right-0 z-[1000] bg-studio-grey text-white border-b-4 border-black shadow-2xl transition-all duration-300 pointer-events-auto ${isOpen ? 'left-0 lg:left-64' : 'left-0 lg:left-20'}`}>
       
       {/* 🎹 TOP NAVIGATION (Hidden on Mobile) */}
       <div className="hidden md:flex bg-black/80 px-6 py-2.5 items-center justify-between border-b border-white/5">
