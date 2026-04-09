@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, Zap, Play, Pause, Download, Video, Music, Layers, Disc, Trash2, Loader2, Key as KeyIcon, Activity } from 'lucide-react'
 import { searchSamplesAction } from '@/app/admin/actions'
+import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 import Image from 'next/image'
 
 export default function PromoVideoGenerator() {
@@ -14,11 +15,13 @@ export default function PromoVideoGenerator() {
     const [isRecording, setIsRecording] = useState(false)
     const [recordProgress, setRecordProgress] = useState(0)
     const [isLogoLoaded, setIsLogoLoaded] = useState(false)
+    const [audioStatus, setAudioStatus] = useState<'IDLE' | 'LOADING' | 'READY' | 'ERROR'>('IDLE')
     
     // Canvas & Audio Refs
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const logoRef = useRef<HTMLImageElement | null>(null)
     const audioRef = useRef<HTMLAudioElement>(null)
+    const objectUrlRef = useRef<string | null>(null)
     const mediaRecorderRef = useRef<MediaRecorder | null>(null)
     const chunksRef = useRef<Blob[]>([])
     
@@ -27,6 +30,46 @@ export default function PromoVideoGenerator() {
     const analyserRef = useRef<AnalyserNode | null>(null)
     const sourceRef = useRef<AudioBufferSourceNode | MediaElementAudioSourceNode | null>(null)
     const animationFrameRef = useRef<number | null>(null)
+
+    // 🛰️ SIGNAL_RESOLVER: Adopts the core player's secure proxy logic
+    const resolveAudioSignal = async (sample: any) => {
+        if (!sample) return;
+        setAudioStatus('LOADING');
+        
+        try {
+            // 🏷️ Generate temporary authorization token
+            const token = await generatePreviewToken(sample.id);
+            const proxyUrl = `/api/audio?id=${sample.id}&token=${token}`;
+            
+            console.log(`[SIGNAL_ROUTE] Handshaking with Proxy: ${proxyUrl}`);
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error(`SIGNAL_DENIED: ${response.status}`);
+            
+            const blob = await response.blob();
+            
+            // 🧼 Clean up previous signal
+            if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+            
+            const newUrl = URL.createObjectURL(blob);
+            objectUrlRef.current = newUrl;
+            
+            if (audioRef.current) {
+                audioRef.current.src = newUrl;
+                audioRef.current.load();
+            }
+            setAudioStatus('READY');
+        } catch (err) {
+            console.error('❌ SIGNAL_RESOLVE_FAILED ::', err);
+            setAudioStatus('ERROR');
+        }
+    }
+
+    // Handle Selection Change
+    useEffect(() => {
+        if (selectedSample) {
+            resolveAudioSignal(selectedSample);
+        }
+    }, [selectedSample])
 
     // Handle Search
     const handleSearch = async (e: React.FormEvent) => {
@@ -82,6 +125,9 @@ export default function PromoVideoGenerator() {
 
             const width = canvas.width
             const height = canvas.height
+
+            // 🧺 Clear Frame
+            ctx.clearRect(0, 0, width, height)
 
             // 1. Draw Background
             const gradient = ctx.createLinearGradient(0, 0, 0, height)
@@ -406,15 +452,16 @@ export default function PromoVideoGenerator() {
                  {selectedSample && (
                      <audio 
                         ref={audioRef} 
-                        src={selectedSample.audio_url} 
                         crossOrigin="anonymous" 
-                        onPlay={() => console.log('🔊 PROMO_GEN :: Audio signal streaming.', selectedSample.audio_url)}
+                        onPlay={() => console.log('🔊 PROMO_GEN :: Audio stream active.')}
                         onEnded={() => setIsPlaying(false)}
                         onError={(e) => {
+                            const err = (e.target as HTMLAudioElement).error;
                             console.error('❌ PROMO_GEN :: Audio signal CRITICAL_FAILURE.', {
-                                url: selectedSample.audio_url,
-                                error: (e.target as HTMLAudioElement).error
+                                code: err?.code,
+                                message: err?.message
                             });
+                            setAudioStatus('ERROR');
                         }}
                      />
                  )}
