@@ -13,9 +13,11 @@ export default function PromoVideoGenerator() {
     const [isPlaying, setIsPlaying] = useState(false)
     const [isRecording, setIsRecording] = useState(false)
     const [recordProgress, setRecordProgress] = useState(0)
+    const [isLogoLoaded, setIsLogoLoaded] = useState(false)
     
     // Canvas & Audio Refs
     const canvasRef = useRef<HTMLCanvasElement>(null)
+    const logoRef = useRef<HTMLImageElement | null>(null)
     const audioRef = useRef<HTMLAudioElement>(null)
     const mediaRecorderRef = useRef<MediaRecorder | null>(null)
     const chunksRef = useRef<Blob[]>([])
@@ -45,6 +47,11 @@ export default function PromoVideoGenerator() {
     const initVisualizer = () => {
         if (!audioRef.current || !canvasRef.current) return
         
+        // 🛡️ PREVENT MULTI-RENDER LOOPS
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current)
+        }
+
         if (!audioContextRef.current) {
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
             analyserRef.current = audioContextRef.current.createAnalyser()
@@ -126,13 +133,18 @@ export default function PromoVideoGenerator() {
 
             // 3. Draw Logo (Pulsing)
             const logoSize = 180 + (bassFreq / 10)
-            const logo = document.getElementById('promo-gen-logo') as HTMLImageElement
-            if (logo && logo.complete) {
+            const logo = logoRef.current
+            
+            if (logo && isLogoLoaded && logo.naturalWidth > 0) {
                 ctx.save()
                 ctx.translate(width/2, height/2)
-                // ctx.rotate(Math.sin(Date.now() / 1000) * 0.05) // Subtle rotation
                 ctx.drawImage(logo, -logoSize/2, -logoSize/2, logoSize, logoSize)
                 ctx.restore()
+            } else {
+                // Fallback: Signal degraded
+                ctx.fillStyle = '#a6e22e'
+                ctx.font = '900 40px Inter, sans-serif'
+                ctx.fillText('SAMPLES WALA', width/2, height/2)
             }
 
             // 4. Draw Text Overlays
@@ -242,7 +254,22 @@ export default function PromoVideoGenerator() {
         }
     }
 
+    // 🛡️ LOGO_PRELOAD_SYSTEM
     useEffect(() => {
+        const img = new (window.Image || (window as any).Image)()
+        // Use a cache breaker and a clean name
+        img.src = `/site-identity.png?v=${Date.now()}`
+        img.onload = () => {
+            console.log('✅ PROMO_GEN :: Logo signal LOCKED and ready.')
+            logoRef.current = img
+            setIsLogoLoaded(true)
+        }
+        img.onerror = () => {
+            console.error('❌ PROMO_GEN :: Logo signal FAIL. Attempting internal fallback...')
+            // Try to use a placeholder if the main one fails
+            setIsLogoLoaded(false)
+        }
+
         return () => {
             if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
         }
@@ -375,13 +402,19 @@ export default function PromoVideoGenerator() {
 
             {/* 🧬 ASSETS (Hidden) */}
             <div className="hidden">
-                 <img id="promo-gen-logo" src="/Logo.png" alt="Logo" crossOrigin="anonymous" />
                  {selectedSample && (
                      <audio 
                         ref={audioRef} 
                         src={selectedSample.audio_url} 
                         crossOrigin="anonymous" 
+                        onPlay={() => console.log('🔊 PROMO_GEN :: Audio signal streaming.', selectedSample.audio_url)}
                         onEnded={() => setIsPlaying(false)}
+                        onError={(e) => {
+                            console.error('❌ PROMO_GEN :: Audio signal CRITICAL_FAILURE.', {
+                                url: selectedSample.audio_url,
+                                error: (e.target as HTMLAudioElement).error
+                            });
+                        }}
                      />
                  )}
             </div>

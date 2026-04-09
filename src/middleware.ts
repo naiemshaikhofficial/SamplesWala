@@ -38,6 +38,8 @@ export async function middleware(request: NextRequest) {
 
   // 🛡️ SECURITY_GATE: Private Route Protection
   const path = request.nextUrl.pathname;
+  console.log('👀 MIDDLEWARE_PROBE :: PATH:', path);
+
   const isProtectedRoute = path.startsWith('/library') || path.startsWith('/settings');
   const isAdminRoute = path.startsWith('/admin');
 
@@ -71,8 +73,10 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
+export default middleware;
+
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|wav|m4a|ogg|flac)$).*)',
   ],
 }
