@@ -21,6 +21,12 @@ export function AdaptiveHero() {
         <div className="absolute inset-0 pointer-events-none z-0">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-studio-neon opacity-[0.1] blur-[80px] md:blur-[180px] rounded-full" />
             <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[200px] md:w-[600px] h-[200px] md:h-[600px] bg-spider-red opacity-[0.05] blur-[60px] md:blur-[150px] rounded-full" />
+            
+            {/* 🧬 LOGO WATERMARK */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center opacity-[0.03] select-none pointer-events-none">
+                <img src="/Logo.png" alt="" className="w-[120%] max-w-none grayscale invert" />
+            </div>
+
             <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/40 to-black z-10" />
         </div>
 
@@ -52,7 +58,7 @@ export function AdaptiveHero() {
                 </div>
             </div>
 
-            <div className="space-y-8 md:space-y-12 mb-12 md:mb-24 w-full flex flex-col items-center">
+            <div className="space-y-4 mb-12 md:mb-20 w-full flex flex-col items-center">
                 <div className="flex items-center justify-center gap-4 md:gap-10 text-studio-neon w-full">
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                     <span className="text-[8px] md:text-sm font-black uppercase tracking-[0.3em] md:tracking-[0.8em] flex items-center gap-2 bg-black/60 px-4 py-1.5 border border-studio-neon/20 italic">
@@ -61,15 +67,8 @@ export function AdaptiveHero() {
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                 </div>
 
-                <h1 className="text-3xl sm:text-6xl md:text-8xl lg:text-[9rem] font-black uppercase tracking-tighter leading-none italic w-full">
-                    <span className="block mb-1 md:mb-2 opacity-90 tracking-tight">THE WORLD&apos;S</span>
-                    <span className="relative inline-flex items-center justify-center px-4 md:px-12 py-3 md:py-6 bg-studio-neon text-black -skew-x-12 border-r-[10px] md:border-r-[25px] border-studio-yellow shadow-2xl mx-auto">
-                        <span className="relative z-10 skew-x-12">BEST SOUNDS</span>
-                    </span>
-                </h1>
-
-                <p className="max-w-lg mx-auto text-[9px] md:text-2xl font-black uppercase tracking-[0.1em] md:tracking-[0.4em] leading-relaxed text-white/40 px-4">
-                    PRO-GRADE_ARCHIVE :: ROYALTY_FREE_SIGNAL
+                <p className="max-w-lg mx-auto text-[10px] md:text-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] leading-relaxed text-white/40 px-4 text-center">
+                    PRO-GRADE_ARCHIVE_NODE :: UNLIMITED_SIGNAL_ACCESS
                 </p>
             </div>
 

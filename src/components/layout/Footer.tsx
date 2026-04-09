@@ -7,6 +7,7 @@ import {
   HelpCircle, ChevronRight
 } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -18,11 +19,17 @@ export function Footer() {
       <div className="flex flex-col md:flex-row items-stretch border-b border-white/5 bg-black/40">
         
         {/* CONSOLE_LOGOTYPE */}
-        <div className="p-4 px-8 border-r border-white/5 flex items-center gap-4 bg-white/[0.01]">
-            <Link href="/" className="text-xl font-black italic tracking-tighter text-white uppercase leading-none group">
-              SAMPLES<span className="text-studio-neon italic group-hover:shadow-[0_0_10px_rgba(180,255,0,0.5)] transition-shadow">WALA</span>
+        <div className="p-4 px-8 border-r border-white/5 flex items-center gap-6 bg-white/[0.01]">
+            <Link href="/" className="group shrink-0">
+                <Image 
+                    src="/Logo.png" 
+                    alt="Logo" 
+                    width={100} 
+                    height={30} 
+                    className="h-6 w-auto object-contain brightness-90 group-hover:brightness-125 transition-all"
+                />
             </Link>
-            <div className="flex items-center gap-2 text-[7px] font-black uppercase text-white/10 italic tracking-widest pl-2">
+            <div className="flex items-center gap-2 text-[7px] font-black uppercase text-white/10 italic tracking-widest pl-2 border-l border-white/5">
                 <div className="h-1 w-1 bg-studio-neon rounded-full animate-pulse" /> ENGINE_LOCKED
             </div>
         </div>

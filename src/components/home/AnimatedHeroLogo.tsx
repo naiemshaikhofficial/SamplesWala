@@ -32,9 +32,12 @@ export function AnimatedHeroLogo() {
           width={800} 
           height={200} 
           style={{ height: 'auto' }}
-          className="w-full max-w-3xl h-auto object-contain brightness-110 mx-auto"
+          className="w-full max-w-3xl h-auto object-contain brightness-150 mx-auto drop-shadow-[0_0_50px_rgba(255,255,255,0.4)] group-hover:drop-shadow-[0_0_80px_rgba(166,226,46,0.4)] transition-all duration-1000 select-none pointer-events-none"
           priority
         />
+        
+        {/* 🧬 CONSOLE_SIG_AURA */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[100px] bg-white opacity-[0.05] blur-[120px] rounded-full pointer-events-none" />
       </motion.div>
       
       {/* 🎰 ANALOG SIGNAL PULSE (Subtle) */}
