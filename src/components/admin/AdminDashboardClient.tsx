@@ -15,9 +15,10 @@ import {
   LayoutDashboard, Package, Music, Users, ArrowUpRight, TrendingUp, 
   PlusCircle, ShieldCheck, Zap, Activity, HardDrive, Cpu, 
   Terminal, Settings, Search, Disc, SlidersHorizontal, Lock, CheckCircle2, Loader2, Key,
-  ChevronLeft, Volume1, Volume2, ShieldAlert, Trash2, Ban, Unlock, RefreshCw
+  ChevronLeft, Volume1, Volume2, ShieldAlert, Trash2, Ban, Unlock, RefreshCw, Video
 } from 'lucide-react'
 import { PlayButton } from '@/components/audio/PlayButton'
+import PromoVideoGenerator from '@/components/admin/PromoVideoGenerator'
 import { useState, useEffect } from 'react'
 
 export default function AdminDashboardClient({ 
@@ -718,13 +719,14 @@ export default function AdminDashboardClient({
             </Link>
 
             <nav className="space-y-2">
-                {[
-                    { id: 'DASHBOARD', icon: LayoutDashboard, label: 'Dashboard' },
-                    { id: 'PACKS', icon: Package, label: 'Packs' },
-                    { id: 'USERS', icon: Users, label: 'Customers' },
-                    { id: 'LOGS', icon: Terminal, label: 'System Logs' },
-                    { id: 'SETTINGS', icon: Settings, label: 'Settings' }
-                ].map((item) => (
+                    {[
+                        { id: 'DASHBOARD', icon: LayoutDashboard, label: 'Dashboard' },
+                        { id: 'PROMO_GEN', icon: Video, label: 'Video Creator' },
+                        { id: 'PACKS', icon: Package, label: 'Packs' },
+                        { id: 'USERS', icon: Users, label: 'Customers' },
+                        { id: 'LOGS', icon: Terminal, label: 'System Logs' },
+                        { id: 'SETTINGS', icon: Settings, label: 'Settings' }
+                    ].map((item) => (
                     <button 
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
@@ -1240,6 +1242,11 @@ export default function AdminDashboardClient({
                     </div>
                 </div>
             </div>
+        )}
+
+        {/* 🎬 PROMO GENERATOR TAB */}
+        {activeTab === 'PROMO_GEN' && (
+            <PromoVideoGenerator />
         )}
 
         {/* 📀 SYSTEM_STATUS_FOOTER (Decor) */}

@@ -356,3 +356,14 @@ export async function getPackSamplesAction(packId: string) {
     if (error) throw new Error(error.message)
     return data || []
 }
+export async function searchSamplesAction(query: string) {
+    const { supabase } = await ensureAdmin()
+    const { data, error } = await supabase
+        .from('samples')
+        .select('*, sample_packs(name)')
+        .ilike('name', `%${query}%`)
+        .limit(20)
+    
+    if (error) throw new Error(error.message)
+    return data || []
+}
