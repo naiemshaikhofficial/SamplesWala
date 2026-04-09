@@ -15,6 +15,7 @@ export default function PromoVideoGenerator() {
     const [isRecording, setIsRecording] = useState(false)
     const [recordProgress, setRecordProgress] = useState(0)
     const [isLogoLoaded, setIsLogoLoaded] = useState(false)
+    const [coverImg, setCoverImg] = useState<HTMLImageElement | null>(null)
     const [audioStatus, setAudioStatus] = useState<'IDLE' | 'LOADING' | 'READY' | 'ERROR'>('IDLE')
     
     // Canvas & Audio Refs
@@ -68,6 +69,17 @@ export default function PromoVideoGenerator() {
     useEffect(() => {
         if (selectedSample) {
             resolveAudioSignal(selectedSample);
+            
+            // 🖼️ Load Cover Art for Canvas
+            if (selectedSample.cover_url) {
+                const img = new (window.Image || (window as any).Image)();
+                img.crossOrigin = "anonymous";
+                img.src = selectedSample.cover_url;
+                img.onload = () => setCoverImg(img);
+                img.onerror = () => setCoverImg(null);
+            } else {
+                setCoverImg(null);
+            }
         }
     }, [selectedSample])
 
@@ -126,37 +138,52 @@ export default function PromoVideoGenerator() {
             const width = canvas.width
             const height = canvas.height
 
+            // 🧬 DYNAMIC_LAYOUT_CONSTANTS
+            const leftX = width * 0.28 
+            const infoX = width * 0.58 // Shifted further right as requested
+            const centerY = height * 0.5
+            const bassFreq = dataArray[0] 
+            const beatIntensity = bassFreq / 255
+            const artPulse = 440 + (beatIntensity * 100)
+            
             // 🧺 Clear Frame
             ctx.clearRect(0, 0, width, height)
-
-            // 1. Draw Background
-            const gradient = ctx.createLinearGradient(0, 0, 0, height)
-            gradient.addColorStop(0, '#0a0a0a')
-            gradient.addColorStop(1, '#000000')
-            ctx.fillStyle = gradient
+            
+            // 1. Draw Background (Studio Deep + Blurred Cover)
+            ctx.fillStyle = '#050505'
             ctx.fillRect(0, 0, width, height)
-
-            // Dynamic background particles or glow
-            const averageFreq = dataArray.reduce((prev, curr) => prev + curr) / bufferLength
-            const bassFreq = dataArray[0] // Crude bass detection
-
+            
+            // 🖼️ CINEMATIC_BACKGROUND_OVERLAY
+            const bgImg = coverImg || logoRef.current
+            if (bgImg && bgImg.naturalWidth > 0) {
+                ctx.save()
+                ctx.globalAlpha = 0.2 + (beatIntensity * 0.1) // Pulses with beat
+                ctx.filter = 'blur(60px) brightness(0.5)'
+                const scale = Math.max(width / bgImg.width, height / bgImg.height)
+                const w = bgImg.width * scale
+                const h = bgImg.height * scale
+                ctx.drawImage(bgImg, (width - w) / 2, (height - h) / 2, w, h)
+                ctx.filter = 'none'
+                ctx.restore()
+            }
+            
+            // Subtle Radial Glow
             ctx.beginPath()
-            const bgGlow = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.8)
-            bgGlow.addColorStop(0, `rgba(166, 226, 46, ${averageFreq / 500})`)
+            const bgGlow = ctx.createRadialGradient(leftX, centerY, 0, leftX, centerY, width * 0.6)
+            bgGlow.addColorStop(0, `rgba(166, 226, 46, ${beatIntensity * 0.25})`)
             bgGlow.addColorStop(1, 'transparent')
             ctx.fillStyle = bgGlow
             ctx.fillRect(0, 0, width, height)
 
-            // 2. Draw Visualizer (Circular Bars)
+            // 2. Draw Visualizer (Radiating from Left)
             ctx.save()
-            ctx.translate(width/2, height/2)
-            
-            const radius = 200 + (bassFreq / 5)
-            const barCount = 64
+            ctx.translate(leftX, centerY)
+            const barCount = 140
+            const radius = 260 + (beatIntensity * 20)
             
             for (let i = 0; i < barCount; i++) {
                 const angle = (i * 2 * Math.PI) / barCount
-                const barHeight = (dataArray[i % bufferLength] / 255) * 150
+                const barHeight = (dataArray[i % bufferLength] / 255) * 260 * (0.7 + beatIntensity)
                 
                 const x1 = radius * Math.cos(angle)
                 const y1 = radius * Math.sin(angle)
@@ -164,51 +191,66 @@ export default function PromoVideoGenerator() {
                 const y2 = (radius + barHeight) * Math.sin(angle)
 
                 ctx.beginPath()
-                ctx.strokeStyle = `hsla(${120 + i}, 80%, 60%, 0.8)`
-                ctx.lineWidth = 4
-                ctx.lineCap = 'round'
+                ctx.strokeStyle = `hsla(${120 + i}, 80%, 60%, ${0.2 + beatIntensity})`
+                ctx.lineWidth = 2
                 ctx.moveTo(x1, y1)
                 ctx.lineTo(x2, y2)
                 ctx.stroke()
-                
-                // Outer glow per bar
-                ctx.shadowBlur = 15
-                ctx.shadowColor = `hsla(${120 + i}, 80%, 60%, 0.4)`
             }
             ctx.restore()
 
-            // 3. Draw Logo (Pulsing)
-            const logoSize = 180 + (bassFreq / 10)
-            const logo = logoRef.current
+            // 3. Draw Cover Art (Extreme Pulse + Wobble)
+            const img = coverImg || logoRef.current
             
-            if (logo && isLogoLoaded && logo.naturalWidth > 0) {
+            if (img && img.naturalWidth > 0) {
                 ctx.save()
-                ctx.translate(width/2, height/2)
-                ctx.drawImage(logo, -logoSize/2, -logoSize/2, logoSize, logoSize)
+                ctx.translate(leftX, centerY)
+                
+                // Aggressive Tilt + Shake on beat
+                ctx.rotate(Math.sin(Date.now() / 100) * 0.15 * beatIntensity)
+                
+                // Circular Clip
+                ctx.beginPath()
+                ctx.arc(0, 0, artPulse/2, 0, Math.PI * 2)
+                ctx.closePath()
+                ctx.clip()
+                
+                ctx.drawImage(img, -artPulse/2, -artPulse/2, artPulse, artPulse)
                 ctx.restore()
-            } else {
-                // Fallback: Signal degraded
-                ctx.fillStyle = '#a6e22e'
-                ctx.font = '900 40px Inter, sans-serif'
-                ctx.fillText('SAMPLES WALA', width/2, height/2)
+
+                // Neon Ring
+                ctx.beginPath()
+                ctx.arc(leftX, centerY, artPulse/2 + 5, 0, Math.PI * 2)
+                ctx.strokeStyle = '#a6e22e'
+                ctx.lineWidth = 12
+                ctx.stroke()
             }
 
-            // 4. Draw Text Overlays
+            // 5. Draw Info Panel (High Contrast & Spaced)
             if (selectedSample) {
-                ctx.textAlign = 'center'
+                // 🏷️ Track Name Setup
+                const nameText = selectedSample.name.toUpperCase()
+                ctx.font = `900 54px Inter, sans-serif`
+                ctx.textAlign = 'left'
                 ctx.fillStyle = 'white'
-                ctx.font = '900 64px Inter, sans-serif'
-                ctx.fillText(selectedSample.name.toUpperCase(), width/2, height - 150)
+                ctx.letterSpacing = '-1px'
                 
-                ctx.font = '900 24px Inter, sans-serif'
+                // Measure for centering CTA
+                const nameMetrics = ctx.measureText(nameText)
+                const nameWidth = nameMetrics.width
+                
+                // Draw Name
+                ctx.fillText(nameText, infoX, centerY)
+                
+                // 🏷️ BRAND_CTA_OVERLAY (Centered Below Name)
+                ctx.textAlign = 'center'
+                ctx.font = '900 12px Inter, sans-serif'
                 ctx.fillStyle = '#a6e22e'
-                ctx.letterSpacing = '10px'
-                ctx.fillText(`${selectedSample.bpm || '--'} BPM // ${selectedSample.key || 'N/A'}`.toUpperCase(), width/2, height - 100)
+                ctx.letterSpacing = '4px'
                 
-                ctx.font = '400 16px monospace'
-                ctx.fillStyle = 'rgba(255,255,255,0.4)'
-                ctx.letterSpacing = '20px'
-                ctx.fillText('SAMPLES WALA // EXCLUSIVE SIGNAL', width/2, height - 60)
+                // Position X = Start of name + Half of name width
+                const ctaX = infoX + (nameWidth / 2)
+                ctx.fillText('GET IT ON WWW.SAMPLESWALA.COM', ctaX, centerY + 50)
             }
         }
 
@@ -216,7 +258,7 @@ export default function PromoVideoGenerator() {
     }
 
     const togglePlay = () => {
-        if (!audioRef.current) return
+        if (!audioRef.current || audioStatus === 'LOADING') return
         
         if (isPlaying) {
             audioRef.current.pause()
@@ -225,9 +267,15 @@ export default function PromoVideoGenerator() {
             if (audioContextRef.current?.state === 'suspended') {
                 audioContextRef.current.resume()
             }
+            
             audioRef.current.play()
-            setIsPlaying(true)
-            initVisualizer()
+                .then(() => {
+                    setIsPlaying(true)
+                    initVisualizer()
+                })
+                .catch(e => {
+                    if (e.name !== 'AbortError') console.warn('🔊 PROMO_GEN :: Play logic interrupted. Handshaking with new signal.', e);
+                })
         }
     }
 
@@ -409,21 +457,54 @@ export default function PromoVideoGenerator() {
                     </div>
 
                     <div className="bg-studio-grey/40 border border-white/5 p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-8 w-full md:w-auto">
                             <button 
                                 onClick={togglePlay}
-                                disabled={!selectedSample}
-                                className={`h-16 w-16 rounded-full flex items-center justify-center transition-all ${isPlaying ? 'bg-studio-neon text-black' : 'bg-white text-black hover:bg-studio-neon'} disabled:opacity-20`}
+                                disabled={!selectedSample || audioStatus === 'LOADING'}
+                                className={`h-16 w-16 rounded-full flex items-center justify-center transition-all ${
+                                    isPlaying ? 'bg-studio-neon text-black' : 'bg-white text-black hover:bg-studio-neon'
+                                } disabled:opacity-20`}
                             >
-                                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                                {audioStatus === 'LOADING' ? (
+                                    <Loader2 className="h-6 w-6 animate-spin" />
+                                ) : isPlaying ? (
+                                    <Pause size={24} fill="currentColor" />
+                                ) : (
+                                    <Play size={24} fill="currentColor" className="ml-1" />
+                                )}
                             </button>
                             
-                            {selectedSample && (
+                            {selectedSample ? (
                                 <div className="flex flex-col">
                                     <span className="text-[9px] font-black uppercase text-white/20 tracking-widest mb-1 italic">Audio Stream</span>
-                                    <span className="text-lg font-black italic tracking-tighter uppercase text-white">{selectedSample.name}</span>
+                                    <span className="text-lg font-black italic tracking-tighter uppercase text-white line-clamp-1">{selectedSample.name}</span>
                                 </div>
+                            ) : (
+                                <div className="text-[10px] font-black uppercase text-white/10 tracking-[0.2em] italic">No Signal Active</div>
                             )}
+
+                            {/* 📤 CUSTOM_COVER_UPLINK */}
+                            <div className="md:ml-4 flex items-center gap-4 border-l border-white/10 pl-8">
+                                <label className="flex items-center gap-3 cursor-pointer group bg-white/5 hover:bg-white/10 px-6 py-4 rounded-xl transition-all border border-dashed border-white/10">
+                                    <Layers className="h-4 w-4 text-studio-neon group-hover:scale-125 transition-transform" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Override Cover</span>
+                                    <input 
+                                        type="file" 
+                                        className="hidden" 
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const url = URL.createObjectURL(file);
+                                                const img = new (window.Image || (window as any).Image)();
+                                                img.src = url;
+                                                img.onload = () => setCoverImg(img);
+                                                console.log('✅ PROMO_GEN :: Custom artwork signal injected.');
+                                            }
+                                        }} 
+                                    />
+                                </label>
+                            </div>
                         </div>
 
                         <div className="flex gap-4 w-full md:w-auto">
