@@ -10,32 +10,36 @@ import {
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'next/navigation'
 
-const sidebarGroups = [
+const sidebarGroups: {
+  label: string;
+  items: { 
+    id: string; 
+    label: string; 
+    icon: any; 
+    href?: string; 
+  }[];
+}[] = [
   {
-    label: "Navigation",
+    label: "Library",
     items: [
-      { id: 'all', label: 'All Artifacts', icon: <Layout className="w-5 h-5" /> },
-      { id: 'packs', label: 'Sound Packs', icon: <Disc className="w-5 h-5" /> },
-      { id: 'trending', label: 'Trending', icon: <Sparkles className="w-5 h-5" /> },
-      { id: 'bundles', label: 'Bundles', icon: <Layers className="w-5 h-5" /> },
+      { id: 'all', label: 'All Artifacts', icon: Layout },
+      { id: 'packs', label: 'Sound Packs', icon: Disc },
+      { id: 'trending', label: 'Trending', icon: Sparkles },
     ]
   },
   {
-    label: "Sample Library",
+    label: "Categories",
     items: [
-      { id: 'melodies', label: 'Melodies', icon: <Music className="w-5 h-5" /> },
-      { id: 'drums', label: 'Drums & Perc', icon: <Disc className="w-5 h-5" /> },
-      { id: 'vocals', label: 'Vocals & FX', icon: <Mic2 className="w-5 h-5" /> },
-      { id: 'presets', label: 'Synth Presets', icon: <Settings2 className="w-5 h-5" /> },
+      { id: 'melodies', label: 'Melodies', icon: Music },
+      { id: 'drums', label: 'Drums & Perc', icon: Disc },
+      { id: 'vocals', label: 'Vocals', icon: Mic2 },
     ]
   },
   {
-    label: "User Archive",
+    label: "Account",
     items: [
-      { id: 'library', label: 'My Library', icon: <Key className="w-5 h-5" />, href: '/library' },
-      { id: 'settings', label: 'Settings', icon: <Settings2 className="w-5 h-5" />, href: '/settings' },
-      { id: 'purchases', label: 'Purchase History', icon: <Timer className="w-5 h-5" />, href: '/library' },
-      { id: 'favorites', label: 'Liked Sounds', icon: <Sparkles className="w-5 h-5" />, href: '/library' },
+      { id: 'library', label: 'My Library', icon: Key, href: '/library' },
+      { id: 'settings', label: 'Settings', icon: Settings2, href: '/settings' },
     ]
   }
 ];
@@ -45,109 +49,124 @@ export function MobileMenu({ user }: { user: any }) {
   const searchParams = useSearchParams();
   const currentFilter = searchParams.get('filter') || 'all';
 
+  const containerVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: { opacity: 1, x: 0 }
+  }
+
   return (
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="h-10 w-10 flex items-center justify-center border border-white/10 hover:border-studio-neon transition-all bg-black/60 pointer-events-auto cursor-pointer rounded-sm group"
-        title="Open Navigation"
+        className="h-10 w-10 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
       >
-        <Menu className="h-5 w-5 text-white/60 group-hover:text-studio-neon transition-colors" />
+        <Menu className="h-5 w-5 text-white/70" />
       </button>
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-0 z-[600] bg-[#0a0a0a] flex flex-col p-6 overflow-y-auto"
-          >
-            {/* 🧬 HEADER GRID */}
-            <div className="flex justify-between items-start mb-12">
-              <Link href="/" onClick={() => setIsOpen(false)} className="studio-panel bg-black border border-white/10 p-4">
-                <Image 
-                  src="/Logo.png" 
-                  alt="SAMPLES WALA Logo" 
-                  width={120} 
-                  height={30} 
-                  className="h-7 w-auto object-contain"
-                />
-              </Link>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="h-14 w-14 flex items-center justify-center border-l-4 border-studio-neon bg-[#111] text-white"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-[600] bg-black/80 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 z-[610] w-[85%] max-w-sm bg-studio-charcoal border-r border-white/5 flex flex-col"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
+                <Link href="/" onClick={() => setIsOpen(false)}>
+                  <Image src="/Logo.png" alt="Logo" width={100} height={24} className="h-6 w-auto" />
+                </Link>
+                <button onClick={() => setIsOpen(false)} className="p-2 text-white/40 hover:text-white transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
 
-            {/* 🕹️ STUDIO FILTERS (Sidebar Parity) */}
-            <div className="mb-12">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon mb-8 block border-b border-studio-neon/20 pb-2">CONSOLE_BROWSER :: NAVIGATION</span>
-                <div className="space-y-10">
-                    {sidebarGroups.map((group) => (
-                        <div key={group.label} className="space-y-4">
-                            <h4 className="text-[9px] font-black uppercase tracking-widest text-white/20 px-2">{group.label}</h4>
-                            <div className="grid grid-cols-1 gap-2">
-                                {group.items.map((item) => (
-                                    <Link
-                                        key={item.id}
-                                        href={`/browse?filter=${item.id}`}
-                                        onClick={() => setIsOpen(false)}
-                                        className={`flex items-center gap-4 p-4 text-[13px] font-black uppercase tracking-tighter transition-all border-l-4 ${
-                                            currentFilter === item.id 
-                                            ? 'bg-studio-neon text-black border-white shadow-[0_0_20px_#a6e22e]' 
-                                            : 'bg-white/[0.03] text-white/40 border-transparent hover:border-studio-neon hover:text-white'
-                                        }`}
-                                    >
-                                        {item.icon}
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+              {/* Navigation */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="space-y-8"
+                >
+                  {sidebarGroups.map((group) => (
+                    <div key={group.label}>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-4 px-2">
+                        {group.label}
+                      </h4>
+                      <div className="space-y-1">
+                        {group.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = currentFilter === item.id;
+                          return (
+                            <motion.div key={item.id} variants={itemVariants}>
+                              <Link
+                                href={item.href || `/browse?filter=${item.id}`}
+                                onClick={() => setIsOpen(false)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                                  isActive 
+                                  ? 'bg-studio-neon text-black' 
+                                  : 'text-white/40 hover:text-white hover:bg-white/5'
+                                }`}
+                              >
+                                <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                                {item.label}
+                              </Link>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* Footer / Stats */}
+              <div className="p-6 border-t border-white/5 bg-black/20">
+                <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-white/20">
+                  <div className="w-1.5 h-1.5 bg-studio-neon rounded-full animate-pulse" />
+                  System Operational
                 </div>
-            </div>
-
-            {/* 👤 AGENT NODE */}
-            <div className="mb-16 pt-10 border-t border-white/5">
-                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 mb-8 block">SECURITY_NODE :: PROFILE</span>
-                <nav className="space-y-3">
-                   {user ? (
-                        <>
-                            <Link href="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-4 p-5 bg-white/[0.03] text-[13px] font-black uppercase tracking-widest hover:text-studio-neon transition-all border-r-4 border-studio-yellow">
-                                <User className="h-5 w-5" /> User Identity
-                            </Link>
-                            <Link href="/profile/library" onClick={() => setIsOpen(false)} className="flex items-center gap-4 p-5 bg-white/[0.03] text-[13px] font-black uppercase tracking-widest hover:text-studio-neon transition-all border-r-4 border-studio-yellow">
-                                <Music className="h-5 w-5" /> Master Artifacts
-                            </Link>
-                        </>
-                    ) : (
-                        <Link href="/auth/login" onClick={() => setIsOpen(false)} className="flex items-center justify-center gap-4 p-6 bg-white text-black text-[13px] font-black uppercase tracking-widest hover:bg-studio-neon transition-all">
-                             Connect_User_Signal
-                        </Link>
-                    )}
-                </nav>
-            </div>
-
-            {/* 🧬 SYSTEM FOOTER */}
-            <div className="mt-auto pt-10 grid grid-cols-1 gap-4">
-                 <div className="flex items-center gap-4 text-[8px] font-black uppercase tracking-[0.4em] text-white/10 mb-4 px-2">
-                    <Activity className="h-3 w-3 animate-pulse" /> SYSTEM_HEARTBEAT_ACTIVE
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <Link href="/contact" onClick={() => setIsOpen(false)} className="p-4 bg-white/5 border border-white/10 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-widest text-white/40">
-                        <Mail className="h-4 w-4" /> SUPPORT
-                    </Link>
-                    <Link href="/pricing" onClick={() => setIsOpen(false)} className="p-4 bg-white/5 border border-white/10 flex items-center justify-center gap-3 text-[9px] font-black uppercase tracking-widest text-white/40">
-                        <Zap className="h-4 w-4" /> UPGRADE
-                    </Link>
-                 </div>
-            </div>
-          </motion.div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Link 
+                    href="/pricing" 
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-white hover:bg-white/10 transition-all"
+                  >
+                    <Zap size={14} className="text-studio-neon" /> UPGRADE
+                  </Link>
+                  <Link 
+                    href="/contact" 
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-white hover:bg-white/10 transition-all"
+                  >
+                    <Mail size={14} /> SUPPORT
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

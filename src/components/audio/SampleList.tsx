@@ -90,11 +90,11 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                         return (
                             <div 
                                 key={sample.id} 
-                                className={`group grid grid-cols-12 items-center gap-2 md:gap-4 px-3 md:px-10 py-3.5 md:py-4 transition-all border-b border-white/5 md:border-none ${isActive ? 'bg-studio-neon/5' : 'hover:bg-white/[0.03]'}`}
+                                className={`group flex items-center justify-between gap-3 px-4 md:px-10 py-4 transition-all border-b border-white/5 md:border-none ${isActive ? 'bg-studio-neon/5' : 'hover:bg-white/[0.03]'}`}
                             >
-                                {/* 🕹️ PLAY NODE */}
-                                <div className="col-span-2 md:col-span-1 flex items-center justify-start md:justify-center">
-                                    <div className="scale-75 md:scale-100 origin-left">
+                                {/* LEFT: PLAY + INFO */}
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <div className="shrink-0 scale-90 md:scale-100">
                                         <PlayButton 
                                             id={sample.id} 
                                             url={sample.audio_url} 
@@ -107,43 +107,40 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                                             creditCost={sample.credit_cost}
                                         />
                                     </div>
-                                </div>
-                                
-                                {/* 🧬 METADATA CLUSTER */}
-                                <div className="col-span-7 md:col-span-4 flex flex-col min-w-0 pr-1">
-                                    <div className="flex items-center gap-2 mb-0.5 whitespace-nowrap min-w-0">
-                                        <span className={`text-[11px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
+                                    
+                                    <div className="flex flex-col min-w-0">
+                                        <span className={`text-[13px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
                                             {sample.name}
                                         </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[7px] md:text-[8px] font-bold uppercase text-white/10 tracking-[0.1em] md:tracking-[0.2em] italic whitespace-nowrap">
-                                            TRK_0{idx+1}
-                                        </span>
-                                        {(sample.bpm || sample.key) && (
-                                            <span className="text-[7px] md:hidden font-black text-studio-neon/60 uppercase tracking-tighter whitespace-nowrap">
-                                                {sample.bpm && `${sample.bpm}`} {sample.key && `// ${sample.key}`}
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            {(sample.bpm || sample.key) && (
+                                                <span className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter">
+                                                    {sample.bpm && `${sample.bpm} BPM`} {sample.key && `// ${sample.key}`}
+                                                </span>
+                                            )}
+                                            <span className="hidden md:inline-block text-[8px] font-bold uppercase text-white/10 tracking-[0.2em] italic">
+                                                ID: {sample.id.slice(0, 4)}
                                             </span>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                {/* 🎹 DESKTOP EXCLUSIVE DATA */}
-                                <div className="hidden md:block md:col-span-1 text-center font-black text-[12px] text-white/30 italic">
-                                    {sample.bpm || <span className="opacity-10">-</span>}
-                                </div>
-                                <div className="hidden md:block md:col-span-1 text-center font-black text-[12px] text-studio-neon tracking-tighter italic">
-                                    {sample.key || <span className="opacity-10 opacity-10 text-white/30">-</span>}
-                                </div>
-                                
-                                {/* 📊 WAVEFORM (HIDDEN ON MOBILE) */}
-                                <div className="hidden md:block md:col-span-4">
+                                {/* CENTER: WAVEFORM (DESKTOP) */}
+                                <div className="hidden md:block flex-1 max-w-md px-10">
                                     <Waveform id={sample.id} active={true} />
                                 </div>
                                 
-                                {/* 📥 ACQUISITION NODE */}
-                                <div className="col-span-3 md:col-span-1 flex justify-end">
-                                    <div className="scale-75 md:scale-100 origin-right">
+                                {/* RIGHT: ACTIONS */}
+                                <div className="flex items-center gap-4 shrink-0">
+                                    <div className="hidden md:flex flex-col items-center gap-1 opacity-20">
+                                        <span className="text-[10px] font-black">{sample.bpm || '-'}</span>
+                                        <span className="text-[6px] font-black tracking-widest">BPM</span>
+                                    </div>
+                                    <div className="hidden md:flex flex-col items-center gap-1 text-studio-neon/40">
+                                        <span className="text-[10px] font-black">{sample.key || '-'}</span>
+                                        <span className="text-[6px] font-black tracking-widest uppercase">Key</span>
+                                    </div>
+                                    <div className="scale-90 md:scale-100 origin-right">
                                         <DownloadButton 
                                             sampleId={sample.id} 
                                             isUnlockedInitial={isUnlocked} 

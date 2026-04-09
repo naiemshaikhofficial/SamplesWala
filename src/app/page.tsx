@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import Link from "next/link";
 import { 
-  ShieldCheck, Disc, Activity, Settings2, SlidersHorizontal, 
-  BarChart3, Radio
+  ShieldCheck, Disc, Activity, Zap, AudioLines, ArrowRight,
+  Database, Cpu, Globe, BarChart3
 } from "lucide-react";
 import { NewArrivals } from "@/components/home/NewArrivals";
 import { FreshSounds } from "@/components/home/FreshSounds";
@@ -11,6 +11,11 @@ import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
 import { Suspense } from 'react'
+
+export const metadata = {
+  title: 'Samples Wala | The Professional DAW Marketplace',
+  description: 'Premium royalty-free samples, loops, and presets for music producers. High-fidelity audio curated for modern production.',
+}
 
 export default async function Home() {
   const supabase = await createClient()
@@ -58,8 +63,6 @@ export default async function Home() {
 
     if (vaultItems) {
         const ownedPackIds = new Set(vaultItems.filter(v => v.item_type === 'pack').map(v => v.item_id))
-        
-        // A sample is considered unlocked if it's in the vault OR its pack is in the vault
         unlockedSampleIds = topSamples
             .filter(s => {
                 const directlyOwned = vaultItems.some(v => v.item_type === 'sample' && v.item_id === s.id)
@@ -71,116 +74,171 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-studio-charcoal text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono step-grid transition-all duration-300">
+    <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
         
-        {/* 🏆 MASTER DASHBOARD HERO */}
-        <Suspense fallback={<div className="h-screen bg-black" />}>
-            <AdaptiveHero />
-        </Suspense>
+        {/* 🧬 CONSOLE GRID OVERLAY - Minimal for mobile */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 footer-grid hidden md:block" />
+        <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-black/20 to-black h-full w-full" />
 
-        {/* 💿 CHANNEL RACK: NEW SIGNALS */}
-        <div className="px-6 md:px-20 py-24 border-y-8 border-black bg-studio-grey/30 relative">
-            <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-neon opacity-20">
-                <div className="w-4 h-4 border-2 border-studio-neon animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Latest Arrivals</span>
-            </div>
-            <NewArrivals packs={latestPacks || []} />
+        {/* 🏆 MASTER CONSOLE HERO */}
+        <div className="relative z-10">
+          <Suspense fallback={<div className="h-[600px] bg-black flex items-center justify-center"><Activity className="animate-pulse text-studio-neon" /></div>}>
+              <AdaptiveHero />
+          </Suspense>
         </div>
 
-        {/* 📡 LIVE INTAKE: FRESH SOUNDS */}
-        <FreshSounds 
-            samples={freshSounds || []} 
-            unlockedSampleIds={unlockedSampleIds}
-        />
-
-        {/* 🎚️ MASTER FX RACK */}
-        <div className="grid grid-cols-1 md:grid-cols-3 border-b-8 border-black">
-            <div className="p-12 border-b-8 md:border-b-0 md:border-r-8 border-black bg-studio-charcoal group hover:bg-[#151515] transition-all">
-                <div className="flex items-center gap-2 mb-8">
-                  <BarChart3 className="w-4 h-4 text-studio-neon" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">EQ_MASTER</span>
-                </div>
-                <div className="space-y-6">
-                   {[10, 30, 80, 45, 15, 60, 40].map((h, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <span className="text-[8px] font-black text-white/20 w-8">BAND_{i+1}</span>
-                      <div className="flex-1 h-2 bg-black border border-white/5 relative">
-                        <div className="absolute inset-y-0 left-0 bg-studio-neon/40 shadow-[0_0_5px_rgba(166,226,46,0.3)] transition-all group-hover:bg-studio-neon" style={{ width: `${h}%` }} />
-                      </div>
+        {/* ⚡ SIGNAL FLOW: NEW ARRIVALS */}
+        <section className="relative z-20 border-y-4 border-white/5 bg-studio-charcoal">
+            <div className="px-4 md:px-20 py-16 md:py-24 max-w-7xl mx-auto">
+                <div className="flex items-center gap-3 mb-10 md:mb-16">
+                    <div className="flex gap-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-studio-neon animate-pulse" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-studio-neon/20" />
                     </div>
-                   ))}
+                    <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">Buffer_01 :: LatestArrivals</span>
                 </div>
+                
+                <NewArrivals packs={latestPacks || []} />
             </div>
-            <div className="p-12 border-b-8 md:border-b-0 md:border-r-8 border-black bg-studio-charcoal">
-                <div className="flex items-center gap-2 mb-8">
-                  <Activity className="w-4 h-4 text-studio-yellow" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">DYNAMICS_CTRL</span>
-                </div>
-                <div className="aspect-square border-4 border-black bg-[#151515] rounded-full flex items-center justify-center relative group">
-                    <div className="absolute inset-4 border border-white/5 rounded-full" />
-                    <div className="w-1 h-32 bg-gradient-to-t from-transparent to-studio-yellow origin-bottom rotate-45 transform transition-transform group-hover:rotate-[120deg]" />
-                    <div className="absolute bottom-6 text-[10px] font-black text-white/20 uppercase tracking-widest">THRESHOLD</div>
-                </div>
-            </div>
-            <div className="p-12 bg-studio-charcoal group hover:bg-[#151515] transition-all">
-                 <div className="flex items-center gap-2 mb-8">
-                  <Radio className="w-4 h-4 text-spider-red" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">LIMITER_VUE</span>
-                </div>
-                <div className="h-48 bg-black border border-white/10 p-4 flex gap-1 items-end overflow-hidden">
-                   {[...Array(24)].map((_, i) => (
-                    <div 
-                      key={i} 
-                      className="flex-1 bg-spider-red/40 group-hover:bg-spider-red transition-all" 
-                      style={{ height: `${Math.random() * 100}%` }} 
-                    />
-                   ))}
-                </div>
-                <div className="mt-8 flex justify-between">
-                  <span className="text-[8px] font-black text-white/20 uppercase">ATTACK: 10ms</span>
-                  <span className="text-[8px] font-black text-white/20 uppercase">GAIN: +3dB</span>
-                </div>
-            </div>
-        </div>
+        </section>
 
-        {/* 🎚️ PLAYLIST ARRANGEMENT: TOP SOUNDS */}
-        <div className="px-6 md:px-20 py-32 bg-studio-charcoal border-b-8 border-black relative">
-            <div className="absolute top-4 left-6 flex items-center gap-4 text-studio-yellow opacity-20">
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-[0.5em]">Top Sounds Trending</span>
+        {/* 📡 LIVE CHANNEL RACK: FRESH SOUNDS */}
+        <section id="fresh-sounds" className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
+            <div className="max-w-7xl mx-auto">
+              <FreshSounds 
+                  samples={freshSounds || []} 
+                  unlockedSampleIds={unlockedSampleIds}
+              />
             </div>
-            <div className="max-w-[2000px] mx-auto">
-                <Suspense fallback={<div className="h-96 bg-black" />}>
-                    <TopSounds 
-                        samples={topSamples || []} 
-                        unlockedSampleIds={Array.from(unlockedSampleIds)}
-                    />
-                </Suspense>
-            </div>
-        </div>
+        </section>
 
-        {/* 🛡️ HARDWARE STATUS CARDS - BOTTOM ROW */}
-        <div className="flex flex-col md:flex-row border-b-8 border-black bg-studio-grey">
-            <div className="flex-1 p-12 md:p-24 border-b-8 md:border-b-0 md:border-r-8 border-black hover:bg-studio-neon hover:text-black transition-all group relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:opacity-20 transition-opacity">
-                    <SlidersHorizontal className="h-40 w-40" />
+        {/* 🎚️ MIXER MATRIX (FX RACK) */}
+        <section className="relative z-20 border-b-4 border-white/5 bg-studio-charcoal overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 md:divide-x-4 divide-black">
+                {/* EQ MODULE */}
+                <div className="p-8 md:p-12 border-b-4 md:border-b-0 border-black group">
+                    <div className="flex items-center justify-between mb-8 md:mb-12">
+                        <div className="flex items-center gap-3">
+                            <BarChart3 className="w-5 h-5 text-studio-neon" />
+                            <h3 className="text-[11px] md:text-xs font-black uppercase tracking-widest">EQ_STRIP_MASTER</h3>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-4 md:space-y-6">
+                        {[85, 40, 65, 90, 30, 75].map((val, i) => (
+                            <div key={i} className="space-y-2">
+                                <div className="flex justify-between text-[10px] md:text-[8px] font-black text-white/40 uppercase tracking-tighter">
+                                    <span>BAND_{i+1}</span>
+                                    <span>{val}%</span>
+                                </div>
+                                <div className="h-4 md:h-2 bg-black border border-white/5 relative overflow-hidden">
+                                    <div 
+                                        className="absolute inset-y-0 left-0 bg-studio-neon/70 group-hover:bg-studio-neon transition-all duration-500" 
+                                        style={{ width: `${val}%` }} 
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <ShieldCheck className="h-16 w-16 mb-12 text-studio-neon group-hover:text-black transition-colors" />
-                <h4 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">Usage<br/>Rights</h4>
-                <p className="text-lg font-bold opacity-40 group-hover:opacity-100 group-hover:text-black leading-loose max-w-sm mt-8">Every sound is 100% royalty-free and ready for your next hit.</p>
-                <div className="mt-12 h-2 w-20 bg-studio-yellow group-hover:bg-black transition-all" />
-            </div>
-            <div className="flex-1 p-12 md:p-24 hover:bg-studio-yellow hover:text-black transition-all group relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:opacity-20 transition-opacity">
-                    <Settings2 className="h-40 w-40 animate-spin-slow" />
-                </div>
-                <Disc className="h-16 w-16 mb-12 text-spider-red group-hover:text-black transition-colors" />
-                <h4 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mb-6 italic leading-none">Global<br/>Link</h4>
-                <p className="text-lg font-bold opacity-40 group-hover:opacity-100 group-hover:text-black leading-loose max-w-sm mt-8">Used by world-class producers from Mumbai to London. Join the loop.</p>
-                <div className="mt-12 h-2 w-20 bg-studio-neon group-hover:bg-black transition-all" />
-            </div>
-        </div>
 
-    </div>
+                {/* COMPRESSOR MODULE */}
+                <div className="p-10 md:p-12 md:bg-black/10 border-b-4 md:border-b-0 border-black flex flex-col items-center group">
+                    <div className="w-full flex items-center gap-3 mb-8 md:mb-12">
+                        <Zap className="w-5 h-5 text-studio-yellow" />
+                        <h3 className="text-[11px] md:text-xs font-black uppercase tracking-widest">DYNAMICS_CTRL</h3>
+                    </div>
+                    
+                    <div className="relative w-44 h-44 md:w-64 md:h-64 rounded-full border-4 md:border-8 border-black shadow-2xl flex items-center justify-center bg-[#181818] group-hover:scale-105 transition-transform">
+                        <div className="absolute inset-2 border border-white/5 rounded-full" />
+                        <div className="w-2 h-24 md:h-32 bg-gradient-to-t from-transparent via-spider-red to-spider-red origin-bottom -rotate-45 transform transition-transform group-hover:rotate-[150deg] duration-[2s]" />
+                        <div className="absolute bottom-6 md:bottom-10 text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Threshold</div>
+                    </div>
+                </div>
+
+                {/* LIMITER MODULE */}
+                <div className="p-8 md:p-12 hover:bg-black/10 transition-colors group">
+                    <div className="flex items-center justify-between mb-8 md:mb-12">
+                        <div className="flex items-center gap-3">
+                            <AudioLines className="w-5 h-5 text-spider-red" />
+                            <h3 className="text-[11px] md:text-xs font-black uppercase tracking-widest">OUTPUT_CEILING</h3>
+                        </div>
+                        <span className="px-2 py-0.5 bg-spider-red text-[10px] font-black text-white">CLIP</span>
+                    </div>
+                    
+                    <div className="h-32 md:h-48 border-2 border-black bg-black flex items-end gap-[4px] md:gap-1 p-3 md:p-4 overflow-hidden relative">
+                        {[...Array(12)].map((_, i) => (
+                            <div 
+                                key={i} 
+                                className="flex-1 bg-spider-red/40 group-hover:bg-spider-red transition-all" 
+                                style={{ 
+                                    height: `${30 + Math.random() * 70}%`,
+                                    transitionDelay: `${i * 0.05}s`
+                                }} 
+                            />
+                        ))}
+                    </div>
+                    <div className="mt-8 flex justify-between">
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-black text-white/30 uppercase">Gain_Level</p>
+                            <p className="text-xl font-bold text-studio-neon">+4.5 DB</p>
+                        </div>
+                        <div className="space-y-1 text-right">
+                            <p className="text-[9px] font-black text-white/30 uppercase">Latency</p>
+                            <p className="text-xl font-bold">0.2 MS</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {/* 🏆 TOP CHARTS */}
+        <section className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
+            <div className="absolute top-20 left-10 text-[6rem] md:text-[12rem] font-black text-white/[0.03] pointer-events-none italic uppercase">
+                Trending
+            </div>
+            <div className="max-w-7xl mx-auto px-4 md:px-20 relative">
+                <TopSounds 
+                    samples={topSamples || []} 
+                    unlockedSampleIds={Array.from(unlockedSampleIds)}
+                />
+            </div>
+        </section>
+
+        {/* 🛡️ PRO STATUS */}
+        <section className="relative z-20 grid grid-cols-1 md:grid-cols-2 bg-studio-charcoal">
+            <div className="p-12 md:p-24 border-b-4 md:border-b-0 md:border-r-4 border-black hover:bg-studio-neon hover:text-black transition-all group overflow-hidden cursor-pointer">
+                <ShieldCheck className="h-12 w-12 md:h-20 md:w-20 mb-8 text-studio-neon group-hover:text-black transition-colors" />
+                <h4 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none italic mb-8 group-hover:text-black">Royalty<br/>Free</h4>
+                <p className="text-lg md:text-2xl font-bold opacity-40 group-hover:opacity-100 max-w-sm">Every sound from our cloud is 100% royalty-free for commercial use.</p>
+            </div>
+            <div className="p-12 md:p-24 hover:bg-studio-yellow hover:text-black transition-all group overflow-hidden cursor-pointer">
+                <Globe className="h-12 w-12 md:h-20 md:w-20 mb-8 text-studio-yellow group-hover:text-black transition-colors" />
+                <h4 className="text-5xl md:text-8xl font-black uppercase tracking-tighter leading-none italic mb-8 group-hover:text-black">Studio<br/>Grade</h4>
+                <p className="text-lg md:text-2xl font-bold opacity-40 group-hover:opacity-100 max-w-sm">The digital gold standard used by world-class music producers.</p>
+            </div>
+        </section>
+
+        {/* 📟 STATUS FOOTER */}
+        <footer className="relative z-20 pt-20 pb-32 md:py-16 px-6 bg-black border-t-8 border-black">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
+                <div className="flex gap-10 items-center">
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">System_Status</p>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-studio-neon animate-pulse" />
+                            <span className="text-xs font-bold text-studio-neon">ALL_MODULES_ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">
+                    <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+                    <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+                    <Link href="/license" className="hover:text-white transition-colors">License</Link>
+                </div>
+            </div>
+        </footer>
+
+    </main>
   );
 }

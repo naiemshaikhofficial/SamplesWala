@@ -32,7 +32,7 @@ export function AnimatedHeroLogo() {
           width={800} 
           height={200} 
           style={{ height: 'auto' }}
-          className="w-full max-w-3xl h-auto object-contain brightness-110"
+          className="w-full max-w-3xl h-auto object-contain brightness-110 mx-auto"
           priority
         />
       </motion.div>
