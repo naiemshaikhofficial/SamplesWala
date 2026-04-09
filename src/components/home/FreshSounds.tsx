@@ -3,11 +3,10 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Plus, Play, Info, Layers, Music2, Activity, Sparkles } from 'lucide-react'
+import { Activity, Sparkles } from 'lucide-react'
 import { SectionReveal } from '@/components/ui/SectionReveal'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
-import { Carousel } from '@/components/ui/Carousel'
 
 interface FreshSoundsProps {
   samples: any[]
@@ -16,17 +15,17 @@ interface FreshSoundsProps {
 
 export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSoundsProps) {
   return (
-    <SectionReveal className="relative py-32 bg-black/40 border-y-8 border-black overflow-hidden block" style={{ position: 'relative' }}>
+    <SectionReveal className="relative py-24 bg-black/40 border-y-4 border-white/5 overflow-hidden block" style={{ position: 'relative' }}>
         {/* 🧬 STUDIO AMBIENCE BACKGROUND */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.02]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#fff_1px,_transparent_1px)] bg-[size:40px_40px]" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-6 md:px-12">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
+        <div className="relative z-10 container mx-auto px-4 md:px-12">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-8">
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/60 px-4 py-1 self-start border-l-4 border-studio-neon">
-                        Signal_Intake :: Fresh Sounds
+                        Signal_Buffer :: Fresh Sounds
                     </div>
                     <div className="flex items-center gap-4 md:gap-6">
                         <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
@@ -36,21 +35,21 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
                     </div>
                 </div>
 
-                <div className="flex items-center gap-12 bg-black/40 p-6 border border-white/5 backdrop-blur-md">
-                     <div className="hidden md:flex flex-col items-end gap-1">
+                <div className="flex items-center gap-8 md:gap-12 bg-black p-4 md:p-6 border border-white/5">
+                    <div className="hidden lg:flex flex-col items-end gap-1">
                         <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">LIVE_SIGNAL_STREAM</span>
                         <div className="flex gap-1">
                             {[...Array(5)].map((_, i) => (
-                                <div key={i} className="w-4 h-1 bg-studio-neon" />
+                                <div key={i} className="w-4 h-1 bg-studio-neon/40" />
                             ))}
                         </div>
                     </div>
                     <Link 
                         href="/browse?type=samples&sort=newest" 
-                        className="group flex items-center gap-4 text-[12px] font-black uppercase tracking-widest hover:text-studio-neon transition-all"
+                        className="group flex items-center gap-4 text-[11px] font-black uppercase tracking-widest hover:text-studio-neon transition-all"
                     >
-                        DISCOVER_ALL_SIGNALS
-                        <div className="w-12 h-1 bg-white/10 group-hover:bg-studio-neon overflow-hidden">
+                        BROWSE_ALL
+                        <div className="w-12 h-1 bg-white/10 group-hover:bg-studio-neon overflow-hidden hidden md:block">
                              <motion.div 
                                 className="w-full h-full bg-studio-neon"
                                 animate={{ x: [-48, 48] }}
@@ -61,32 +60,42 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
                 </div>
             </div>
 
-            {/* 🎚️ SOUND GRID TERMINAL (Horizontal Scroll) */}
-            <Carousel className="w-full">
-                {samples.map((sample, index) => (
-                    <motion.div 
-                        key={sample.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.05 }}
-                        className="group relative bg-[#0a0a0a] border border-white/5 p-6 hover:bg-[#111] transition-all hover:border-studio-neon/30 h-full"
-                    >
-                         {/* Signal Indicator */}
-                        <div className="absolute top-0 right-0 w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Sparkles className="w-3 h-3 text-studio-neon" />
-                        </div>
+            {/* 🎚️ SOUND LIST TERMINAL (Vertical List with Original Animations) */}
+            <div className="flex flex-col gap-2 md:gap-3 w-full max-w-5xl mx-auto">
+                {/* Header for Desktop */}
+                <div className="hidden md:flex items-center px-8 py-2 text-[8px] font-black uppercase text-white/20 tracking-[0.3em] border-b border-white/5 mb-2">
+                    <div className="w-16">Preview</div>
+                    <div className="flex-1">Source_Information</div>
+                    <div className="w-48 text-center">Technical_Data</div>
+                    <div className="w-32 text-right">Action</div>
+                </div>
 
-                        <div className="flex items-center gap-6">
-                            <div className="relative shrink-0 overflow-hidden bg-black border border-white/10">
+                {samples.slice(0, 10).map((sample, index) => {
+                    const isUnlocked = unlockedSampleIds.includes(sample.id)
+                    return (
+                        <motion.div 
+                            key={sample.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.03 }}
+                            className="group relative bg-[#0d0d0d] border border-white/5 hover:border-studio-neon/40 transition-all flex items-center px-3 py-3 md:px-8 md:py-5 gap-4 md:gap-8 overflow-hidden"
+                        >
+                            {/* Signal Indicator (Hover Effect) */}
+                            <div className="absolute top-0 right-0 w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                <Sparkles className="w-3 h-3 text-studio-neon animate-pulse" />
+                            </div>
+
+                            {/* Play Action (Restored Slide-up Animation) */}
+                            <div className="relative shrink-0 w-12 h-12 md:w-16 md:h-16 flex items-center justify-center bg-black border border-white/10 group-hover:border-studio-neon/50 overflow-hidden transition-colors">
                                 <Image
                                     src={sample.sample_packs?.cover_url || '/placeholder.png'}
                                     alt={sample.name}
-                                    width={64}
-                                    height={64}
-                                    className="object-cover group-hover:scale-110 transition-transform duration-500 opacity-60 group-hover:opacity-100"
+                                    fill
+                                    className="object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500"
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center translate-y-12 group-hover:translate-y-0 transition-transform duration-300">
+                                {/* THE BUTTON SLIDE ANIMATION */}
+                                <div className="absolute inset-0 flex items-center justify-center translate-y-12 group-hover:translate-y-0 transition-transform duration-300 z-10 bg-black/40 backdrop-blur-sm">
                                      <PlayButton 
                                         id={sample.id}
                                         url={sample.audio_url}
@@ -95,57 +104,64 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
                                         coverUrl={sample.sample_packs?.cover_url}
                                         bpm={sample.bpm}
                                         audioKey={sample.key}
-                                        isUnlocked={unlockedSampleIds.includes(sample.id)}
+                                        isUnlocked={isUnlocked}
                                         creditCost={sample.credit_cost}
                                      />
                                 </div>
                             </div>
 
+                            {/* Info */}
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-bold tracking-tight truncate uppercase text-sm mb-1 group-hover:text-studio-neon transition-colors">
-                                    {sample.name}
-                                </h3>
-                                {(sample.bpm || sample.key) ? (
-                                    <div className="flex items-center gap-3 text-[10px] font-black uppercase text-white/40 tracking-widest italic">
-                                        {sample.bpm && <span>{sample.bpm} BPM</span>}
-                                        {sample.bpm && sample.key && <div className="w-1 h-1 rounded-full bg-white/20" />}
-                                        {sample.key && <span>{sample.key}</span>}
-                                    </div>
-                                ) : (
-                                    <div className="text-[8px] font-black uppercase text-white/10 tracking-[0.2em]">Metadata Pending</div>
-                                )}
-                                <p className="text-[8px] text-white/20 truncate mt-2 font-mono">
-                                    FROM: {sample.sample_packs?.name || 'STUDIO_ARCHIVE'}
-                                </p>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h3 className="text-white font-black tracking-tight truncate uppercase text-xs md:text-base group-hover:text-studio-neon transition-colors leading-none italic">
+                                        {sample.name}
+                                    </h3>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <p className="text-[8px] md:text-[10px] text-white/30 truncate font-mono uppercase tracking-widest">
+                                        SRC: {sample.sample_packs?.name || 'STUDIO_ARCHIVE'}
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="flex flex-col items-end gap-3">
-                                 <DownloadButton 
+                            {/* Technical Meta */}
+                            <div className="hidden sm:flex items-center justify-center gap-6 w-48 text-center border-x border-white/5">
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[6px] font-black text-white/20 uppercase tracking-widest">BPM</span>
+                                    <span className="text-[10px] font-black text-studio-neon italic">{sample.bpm || '--'}</span>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[6px] font-black text-white/20 uppercase tracking-widest">KEY</span>
+                                    <span className="text-[10px] font-black text-studio-neon italic">{sample.key || '--'}</span>
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[6px] font-black text-white/20 uppercase tracking-widest">COST</span>
+                                    <span className="text-[10px] font-black text-white italic">{sample.credit_cost || 1} CR</span>
+                                </div>
+                            </div>
+
+                            {/* Download Action */}
+                            <div className="shrink-0 flex items-center gap-2 md:gap-4 w-auto md:w-32 justify-end">
+                                <DownloadButton 
                                     sampleId={sample.id}
-                                    isUnlockedInitial={unlockedSampleIds.includes(sample.id)}
+                                    isUnlockedInitial={isUnlocked}
                                     creditCost={sample.credit_cost || 1}
-                                 />
-                                 <div className="text-[10px] font-black text-studio-neon opacity-40">
-                                    {sample.credit_cost || 1}CR
-                                 </div>
+                                />
                             </div>
-                        </div>
-
-                        {/* Aesthetic Footer Strip */}
-                        <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-studio-neon group-hover:w-full transition-all duration-700" />
-                    </motion.div>
-                ))}
-            </Carousel>
+                            
+                            {/* Aesthetic Footer Strip (DAW Style) */}
+                            <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-studio-neon group-hover:w-full transition-all duration-700" />
+                        </motion.div>
+                    )
+                })}
+            </div>
             
-            {/* 🧬 STATIONARY STATUS BAR */}
-            <div className="mt-12 flex items-center justify-between border-t border-white/5 pt-8">
+            {/* 🧬 STATUS FOOTER */}
+            <div className="mt-12 flex items-center justify-between border-t border-white/5 pt-8 max-w-5xl mx-auto">
                  <div className="flex items-center gap-8">
                     <div className="flex items-center gap-2">
                          <div className="w-2 h-2 rounded-full bg-studio-neon animate-pulse" />
-                         <span className="text-[10px] font-black uppercase tracking-widest text-white/40">MASTER_OUT</span>
-                    </div>
-                    <div className="hidden md:block text-[10px] font-black uppercase text-white/20 tracking-tighter">
-                        ENCODING: 24-BIT / 96KHZ | STUDIO_GRADE_READY
+                         <span className="text-[9px] font-black uppercase tracking-widest text-white/40">OUTPUT_OK</span>
                     </div>
                  </div>
                  <Activity className="w-4 h-4 text-white/10" />
