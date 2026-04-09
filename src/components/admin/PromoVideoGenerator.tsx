@@ -265,8 +265,9 @@ export default function PromoVideoGenerator() {
             setIsLogoLoaded(true)
         }
         img.onerror = () => {
-            console.error('❌ PROMO_GEN :: Logo signal FAIL. Attempting internal fallback...')
-            // Try to use a placeholder if the main one fails
+            console.error('❌ PROMO_GEN :: Logo signal FAIL. Background resource unreachable.', {
+                attemptedPath: img.src
+            })
             setIsLogoLoaded(false)
         }
 

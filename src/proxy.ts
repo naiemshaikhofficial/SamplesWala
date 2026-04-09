@@ -77,6 +77,6 @@ export default middleware;
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|wav|m4a|ogg|flac)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|wav|m4a|ogg|flac|PNG|JPG|JPEG|MP3|WAV|M4A)$).*)',
   ],
 }
