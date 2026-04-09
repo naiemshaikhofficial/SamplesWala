@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation'
 
 export function Header() {
   const pathname = usePathname()
-  const isAdmin = pathname?.startsWith('/admin')
+  const isAdmin = pathname?.includes('/admin')
   const { isOpen, toggle } = useSidebar()
   
   if (isAdmin) return null;
@@ -127,6 +127,14 @@ export function Header() {
 
             {user ? (
                 <div className="flex items-center gap-2 md:gap-4">
+                    {/* 🛡️ ADMIN_QUICK_ACCESS */}
+                    {(user.email?.toLowerCase().includes('naiem') || 
+                      user.email?.toLowerCase().includes('sampleswala') || 
+                      user.email?.toLowerCase() === 'naiemshaikh@gmail.com') && (
+                        <Link href="/admin" className="hidden lg:flex items-center justify-center h-10 px-6 bg-studio-neon text-black text-[9px] font-black uppercase tracking-widest hover:brightness-110 transition-all border-r-4 border-studio-yellow">
+                            Dashboard
+                        </Link>
+                    )}
                     <CreditCounter />
                     <Link href="/profile" className="h-8 w-8 md:h-11 md:w-11 flex items-center justify-center studio-panel border border-white/10 hover:border-studio-neon transition-all bg-[#222] pointer-events-auto cursor-pointer">
                         <User className="h-4 w-4 text-white/40" />

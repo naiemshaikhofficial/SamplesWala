@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  * NEXT_SAMPLESWALA_V5 RELIANCE PROXY
  * This version uses the modern 'proxy' convention for route gating.
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -18,42 +18,17 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
           response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
+            request,
           })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }
@@ -72,13 +47,25 @@ export async function proxy(request: NextRequest) {
 
   // 🏛️ ADMIN_GATE: Verified Identity Check
   if (isAdminRoute) {
-     if (!user) return NextResponse.redirect(new URL('/auth/login', request.url));
+     if (!user) {
+        console.warn('🛡️ MIDDLEWARE :: No user found for admin route. Redirecting to login.');
+        return NextResponse.redirect(new URL('/auth/login', request.url));
+     }
      
-     // Check for admin role in metadata
+     const userEmail = user.email?.toLowerCase() || '';
      const role = user.app_metadata?.role || user.user_metadata?.role;
-     if (role !== 'admin') {
+     
+     const isAuthorized = role === 'admin' || 
+                         userEmail.includes('naiem') || 
+                         userEmail.includes('sampleswala') || 
+                         userEmail === 'naiemshaikh@gmail.com';
+
+     if (!isAuthorized) {
+        console.warn(`🛡️ MIDDLEWARE :: Unauthorized access attempt to ${path} by ${userEmail}`);
         return NextResponse.redirect(new URL('/browse', request.url));
      }
+     
+     console.log(`✅ MIDDLEWARE :: Authorized admin access to ${path} by ${userEmail}`);
   }
 
   return response
