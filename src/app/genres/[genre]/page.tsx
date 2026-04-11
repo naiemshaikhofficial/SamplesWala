@@ -190,7 +190,7 @@ export default async function GenrePage({
                   <div className="mt-20">
                       <Pagination 
                           currentPage={pageVal} 
-                          totalCount={count} 
+                          totalCount={count ?? 0} 
                           pageSize={pageSize} 
                           baseUrl={`/genres/${genre}`}
                           searchParams={sParams}

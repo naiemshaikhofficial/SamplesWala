@@ -380,7 +380,7 @@ export default async function PackPage({
             <div className="mt-20">
                 <Pagination 
                     currentPage={pageVal} 
-                    totalCount={count} 
+                    totalCount={count ?? 0} 
                     pageSize={pageSize} 
                     baseUrl={`/packs/${slug}`}
                     searchParams={sParams}

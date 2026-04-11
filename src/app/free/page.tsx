@@ -30,11 +30,12 @@ export default async function FreeSamplesPage({
   const adminClient = getAdminClient()
   
   // Fetch samples with 0 credit cost
-  const { data: freeSamples } = await adminClient
+  const { data: freeSamples, count } = await adminClient
     .from('samples')
-    .select('*, sample_packs(name, cover_url)')
+    .select('*, sample_packs(name, cover_url)', { count: 'exact' })
     .eq('credit_cost', 0)
-    .limit(limitVal)
+    .order('created_at', { ascending: false })
+    .range(from, to)
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white">
@@ -80,19 +81,15 @@ export default async function FreeSamplesPage({
                       coverUrl={null} 
                   />
 
-                  {freeSamples.length >= limitVal && (
-                      <div className="pt-20 pb-12 flex justify-center">
-                          <Link 
-                              href={`/free?limit=${limitVal + 20}`}
-                              className="group relative flex flex-col items-center gap-6"
-                          >
-                              <div className="flex items-center gap-4 bg-white/5 px-8 py-4 border border-white/10 hover:border-studio-neon transition-all group-hover:bg-studio-neon group-hover:text-black">
-                                  <span className="text-[11px] font-black uppercase tracking-[0.4em] italic leading-none">Load_20_More_Frequencies</span>
-                                  <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform pl-2" />
-                              </div>
-                          </Link>
-                      </div>
-                  )}
+                  <div className="mt-20">
+                      <Pagination 
+                          currentPage={pageVal} 
+                          totalCount={count ?? 0} 
+                          pageSize={pageSize} 
+                          baseUrl="/free"
+                          searchParams={sParams}
+                      />
+                  </div>
               </>
           ) : (
               <div className="py-40 border-4 border-dashed border-white/5 text-center bg-black/20">
