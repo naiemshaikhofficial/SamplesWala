@@ -162,9 +162,45 @@ export async function purchaseSamplePack(packId: string) {
 }
 
 /**
+ * 🦾 Razorpay Order Action (Software Checkout)
+ */
+export async function purchaseSoftware(softwareId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+  
+    if (!user) redirect('/auth/login?redirect=/software')
+    if (!razorpay) throw new Error('Razorpay is not configured on the server')
+  
+    // 1. Fetch Software Details
+    const { data: soft, error: softError } = await supabase.from('software_products').select('*').eq('id', softwareId).single()
+    if (softError || !soft) throw new Error('Invalid software product')
+  
+    // 2. CREATE RAZORPAY ORDER
+    try {
+      const order = await razorpay.orders.create({
+        amount: soft.price_inr * 100,
+        currency: 'INR',
+        receipt: `soft_${Date.now()}`,
+        notes: { user_id: user.id, software_id: softwareId, type: 'software', software_name: soft.name }
+      })
+  
+      return { 
+          success: true, 
+          orderId: order.id, 
+          amount: order.amount, 
+          key: process.env.RAZORPAY_KEY_ID,
+          user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' }
+      }
+    } catch (err: any) {
+      console.error("Razorpay Software Error:", err)
+      throw new Error('Failed to start checkout. Check your API keys.')
+    }
+}
+
+/**
  * ✅ Razorpay Payment Verification (High-Fidelity Handshake)
  */
-export async function verifyPayment(paymentRes: any, targetId: string, itemType: 'subscription' | 'pack' | 'sample_pack', itemId: string) {
+export async function verifyPayment(paymentRes: any, targetId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software', itemId: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -267,6 +303,32 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
             order_id: orderId,
             payment_id: paymentRes.razorpay_payment_id,
             amount_inr: pack.price_inr || 0,
+            credits_awarded: 0,
+            status: 'paid',
+            raw_response: paymentRes
+        })
+    } else if (itemType === 'software') {
+        const { data: soft } = await adminSupabase.from('software_products').select('*').eq('id', itemId).single()
+        if (!soft) throw new Error('Software product not found')
+
+        // 1. Grant Production License
+        const { error: licenseError } = await adminSupabase.from('software_orders').upsert({
+            user_id: user.id,
+            user_email: user.email,
+            software_name: soft.name,
+            license_key: `VSX-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
+            status: 'complete',
+            amount_paid: soft.price_inr
+        }, { onConflict: 'user_email,software_name' })
+
+        if (licenseError) throw licenseError
+
+        // 2. Double-log to Ledger
+        await adminSupabase.from('credit_orders').insert({
+            user_id: user.id,
+            order_id: orderId,
+            payment_id: paymentRes.razorpay_payment_id,
+            amount_inr: soft.price_inr,
             credits_awarded: 0,
             status: 'paid',
             raw_response: paymentRes

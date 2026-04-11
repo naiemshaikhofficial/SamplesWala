@@ -165,6 +165,7 @@ export function Sidebar() {
                 {[
                     { id: 'all', label: 'All Sounds', icon: <Layout className="w-3 h-3" />, href: '/browse' },
                     { id: 'packs', label: 'Sound Packs', icon: <Disc className="w-3 h-3" />, href: '/browse?mode=packs' },
+                    { id: 'software', label: 'Software', icon: <CpuIcon className="w-3 h-3" />, href: '/software' },
                     { id: 'trending', label: 'Trending', icon: <Sparkles className="w-3 h-3" />, href: '/browse?filter=trending' },
                     { id: 'bundles', label: 'Bundles', icon: <Layers className="w-3 h-3" />, href: '/browse?filter=bundles' },
                 ].map((item) => (

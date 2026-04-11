@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSubscription, purchaseCreditPack, purchaseSamplePack, verifyPayment } from '@/app/pricing/actions'
+import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/pricing/actions'
 import { Loader2, Sparkles, CreditCard } from 'lucide-react'
 import Script from 'next/script'
 import { useNotify } from '@/components/ui/NotificationProvider'
@@ -12,7 +12,7 @@ type SubscribeButtonProps = {
   planId: string
   planName: string
   isFeatured?: boolean
-  mode?: 'subscription' | 'pack' | 'sample_pack'
+  mode?: 'subscription' | 'pack' | 'sample_pack' | 'software'
   disabled?: boolean
 }
 
@@ -42,7 +42,8 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       let action;
       if (mode === 'subscription') action = createSubscription;
       else if (mode === 'pack') action = purchaseCreditPack;
-      else action = purchaseSamplePack;
+      else if (mode === 'sample_pack') action = purchaseSamplePack;
+      else action = purchaseSoftware;
 
       const orderData: any = await action(planId)
       
