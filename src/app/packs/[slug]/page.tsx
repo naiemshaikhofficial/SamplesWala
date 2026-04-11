@@ -13,6 +13,39 @@ import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
 import { getRelatedPacks } from '@/app/browse/actions'
+import { Metadata } from 'next'
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const adminClient = getAdminClient()
+  const { slug } = await params
+  
+  const { data: pack } = await adminClient
+    .from('sample_packs')
+    .select('name, description, cover_url')
+    .eq('slug', slug)
+    .single()
+
+  if (!pack) return { title: 'Pack Not Found' }
+
+  const title = `${pack.name} Sample Pack | Loops & One-Shots`
+  const description = pack.description?.slice(0, 160) || `Download ${pack.name} royalty-free samples and loops at SamplesWala.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: pack.cover_url ? [{ url: pack.cover_url }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: pack.cover_url ? [pack.cover_url] : [],
+    },
+  }
+}
 
 export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
   const supabase = await createClient()
@@ -90,8 +123,32 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                             pack.full_pack_download_url?.toLowerCase().includes('drive') ||
                             pack.full_pack_download_url?.toLowerCase().includes('dropbox');
 
+  // 📝 STRUCTURED_DATA (JSON-LD)
+  const productSchema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": pack.name,
+    "image": pack.cover_url,
+    "description": pack.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "SamplesWala"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://sampleswala.com/packs/${slug}`,
+      "priceCurrency": "INR",
+      "price": pack.price_inr,
+      "availability": "https://schema.org/InStock"
+    }
+  };
+
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-8 md:mb-12 group transition-all">
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
         RELOAD_BROWSER

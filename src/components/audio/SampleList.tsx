@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { Layers, Play, Pause, Music, Zap, Download } from 'lucide-react'
 import { PlayButton } from './PlayButton'
 import { DownloadButton } from './DownloadButton'
@@ -113,16 +114,50 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                                             {sample.name}
                                         </span>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            {(sample.bpm || sample.key) && (
-                                                <span className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter">
-                                                    {sample.bpm && `${sample.bpm} BPM`} {sample.key && `// ${sample.key}`}
-                                                </span>
+                                            {sample.bpm && (
+                                                <Link 
+                                                    href={`/browse?bpm_min=${sample.bpm}&bpm_max=${sample.bpm}`}
+                                                    className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter hover:text-studio-neon transition-colors"
+                                                >
+                                                    {sample.bpm} BPM
+                                                </Link>
                                             )}
+                                            {sample.key && (
+                                                <Link 
+                                                    href={`/browse?key=${encodeURIComponent(sample.key)}`}
+                                                    className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter hover:text-studio-neon transition-colors"
+                                                >
+                                                    {sample.bpm ? `// ${sample.key}` : sample.key}
+                                                </Link>
+                                            )}
+                                            {!sample.bpm && !sample.key && (
+                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter italic">One-Shot</span>
+                                            )}
+
                                             <span className="hidden md:inline-block text-[8px] font-bold uppercase text-white/10 tracking-[0.2em] italic">
                                                 ID: {sample.id.slice(0, 4)}
                                             </span>
                                         </div>
                                     </div>
+
+                                    {/* 📝 AUDIO_OBJECT_SCHEMA (JSON-LD) for SEO */}
+                                    <script
+                                        type="application/ld+json"
+                                        dangerouslySetInnerHTML={{
+                                            __html: JSON.stringify({
+                                                "@context": "https://schema.org/",
+                                                "@type": "AudioObject",
+                                                "name": `${sample.name} - ${sample.bpm ? sample.bpm + ' BPM' : ''} ${sample.key ? sample.key : ''}`,
+                                                "contentUrl": sample.audio_url,
+                                                "description": `Download ${sample.name} royalty-free sample from ${packName} pack.`,
+                                                "encodingFormat": "audio/wav",
+                                                "about": {
+                                                    "@type": "Thing",
+                                                    "name": packName
+                                                }
+                                            })
+                                        }}
+                                    />
                                 </div>
                                 
                                 {/* CENTER: WAVEFORM (DESKTOP) */}
@@ -133,11 +168,15 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                                 {/* RIGHT: ACTIONS */}
                                 <div className="flex items-center gap-4 shrink-0">
                                     <div className="hidden md:flex flex-col items-center gap-1 opacity-20">
-                                        <span className="text-[10px] font-black">{sample.bpm || '-'}</span>
+                                        <Link href={`/browse?bpm_min=${sample.bpm}&bpm_max=${sample.bpm}`} className="hover:text-studio-neon transition-colors">
+                                            <span className="text-[10px] font-black">{sample.bpm || '-'}</span>
+                                        </Link>
                                         <span className="text-[6px] font-black tracking-widest">BPM</span>
                                     </div>
                                     <div className="hidden md:flex flex-col items-center gap-1 text-studio-neon/40">
-                                        <span className="text-[10px] font-black">{sample.key || '-'}</span>
+                                        <Link href={`/browse?key=${encodeURIComponent(sample.key || '')}`} className="hover:text-studio-neon transition-colors">
+                                            <span className="text-[10px] font-black">{sample.key || '-'}</span>
+                                        </Link>
                                         <span className="text-[6px] font-black tracking-widest uppercase">Key</span>
                                     </div>
                                     <div className="scale-90 md:scale-100 origin-right">

@@ -13,8 +13,8 @@ import { getTopPopularSounds } from "@/lib/supabase/admin";
 import { Suspense } from 'react'
 
 export const metadata = {
-  title: 'Samples Wala | The Professional DAW Marketplace',
-  description: 'Premium royalty-free samples, loops, and presets for music producers. High-fidelity audio curated for modern production.',
+  title: 'Samples Wala | Download High-Quality Royalty-Free Samples & Loops',
+  description: 'Pro-grade sample packs, loops, and individual sounds for music producers. Industry-standard royalty-free audio for Trap, EDM, Hip-Hop, and more.',
 }
 
 export default async function Home() {

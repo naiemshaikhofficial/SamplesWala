@@ -18,6 +18,25 @@ import { Waveform } from '@/components/audio/Waveform'
 import { SidebarFilters } from '@/components/browse/SidebarFilters'
 import { SampleList } from '@/components/audio/SampleList'
 import { Cable } from 'lucide-react'
+import { Metadata } from 'next'
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<any> }): Promise<Metadata> {
+  const params = await searchParams
+  const q = params.q
+  const category = params.category
+  
+  let title = 'Sounds Library | SAMPLES WALA'
+  let description = 'Browse our massive library of premium royalty-free samples and loops.'
+
+  if (q) {
+    title = `Search results for "${q}" | SAMPLES WALA`
+  } else if (category) {
+    title = `Unlimited ${category.toUpperCase()} Samples & Loops | SAMPLES WALA`
+    description = `Download high-quality ${category} samples, drum kits, and loops for your music production.`
+  }
+
+  return { title, description }
+}
 
 export default async function BrowsePage({
   searchParams,
