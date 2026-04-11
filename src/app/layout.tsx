@@ -23,6 +23,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://sampleswala.com'),
   title: {
     default: 'SAMPLES WALA | Premium Music Production Samples & Loops',
     template: '%s | SAMPLES WALA'
@@ -48,6 +49,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  alternates: {
+    canonical: 'https://sampleswala.com',
+  },
 }
 
 export default function RootLayout({
@@ -55,8 +59,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // 📝 SITE_SEARCH_SCHEMA (JSON-LD)
+  const siteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://sampleswala.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://sampleswala.com/browse?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
         <ClientProviders>
           <MasterLight />

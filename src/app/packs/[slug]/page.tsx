@@ -14,6 +14,7 @@ import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
 import { getRelatedPacks } from '@/app/browse/actions'
 import { Metadata } from 'next'
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const adminClient = getAdminClient()
@@ -149,6 +150,15 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
+      
+      <Breadcrumbs 
+        items={[
+          { label: 'BROWSE', href: '/browse' },
+          { label: pack.categories?.name || 'PACKS', href: `/browse?category=${pack.categories?.id}` },
+          { label: pack.name, href: `/packs/${slug}`, active: true }
+        ]} 
+      />
+
       <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-8 md:mb-12 group transition-all">
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
         RELOAD_BROWSER
