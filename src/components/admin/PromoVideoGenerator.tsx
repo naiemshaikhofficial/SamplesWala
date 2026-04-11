@@ -551,25 +551,25 @@ export default function PromoVideoGenerator() {
                             </div>
                         </div>
 
-                             {isRecording ? (
-                                <button 
-                                    onClick={() => mediaRecorderRef.current?.stop()}
-                                    className="px-8 py-5 bg-spider-red text-white font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all flex-1 md:flex-none animate-pulse"
-                                >
-                                    Stop Rendering
-                                </button>
-                             ) : (
-                                <button 
-                                    onClick={startRecording}
-                                    disabled={!selectedSample || isRecording}
-                                    className="flex-1 md:flex-none px-12 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all shadow-xl disabled:opacity-20"
-                                >
-                                    <Video className="h-4 w-4" /> 1080P FULL HD EXPORT
-                                </button>
-                             )}
-                        </div>
+                        {isRecording ? (
+                            <button 
+                                onClick={() => mediaRecorderRef.current?.stop()}
+                                className="px-8 py-5 bg-spider-red text-white font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all flex-1 md:flex-none animate-pulse"
+                            >
+                                Stop Rendering
+                            </button>
+                        ) : (
+                            <button 
+                                onClick={startRecording}
+                                disabled={!selectedSample || isRecording}
+                                className="flex-1 md:flex-none px-12 py-5 bg-studio-neon text-black font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 hover:invert transition-all shadow-xl disabled:opacity-20"
+                            >
+                                <Video className="h-4 w-4" /> 1080P FULL HD EXPORT
+                            </button>
+                        )}
                     </div>
                 </div>
+            </div>
 
             {/* 🧬 ASSETS (Hidden) */}
             <div className="hidden">
@@ -589,7 +589,6 @@ export default function PromoVideoGenerator() {
                         }}
                      />
                  )}
-            </div>
             </div>
         </div>
     )
