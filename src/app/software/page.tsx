@@ -126,9 +126,11 @@ export default async function SoftwareHub() {
                             <div className="p-8 md:p-16 flex flex-col justify-between relative bg-studio-charcoal">
                                 <div>
                                     <div className="flex justify-between items-start mb-8">
-                                        <h2 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white leading-none">
-                                            {soft.name}
-                                        </h2>
+                                        <Link href={`/software/${soft.slug}`} className="hover:text-studio-neon transition-colors">
+                                            <h2 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter text-white leading-none">
+                                                {soft.name}
+                                            </h2>
+                                        </Link>
                                         <div className="h-12 w-12 flex items-center justify-center bg-black border border-white/10 text-studio-neon group-hover:bg-studio-neon group-hover:text-black transition-all">
                                             <Sparkles size={20} />
                                         </div>
@@ -157,32 +159,41 @@ export default async function SoftwareHub() {
                                 </div>
 
                                 <div className="flex flex-col md:flex-row items-center gap-8 border-t-2 border-black pt-12">
-                                    <div className="flex flex-col">
-                                        <span className="text-5xl font-black italic tracking-tighter text-white">₹{soft.price_inr}</span>
-                                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">ONE_TIME_LICENSE</span>
-                                    </div>
+                                    {!isOwned && (
+                                        <div className="flex flex-col">
+                                            <span className="text-5xl font-black italic tracking-tighter text-white">₹{soft.price_inr}</span>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">ONE_TIME_LICENSE</span>
+                                        </div>
+                                    )}
                                     
                                     <div className="w-full md:flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {isOwned ? (
                                             <>
-                                                <a 
-                                                    href={soft.download_url_win || '#'} 
-                                                    className="h-16 flex items-center justify-center bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-studio-neon transition-all gap-3 shadow-xl"
-                                                >
-                                                    <Download size={14} /> Win (.exe)
-                                                </a>
-                                                <a 
-                                                    href={soft.download_url_mac || '#'} 
-                                                    className="h-16 flex items-center justify-center bg-black border-2 border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:border-studio-neon transition-all gap-3 shadow-xl"
-                                                >
-                                                    <Download size={14} /> Mac (.dmg)
-                                                </a>
+                                                {soft.download_url_win && (
+                                                    <a 
+                                                        href={soft.download_url_win} 
+                                                        className="h-16 flex items-center justify-center bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-studio-neon transition-all gap-3 shadow-xl"
+                                                    >
+                                                        <svg viewBox="0 0 88 88" className="w-4 h-4 fill-current"><path d="M0 12.402l35.687-4.86.016 34.423-35.67.203zm35.67 33.529l.028 34.453L0 75.44v-31.51zm4.326-39.04L87.314 0v41.26l-47.318.376zm47.318 39.897L87.31 88l-47.315-6.52v-34.71z"/></svg>
+                                                        Windows
+                                                    </a>
+                                                )}
+                                                {soft.download_url_mac && (
+                                                    <a 
+                                                        href={soft.download_url_mac} 
+                                                        className="h-16 flex items-center justify-center bg-black border-2 border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:border-studio-neon transition-all gap-3 shadow-xl"
+                                                    >
+                                                        <svg viewBox="0 0 384 512" className="w-4 h-4 fill-current"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+                                                        Apple
+                                                    </a>
+                                                )}
                                             </>
+
                                         ) : (
                                             <div className="sm:col-span-2">
                                                 <SubscribeButton 
                                                     planId={soft.id} 
-                                                    planName={`INITIALIZE_${soft.name.toUpperCase()}`} 
+                                                    planName={`PURCHASE ${soft.name.toUpperCase()}`} 
                                                     mode="software"
                                                     isFeatured={true}
                                                 />

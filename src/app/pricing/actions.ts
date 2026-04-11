@@ -85,7 +85,9 @@ export async function createSubscription(planId: string) {
     }
   } catch (err: any) {
     console.error("[SUBSCRIPTION_SIGNAL_ERROR]", err)
-    throw new Error(`Failed to initiate ${plan.razorpay_plan_id ? 'mandate' : 'order'}: ${err.message}`)
+    // 🔍 ENHANCED_DIAGNOSTICS: Razorpay sometimes uses 'description'
+    const errorMsg = err.message || err.description || "Check_Razorpay_Plan_ID";
+    throw new Error(`Failed to initiate ${plan.razorpay_plan_id ? 'mandate' : 'order'}: ${errorMsg}`)
   }
 }
 
