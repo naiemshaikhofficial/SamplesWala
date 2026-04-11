@@ -7,24 +7,22 @@ import { unlockSample } from '@/app/packs/[slug]/actions'
 import { getSecureDownloadUrl } from '@/app/packs/actions'
 
 import { useNotify } from '@/components/ui/NotificationProvider'
+import { useVault } from '@/components/VaultProvider'
+import { useSWRConfig } from 'swr'
 
 type DownloadButtonProps = {
   sampleId: string
-  isUnlockedInitial: boolean
   creditCost?: number
 }
 
-export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: DownloadButtonProps) {
-    const [isUnlocked, setIsUnlocked] = useState(isUnlockedInitial)
+export function DownloadButton({ sampleId, creditCost = 1 }: DownloadButtonProps) {
+    const { unlockedIds } = useVault()
+    const isUnlocked = unlockedIds.has(sampleId)
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
+    const { mutate } = useSWRConfig()
     const { isPlaying, updateMetadataUnlocked, user } = useAudio()
     const { showToast, showConfirm, showAuthGate } = useNotify()
-
-    // 🧬 SYNC STATE WITH PARENT RE-FETCH
-    React.useEffect(() => {
-        setIsUnlocked(isUnlockedInitial)
-    }, [isUnlockedInitial])
 
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -47,7 +45,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
                 // 💳 Flow 1: Unlock using credits
                 const result = await unlockSample(sampleId)
                 if (result.success) {
-                    setIsUnlocked(true)
+                    mutate('user_vault')
                     updateMetadataUnlocked(sampleId)
                     setNeedsConfirm(false)
                     showToast('Sound Unlocked!', 'success')
@@ -127,7 +125,7 @@ export function DownloadButton({ sampleId, isUnlockedInitial, creditCost = 1 }: 
             )}
 
             {/* Unlock Success Sparkle */}
-            {isUnlocked && !isUnlockedInitial && (
+            {isUnlocked && (
                  <Sparkles className="absolute -top-2 -right-2 h-4 w-4 text-yellow-500 animate-ping" />
             )}
         </button>

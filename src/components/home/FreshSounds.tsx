@@ -9,13 +9,14 @@ import { SectionReveal } from '@/components/ui/SectionReveal'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
 import { useAudio } from '@/components/audio/AudioProvider'
+import { useVault } from '@/components/VaultProvider'
 
 interface FreshSoundsProps {
   samples: any[]
-  unlockedSampleIds: string[]
 }
 
-export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSoundsProps) {
+export function FreshSounds({ samples = [] }: FreshSoundsProps) {
+  const { unlockedIds, isLoading } = useVault()
   const [activeMobileId, setActiveMobileId] = useState<string | null>(null)
   const { play, activeId, isPlaying } = useAudio()
 
@@ -27,7 +28,7 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
   }, [isPlaying, activeId])
 
   const handleCardClick = (sample: any) => {
-    const isUnlocked = unlockedSampleIds.includes(sample.id)
+    const isUnlocked = unlockedIds.has(sample.id)
     const metadata = {
         id: sample.id,
         url: sample.audio_url,
@@ -87,8 +88,8 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
 
             {/* 🎚️ SOUND LIST TERMINAL */}
             <div className="flex flex-col gap-2 md:gap-3 w-full max-w-5xl mx-auto">
-                {samples.slice(0, 10).map((sample, index) => {
-                    const isUnlocked = unlockedSampleIds.includes(sample.id)
+                {samples.slice(0, 20).map((sample, index) => {
+                    const isUnlocked = unlockedIds.has(sample.id)
                     const isPlayingThis = activeId === sample.id && isPlaying
                     // Master slide-up logic: triggers if specifically playing OR if touched on mobile
                     const shouldSlideUp = isPlayingThis || (activeMobileId === sample.id && activeId === sample.id)
@@ -155,7 +156,6 @@ export function FreshSounds({ samples = [], unlockedSampleIds = [] }: FreshSound
                             <div className="shrink-0 flex items-center gap-4 justify-end">
                                 <DownloadButton 
                                     sampleId={sample.id}
-                                    isUnlockedInitial={isUnlocked}
                                     creditCost={sample.credit_cost || 1}
                                 />
                             </div>

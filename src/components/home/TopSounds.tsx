@@ -10,23 +10,19 @@ import { SectionReveal } from '@/components/ui/SectionReveal'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
 import { useAudio } from '@/components/audio/AudioProvider'
+import { useVault } from '@/components/VaultProvider'
 
 export function TopSounds({ 
-  samples: initialSamples = [], 
-  unlockedSampleIds: initialUnlockedIds = [] 
+  samples: initialSamples = []
 }: { 
-  samples?: any[], 
-  unlockedSampleIds?: string[] 
+  samples?: any[]
 }) {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
-  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set(initialUnlockedIds))
+  const { unlockedIds, isLoading } = useVault()
   const [activeMobileId, setActiveMobileId] = useState<string | null>(null)
   const { play, activeId, isPlaying } = useAudio()
   
-  useEffect(() => {
-    setUnlockedIds(new Set(initialUnlockedIds))
-  }, [initialUnlockedIds])
 
   // 🧬 SIGNAL SYNC :: Reset mobile slide-up state when audio ends globally
   useEffect(() => {
@@ -85,7 +81,7 @@ export function TopSounds({
             </div>
 
             <div className="flex flex-col gap-2 md:gap-3 w-full max-w-5xl mx-auto">
-                {filteredSounds.slice(0, 15).map((sound, index) => {
+                {filteredSounds.slice(0, 20).map((sound, index) => {
                     const isUnlocked = unlockedIds.has(sound.id)
                     const cost = sound.credit_cost || 1
                     const isPlayingThis = activeId === sound.id && isPlaying
@@ -147,7 +143,6 @@ export function TopSounds({
                             <div className="shrink-0 flex items-center gap-4 justify-end">
                                 <DownloadButton 
                                     sampleId={sound.id} 
-                                    isUnlockedInitial={isUnlocked} 
                                     creditCost={cost}
                                 />
                             </div>

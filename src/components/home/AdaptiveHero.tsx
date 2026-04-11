@@ -9,9 +9,11 @@ import { useState, useEffect } from 'react'
 
 export function AdaptiveHero() {
   const [isMounted, setIsMounted] = useState(false)
+  const [meterCount, setMeterCount] = useState(32)
 
   useEffect(() => {
     setIsMounted(true)
+    setMeterCount(window.innerWidth < 768 ? 12 : 32)
   }, [])
 
   return (
@@ -99,11 +101,11 @@ export function AdaptiveHero() {
         </div>
 
         {/* Level Decor - Responsive count */}
-        <div className="absolute bottom-6 left-0 right-0 h-10 flex items-end gap-[2px] md:gap-1 px-4 opacity-30 pointer-events-none justify-center">
-             {isMounted && [...Array(window.innerWidth < 768 ? 12 : 32)].map((_, i) => (
-                 <div key={i} className="flex-1 max-w-[10px] bg-studio-neon animate-meter" style={{ height: `${20 + Math.random() * 60}%`, animationDelay: `${i * 0.1}s` }} />
-             ))}
-        </div>
+         <div className="absolute bottom-6 left-0 right-0 h-10 flex items-end gap-[2px] md:gap-1 px-4 opacity-30 pointer-events-none justify-center">
+              {isMounted && [...Array(meterCount)].map((_, i) => (
+                  <div key={i} className="flex-1 max-w-[10px] bg-studio-neon animate-meter" style={{ height: `${20 + Math.random() * 60}%`, animationDelay: `${i * 0.1}s` }} />
+              ))}
+         </div>
     </section>
   )
 }

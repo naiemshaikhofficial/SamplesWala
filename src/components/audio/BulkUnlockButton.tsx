@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { unlockFullPack } from '@/app/packs/[slug]/actions'
 import { useNotify } from '@/components/ui/NotificationProvider'
+import { useSWRConfig } from 'swr'
 
 export function BulkUnlockButton({ packId, cost }: { packId: string, cost: number }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { mutate } = useSWRConfig()
   const { showToast, showConfirm, showAuthGate } = useNotify()
 
   const handleBulkUnlock = async () => {
@@ -20,6 +22,7 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
       const res = await unlockFullPack(packId)
       if (res.success) {
           showToast('ACCESS GRANTED: Full Pack Unlocked!', 'success')
+          mutate('user_vault')
           setTimeout(() => router.refresh(), 1000)
       }
     } catch (err: any) {

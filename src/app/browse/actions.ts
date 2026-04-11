@@ -83,7 +83,7 @@ export async function getFilteredSamples(filters: {
 }) {
   const adminClient = getAdminClient()
   const cleanQuery = filters.query?.trim()
-  const limitVal = parseInt(filters.limit || '25')
+  const limitVal = parseInt(filters.limit || '20')
   
   let queryBuilder = adminClient.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, time_signature, created_at, sample_packs(name, category_id, cover_url)')
   

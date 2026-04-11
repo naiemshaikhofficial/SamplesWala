@@ -125,7 +125,6 @@ export function SampleList({ samples, unlockedSampleIds }: SampleListProps) {
                                 </div>
                                 <DownloadButton 
                                     sampleId={sample.id} 
-                                    isUnlockedInitial={isUnlocked} 
                                     creditCost={sample.credit_cost} 
                                 />
                             </div>

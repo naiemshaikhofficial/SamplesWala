@@ -72,27 +72,6 @@ export default async function BrowsePage({
      })
   ])
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  let unlockedSampleIds: Set<string> = new Set()
-  if (user) {
-    const { data: vaultItems } = await supabase
-        .from('user_vault')
-        .select('item_id, item_type')
-        .eq('user_id', user.id)
-
-    if (vaultItems) {
-        const ownedPackIds = new Set(vaultItems.filter(v => v.item_type === 'pack').map(v => v.item_id))
-        const unlockedIds = samples?.filter(s => {
-            const directlyOwned = vaultItems.some(v => v.item_type === 'sample' && v.item_id === s.id)
-            const packOwned = ownedPackIds.has(s.pack_id)
-            return directlyOwned || packOwned
-        }).map(s => s.id) || []
-        unlockedSampleIds = new Set(unlockedIds)
-    }
-  }
-
   const hasNoResults = (!packs || packs.length === 0) && (!samples || samples.length === 0);
 
   const musicalKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -217,16 +196,14 @@ export default async function BrowsePage({
                         samples={samples} 
                         packName="Browse Results" 
                         coverUrl={null} 
-                        unlockedSampleIds={unlockedSampleIds} 
-                        isFullPackUnlocked={false} 
                     />
 
-                    {samples.length >= (parseInt(params.limit || '25')) && (
+                    {samples.length >= (parseInt(params.limit || '20')) && (
                         <div className="pt-20 pb-12 flex justify-center">
                             <Link 
                                 href={`/browse?${new URLSearchParams({
                                     ...params,
-                                    limit: (parseInt(params.limit || '25') + 25).toString()
+                                    limit: (parseInt(params.limit || '20') + 20).toString()
                                 }).toString()}`}
                                 className="group relative flex flex-col items-center gap-6"
                             >

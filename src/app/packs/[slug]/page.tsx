@@ -12,9 +12,12 @@ import { SubscribeButton } from '@/components/SubscribeButton'
 import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
+import { PackActionCenter } from '@/components/audio/PackActionCenter'
 import { getRelatedPacks } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+
+export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const adminClient = getAdminClient()
@@ -57,10 +60,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
-  const supabase = await createClient()
   const adminClient = getAdminClient()
   const { slug } = await params
-  const { data: { user } } = await supabase.auth.getUser()
   
   // 🎹 ENHANCED FETCH WITH RELATIONAL FALLBACK (Admin Signal)
   let { data: pack, error } = await adminClient
@@ -97,33 +98,6 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
   
   // 💹 Master Credit Summation Engine
   const totalIndividualCredits = samples?.reduce((sum, s) => sum + (s.credit_cost || 1), 0) || 0
-
-  let unlockedSampleIds: Set<string> = new Set()
-  let isFullPackUnlocked = false;
-
-  if (user) {
-    const { data: vaultItems } = await supabase
-        .from('user_vault')
-        .select('item_id, item_type')
-        .eq('user_id', user.id)
-
-    if (vaultItems) {
-        // Individual samples
-        const sampleIds = vaultItems
-            .filter(v => v.item_type === 'sample')
-            .map(v => v.item_id)
-        unlockedSampleIds = new Set(sampleIds)
-
-        // Whole pack check
-        isFullPackUnlocked = vaultItems.some(v => v.item_type === 'pack' && v.item_id === pack.id)
-        
-        // Logical fallback: If all samples are unlocked individually, treat as full pack unlocked (UX helper)
-        if (!isFullPackUnlocked && samples && samples.length > 0) {
-            const allSamplesOwned = samples.every(s => unlockedSampleIds.has(s.id))
-            if (allSamplesOwned) isFullPackUnlocked = true
-        }
-    }
-  }
 
   // 🧪 DETECTION_PROTOCOL: IDENTIFY IF THIS IS A PREMIUM ARTIFACT (DRIVE / STEMS / MIDI)
   const hasPremiumArtifacts = pack.description?.toLowerCase().includes('stems') || 
@@ -362,29 +336,12 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
                              </div>
                           </div>
                       </div>
-                      
-                      <div className="flex flex-col sm:flex-row items-center gap-6 mt-12 pt-10 pb-4 border-t border-white/10">
-                         {isFullPackUnlocked ? (
-                                 <div className="w-full max-w-2xl mx-auto">
-                                     <SecureDownloadButton packId={pack.id} variant="yellow" />
-                                 </div>
-                         ) : (
-                             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative">
-                                <div className="flex flex-col gap-3">
-                                     <BulkUnlockButton packId={pack.id} cost={pack.bundle_credit_cost || 50} />
-                                     <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">PAY_WITH_CREDITS</span>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <SubscribeButton 
-                                        planId={pack.id} 
-                                        planName={`BUY_NOW: ₹${pack.price_inr}`} 
-                                        mode="sample_pack"
-                                        isFeatured
-                                    />
-                                    <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">INSTANT_DELIVERY</span>
-                                </div>
-                            </div>
-                         )}
+                      <div className="flex flex-col sm:flex-row items-center gap-6 mt-12 pt-10 pb-4 border-t border-white/10 w-full">
+                          <PackActionCenter 
+                            packId={pack.id} 
+                            bundleCost={pack.bundle_credit_cost || 50} 
+                            priceInr={pack.price_inr} 
+                          />
                       </div>
                   </div>
               </div>
@@ -406,7 +363,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             </div>
         </div>
 
-        <SampleList samples={samples || []} packName={pack.name} coverUrl={pack.cover_url} unlockedSampleIds={unlockedSampleIds} isFullPackUnlocked={isFullPackUnlocked} />
+        <SampleList samples={samples || []} packName={pack.name} coverUrl={pack.cover_url} packId={pack.id} />
       </div>
 
       {/* 🧬 COLLATERAL MODULES */}

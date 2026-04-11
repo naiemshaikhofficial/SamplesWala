@@ -7,6 +7,7 @@ import { PlayButton } from './PlayButton'
 import { DownloadButton } from './DownloadButton'
 import { Waveform } from './Waveform'
 import { useAudio } from './AudioProvider'
+import { useVault } from '@/components/VaultProvider'
 
 type Sample = {
     id: string
@@ -21,11 +22,11 @@ type SampleListProps = {
     samples: Sample[]
     packName: string
     coverUrl?: string | null
-    unlockedSampleIds: Set<string>
-    isFullPackUnlocked: boolean
+    packId?: string
 }
 
-export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isFullPackUnlocked }: SampleListProps) {
+export function SampleList({ samples, packName, coverUrl, packId }: SampleListProps) {
+    const { unlockedIds, isLoading } = useVault()
     const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots'>('all')
     const { setPlaylist, activeId } = useAudio()
 
@@ -37,20 +38,22 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
         return samples
     }, [samples, filter])
 
-    // 📡 SIGNAL_SYNC (Keep playlist updated for Next/Prev)
     useEffect(() => {
-        const playlistData = filteredSamples.map(s => ({
-            id: s.id,
-            url: s.audio_url,
-            name: s.name,
-            packName: packName,
-            coverUrl: coverUrl,
-            bpm: s.bpm,
-            audioKey: s.key,
-            isUnlocked: unlockedSampleIds.has(s.id) || isFullPackUnlocked
-        }))
+        const playlistData = filteredSamples.map(s => {
+            const isUnlocked = unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false)
+            return {
+                id: s.id,
+                url: s.audio_url,
+                name: s.name,
+                packName: packName,
+                coverUrl: coverUrl,
+                bpm: s.bpm,
+                audioKey: s.key,
+                isUnlocked: isUnlocked
+            }
+        })
         setPlaylist(playlistData)
-    }, [filteredSamples, packName, coverUrl, unlockedSampleIds, isFullPackUnlocked, setPlaylist])
+    }, [filteredSamples, packName, coverUrl, unlockedIds, packId, setPlaylist])
 
     return (
         <div className="space-y-6 md:space-y-8 w-full">
@@ -85,7 +88,7 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
 
                 <div className="divide-y divide-black">
                     {filteredSamples.map((sample, idx) => {
-                        const isUnlocked = unlockedSampleIds.has(sample.id) || isFullPackUnlocked
+                        const isUnlocked = unlockedIds.has(sample.id) || (packId ? unlockedIds.has(packId) : false)
                         const isActive = activeId === sample.id
                         
                         return (
@@ -184,7 +187,6 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                                     <div className="scale-90 md:scale-100 origin-right">
                                         <DownloadButton 
                                             sampleId={sample.id} 
-                                            isUnlockedInitial={isUnlocked} 
                                             creditCost={sample.credit_cost}
                                         />
                                     </div>

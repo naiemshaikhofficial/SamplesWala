@@ -12,13 +12,14 @@ import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
 import { Suspense } from 'react'
 
+export const revalidate = 3600;
+
 export const metadata = {
   title: 'Samples Wala | Download High-Quality Royalty-Free Samples & Loops',
   description: 'Pro-grade sample packs, loops, and individual sounds for music producers. Industry-standard royalty-free audio for Trap, EDM, Hip-Hop, and more.',
 }
 
 export default async function Home() {
-  const supabase = await createClient()
   const adminClient = getAdminClient()
   
   let { data: latestPacks, error: packsError } = await adminClient
@@ -47,26 +48,6 @@ export default async function Home() {
   if (freshError || !freshSounds || freshSounds.length === 0) {
       const { data: rawFresh } = await adminClient.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
       freshSounds = rawFresh as any;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser()
-  let unlockedSampleIds: string[] = []
-  if (user) {
-    const { data: vaultItems } = await supabase
-        .from('user_vault')
-        .select('item_id, item_type')
-        .eq('user_id', user.id)
-
-    if (vaultItems) {
-        const ownedPackIds = new Set(vaultItems.filter(v => v.item_type === 'pack').map(v => v.item_id))
-        unlockedSampleIds = topSamples
-            .filter(s => {
-                const directlyOwned = vaultItems.some(v => v.item_type === 'sample' && v.item_id === s.id)
-                const packOwned = ownedPackIds.has(s.pack_id)
-                return directlyOwned || packOwned
-            })
-            .map(s => s.id)
-    }
   }
 
   return (
@@ -101,7 +82,6 @@ export default async function Home() {
             <div className="max-w-7xl mx-auto">
               <FreshSounds 
                   samples={freshSounds || []} 
-                  unlockedSampleIds={unlockedSampleIds}
               />
             </div>
         </section>
@@ -173,10 +153,11 @@ export default async function Home() {
                 Trending
             </div>
             <div className="max-w-7xl mx-auto px-4 md:px-20 relative">
-                <TopSounds 
-                    samples={topSamples || []} 
-                    unlockedSampleIds={Array.from(unlockedSampleIds)}
-                />
+                <Suspense fallback={<div className="h-64 flex items-center justify-center"><Activity className="animate-pulse text-studio-yellow" /></div>}>
+                  <TopSounds 
+                      samples={topSamples || []} 
+                  />
+                </Suspense>
             </div>
         </section>
 

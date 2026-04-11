@@ -21,7 +21,7 @@ export default async function FreeSamplesPage() {
     .from('samples')
     .select('*, sample_packs(name, cover_url)')
     .eq('credit_cost', 0)
-    .limit(50)
+    .limit(20)
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white">
@@ -64,8 +64,6 @@ export default async function FreeSamplesPage() {
                   samples={freeSamples} 
                   packName="Free Collection" 
                   coverUrl={null} 
-                  unlockedSampleIds={new Set(freeSamples.map(s => s.id))} // Mark as unlocked since they are free
-                  isFullPackUnlocked={false} 
               />
           ) : (
               <div className="py-40 border-4 border-dashed border-white/5 text-center bg-black/20">

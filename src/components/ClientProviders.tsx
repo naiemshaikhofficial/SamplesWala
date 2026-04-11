@@ -7,15 +7,19 @@ import { SidebarProvider } from '@/components/layout/SidebarContext'
 
 import { CacheProvider } from '@/components/providers/CacheProvider'
 
+import { VaultProvider } from '@/components/VaultProvider'
+
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   return (
     <CacheProvider>
       <NotificationProvider>
         <CurrencyProvider>
           <SidebarProvider>
-            <AudioProvider>
-              {children}
-            </AudioProvider>
+            <VaultProvider>
+              <AudioProvider>
+                {children}
+              </AudioProvider>
+            </VaultProvider>
           </SidebarProvider>
         </CurrencyProvider>
       </NotificationProvider>

@@ -1,3 +1,4 @@
+export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
 
 import { Metadata } from 'next'
 import { getAdminClient } from '@/lib/supabase/admin'
@@ -65,7 +66,7 @@ export default async function GenrePage({ params }: { params: Promise<{ genre: s
                   "url": `https://sampleswala.com/genres/${genre}`,
                   "mainEntity": {
                       "@type": "ItemList",
-                      "itemListElement": packs.map((p, i) => ({
+                      "itemListElement": (packs || []).map((p, i) => ({
                           "@type": "ListItem",
                           "position": i + 1,
                           "url": `https://sampleswala.com/packs/${p.slug}`
@@ -132,7 +133,7 @@ export default async function GenrePage({ params }: { params: Promise<{ genre: s
           </div>
       </section>
 
-      {packs.length > 0 && (
+      {packs && packs.length > 0 && (
           <div className="mb-32">
               <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-12 flex items-center gap-4 text-white/40 border-b border-white/5 pb-4">
                   <Layers className="h-6 w-6 text-studio-neon" /> {genreDisplay} Packs
@@ -168,8 +169,6 @@ export default async function GenrePage({ params }: { params: Promise<{ genre: s
                   samples={samples} 
                   packName={`${genreDisplay} Collection`} 
                   coverUrl={null} 
-                  unlockedSampleIds={new Set()} 
-                  isFullPackUnlocked={false} 
               />
           </div>
       )}

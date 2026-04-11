@@ -21,30 +21,33 @@ export const getAdminClient = () => {
 export async function getTopPopularSounds(limit = 10) {
   const supabase = getAdminClient()
 
-  // 1. Fetch unlock frequency from the unified vault
-  const { data: unlocks, error: unlockError } = await supabase
-    .from('user_vault')
-    .select('item_id')
-    .eq('item_type', 'sample')
+  // 1. Fetch top sample IDs from the optimized database view
+  const { data: topIdsData, error: viewError } = await supabase
+    .from('popular_samples_view')
+    .select('sample_id')
+    .limit(limit)
 
-  if (unlockError || !unlocks) {
-    console.error("Popularity Engine Error:", unlockError)
-    return []
+  if (viewError || !topIdsData) {
+    console.warn("[SIGNAL_REPAIR] Popularity View failed, using legacy fallback:", viewError?.message)
+    // Legacy Fallback (Limit to 500 records to prevent CPU explosion)
+    const { data: unlocks } = await supabase
+      .from('user_vault')
+      .select('item_id')
+      .eq('item_type', 'sample')
+      .limit(500)
+
+    const counts: Record<string, number> = {}
+    unlocks?.forEach(u => { if (u.item_id) counts[u.item_id] = (counts[u.item_id] || 0) + 1 })
+    
+    const topIds = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([id]) => id)
+    
+    return topIds
   }
 
-  // 2. Aggregate counts in memory (Fast for thousands of records)
-  const counts: Record<string, number> = {}
-  unlocks.forEach(u => {
-    if (u.item_id) {
-        counts[u.item_id] = (counts[u.item_id] || 0) + 1
-    }
-  })
-
-  // 3. Sort and get top IDs
-  const topIds = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([id]) => id)
+  const topIds = topIdsData.map(d => d.sample_id)
 
   // 4. Fetch the full sample data with Multilevel Failure Protection
   if (topIds.length === 0) {

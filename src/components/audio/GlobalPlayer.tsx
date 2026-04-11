@@ -175,7 +175,6 @@ export function GlobalPlayer() {
                             <div className="scale-110 md:scale-100">
                                 <DownloadButton 
                                     sampleId={activeId} 
-                                    isUnlockedInitial={activeMetadata?.isUnlocked || false}
                                     creditCost={activeMetadata?.creditCost || 1} 
                                 />
                             </div>
