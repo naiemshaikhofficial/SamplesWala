@@ -13,9 +13,10 @@ import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
 import { PackActionCenter } from '@/components/audio/PackActionCenter'
-import { getRelatedPacks } from '@/app/browse/actions'
+import { getRelatedPacks, getFilteredSamples } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { Pagination } from '@/components/layout/Pagination'
 
 export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
 
@@ -59,9 +60,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
-export default async function PackPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function PackPage({ 
+  params,
+  searchParams 
+}: { 
+  params: Promise<{ slug: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const adminClient = getAdminClient()
   const { slug } = await params
+  const sParams = await searchParams
+  const page = (sParams.page as string) || '1'
+  const pageVal = parseInt(page)
+  const pageSize = 20
   
   // 🎹 ENHANCED FETCH WITH RELATIONAL FALLBACK (Admin Signal)
   let { data: pack, error } = await adminClient
@@ -82,11 +93,11 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
 
   if (!pack) notFound()
   
-  const { data: samples } = await adminClient
-    .from('samples')
-    .select('id, name, bpm, key, credit_cost, pack_id, created_at, type, ai_genre')
-    .eq('pack_id', pack.id)
-    .order('created_at', { ascending: true })
+  const { samples, count } = await getFilteredSamples({ 
+    packId: pack.id,
+    limit: pageSize.toString(),
+    page: page
+  })
   
   // Handled relation locally if joined query failed
   const categoryId = pack.category_id;
@@ -364,6 +375,18 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
         </div>
 
         <SampleList samples={samples || []} packName={pack.name} coverUrl={pack.cover_url} packId={pack.id} />
+        
+        {samples && samples.length > 0 && (
+            <div className="mt-20">
+                <Pagination 
+                    currentPage={pageVal} 
+                    totalCount={count} 
+                    pageSize={pageSize} 
+                    baseUrl={`/packs/${slug}`}
+                    searchParams={sParams}
+                />
+            </div>
+        )}
       </div>
 
       {/* 🧬 COLLATERAL MODULES */}

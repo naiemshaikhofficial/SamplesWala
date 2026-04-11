@@ -17,6 +17,7 @@ import { Waveform } from '@/components/audio/Waveform'
 
 import { SidebarFilters } from '@/components/browse/SidebarFilters'
 import { SampleList } from '@/components/audio/SampleList'
+import { Pagination } from '@/components/layout/Pagination'
 import { Cable } from 'lucide-react'
 import { Metadata } from 'next'
 
@@ -54,23 +55,28 @@ export default async function BrowsePage({
   const params = await (searchParams as any)
   const categories = await getAllCategories()
   
+  const page = (params.page as string) || '1'
+  const pageVal = parseInt(page)
+  const pageSize = 20
+  
   // 🎹 Loading Sounds (Precision Search)
-  const [packs, samples] = await Promise.all([
-     getFilteredPacks({ 
-        query: params.q, 
-        category: params.category, 
-        filter: params.filter, 
-     }),
-     getFilteredSamples({ 
-        query: params.q, 
-        category: params.category, 
-        type: params.type,
-        filter: params.filter,
-        bpm_min: params.bpm_min ? parseInt(params.bpm_min) : undefined,
-        bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
-        key: params.key
-     })
-  ])
+  const packs = await getFilteredPacks({ 
+     query: params.q, 
+     category: params.category, 
+     filter: params.filter, 
+  })
+
+  const { samples, count } = await getFilteredSamples({ 
+     query: params.q, 
+     category: params.category, 
+     type: params.type,
+     filter: params.filter,
+     bpm_min: params.bpm_min ? parseInt(params.bpm_min) : undefined,
+     bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
+     key: params.key,
+     limit: pageSize.toString(),
+     page: page
+  })
 
   const hasNoResults = (!packs || packs.length === 0) && (!samples || samples.length === 0);
 
@@ -198,25 +204,15 @@ export default async function BrowsePage({
                         coverUrl={null} 
                     />
 
-                    {samples.length >= (parseInt(params.limit || '20')) && (
-                        <div className="pt-20 pb-12 flex justify-center">
-                            <Link 
-                                href={`/browse?${new URLSearchParams({
-                                    ...params,
-                                    limit: (parseInt(params.limit || '20') + 20).toString()
-                                }).toString()}`}
-                                className="group relative flex flex-col items-center gap-6"
-                            >
-                                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-studio-neon animate-pulse">
-                                    EXPAND_SIGNAL_MATRIX
-                                </span>
-                                <div className="h-16 w-16 rounded-full border-4 border-dashed border-white/10 group-hover:border-studio-neon transition-all flex items-center justify-center group-hover:rotate-180 duration-1000">
-                                    <ArrowRight className="h-8 w-8 text-white/20 group-hover:text-studio-neon group-hover:-rotate-90 transition-all" />
-                                </div>
-                                <span className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white/10 group-hover:text-white transition-colors">
-                                    LOAD_MORE
-                                </span>
-                            </Link>
+                    {!hasNoResults && (
+                        <div className="mt-20">
+                            <Pagination 
+                                currentPage={pageVal} 
+                                totalCount={count} 
+                                pageSize={pageSize} 
+                                baseUrl="/browse"
+                                searchParams={params}
+                            />
                         </div>
                     )}
                 </div>

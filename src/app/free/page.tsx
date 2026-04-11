@@ -7,13 +7,26 @@ import { Gift, Zap, ArrowRight, Music, Download } from 'lucide-react'
 import { SampleList } from '@/components/audio/SampleList'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 
+import { Pagination } from '@/components/layout/Pagination'
+
 export const metadata: Metadata = {
   title: 'Free Samples & Loops Download | 100% Royalty Free | SamplesWala',
   description: 'Download 100% free music samples, loops, and drum kits. Premium quality royalty-free sounds for Trap, EDM, and Lo-Fi. No credit card required.',
   keywords: ['free samples', 'free loops', 'free drum kits', 'fl studio free samples', 'royalty free free loops'],
 }
 
-export default async function FreeSamplesPage() {
+export default async function FreeSamplesPage({
+    searchParams
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const sParams = await searchParams
+  const page = (sParams.page as string) || '1'
+  const pageVal = parseInt(page)
+  const pageSize = 20
+  const from = (pageVal - 1) * pageSize
+  const to = from + pageSize - 1
+  
   const adminClient = getAdminClient()
   
   // Fetch samples with 0 credit cost
@@ -21,7 +34,7 @@ export default async function FreeSamplesPage() {
     .from('samples')
     .select('*, sample_packs(name, cover_url)')
     .eq('credit_cost', 0)
-    .limit(20)
+    .limit(limitVal)
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white">
@@ -60,11 +73,27 @@ export default async function FreeSamplesPage() {
           </div>
 
           {freeSamples && freeSamples.length > 0 ? (
-              <SampleList 
-                  samples={freeSamples} 
-                  packName="Free Collection" 
-                  coverUrl={null} 
-              />
+              <>
+                  <SampleList 
+                      samples={freeSamples} 
+                      packName="Free Collection" 
+                      coverUrl={null} 
+                  />
+
+                  {freeSamples.length >= limitVal && (
+                      <div className="pt-20 pb-12 flex justify-center">
+                          <Link 
+                              href={`/free?limit=${limitVal + 20}`}
+                              className="group relative flex flex-col items-center gap-6"
+                          >
+                              <div className="flex items-center gap-4 bg-white/5 px-8 py-4 border border-white/10 hover:border-studio-neon transition-all group-hover:bg-studio-neon group-hover:text-black">
+                                  <span className="text-[11px] font-black uppercase tracking-[0.4em] italic leading-none">Load_20_More_Frequencies</span>
+                                  <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform pl-2" />
+                              </div>
+                          </Link>
+                      </div>
+                  )}
+              </>
           ) : (
               <div className="py-40 border-4 border-dashed border-white/5 text-center bg-black/20">
                   <Gift size={64} className="mx-auto mb-8 text-white/10" />

@@ -73,27 +73,33 @@ export async function getFilteredSamples(filters: {
   bpm_min?: number,
   bpm_max?: number,
   key?: string,
-  mood?: string,
   genre?: string,
-  time_sig?: string,
-  producer?: string,
   sort?: string,
   limit?: string,
-  tag?: string
+  page?: string,
+  tag?: string,
+  packId?: string
 }) {
   const adminClient = getAdminClient()
   const cleanQuery = filters.query?.trim()
   const limitVal = parseInt(filters.limit || '20')
+  const pageVal = parseInt(filters.page || '1')
+  const from = (pageVal - 1) * limitVal
+  const to = from + limitVal - 1
   
-  let queryBuilder = adminClient.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, time_signature, created_at, sample_packs(name, category_id, cover_url)')
+  let queryBuilder = adminClient.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, time_signature, created_at, sample_packs(name, category_id, cover_url)', { count: 'exact' })
   
-  // 🔭 PRECISION SEARCH SIGNAL
+  // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (cleanQuery) {
     queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`)
   }
 
   if (filters.tag) {
     queryBuilder = queryBuilder.contains('tags', [filters.tag.toLowerCase()])
+  }
+
+  if (filters.packId) {
+    queryBuilder = queryBuilder.eq('pack_id', filters.packId)
   }
 
   if (filters.bpm_min !== undefined) queryBuilder = queryBuilder.gte('bpm', filters.bpm_min);
@@ -121,18 +127,12 @@ export async function getFilteredSamples(filters: {
   const sortCol = filters.sort === 'bpm' ? 'bpm' : (filters.sort === 'key' ? 'key' : 'created_at');
   queryBuilder = queryBuilder.order(sortCol, { ascending: filters.sort !== 'newest' });
 
-  let { data, error } = await queryBuilder.limit(limitVal)
+  // Range-based pagination
+  let { data, error, count } = await queryBuilder.range(from, to)
   
-  if (error && error.code === 'PGRST103') {
-    const fallbackBuilder = adminClient.from('samples').select('id, name, bpm, key, credit_cost, pack_id, type, ai_genre, tags, created_at, sample_packs(name, category_id, cover_url)')
-    const { data: fbData, error: fbError } = await fallbackBuilder.limit(limitVal);
-    data = fbData as any;
-    error = fbError;
-  }
-
   if (error) {
     console.error('[BROWSE_ACTION_ERROR_SAMPLES]', error);
-    return [];
+    return { samples: [], count: 0 };
   }
 
   let processedData = data || [];
@@ -140,7 +140,7 @@ export async function getFilteredSamples(filters: {
     processedData = data.filter((s: any) => s.sample_packs?.category_id === filters.category)
   }
 
-  return processedData
+  return { samples: processedData, count: count || 0 }
 }
 
 export async function getRelatedPacks(currentPackId: string, categoryId: string) {

@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { SampleList } from '@/components/audio/SampleList'
 import { PriceDisplay } from '@/components/PriceDisplay'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { Pagination } from '@/components/layout/Pagination'
 
 export async function generateMetadata({ params }: { params: Promise<{ genre: string }> }): Promise<Metadata> {
   const { genre } = await params
@@ -30,8 +31,18 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
   }
 }
 
-export default async function GenrePage({ params }: { params: Promise<{ genre: string }> }) {
+export default async function GenrePage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ genre: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const { genre } = await params
+  const sParams = await searchParams
+  const page = (sParams.page as string) || '1'
+  const pageVal = parseInt(page)
+  const pageSize = 20
   const adminClient = getAdminClient()
   
   // Find category by name (case-insensitive)
@@ -48,7 +59,11 @@ export default async function GenrePage({ params }: { params: Promise<{ genre: s
   }
 
   const packs = await getFilteredPacks({ category: category?.id })
-  const samples = await getFilteredSamples({ category: category?.id, limit: '20' })
+  const { samples, count } = await getFilteredSamples({ 
+    category: category?.id, 
+    limit: pageSize.toString(),
+    page: page
+  })
 
   const genreDisplay = category?.name || genre.toUpperCase()
 
@@ -170,6 +185,18 @@ export default async function GenrePage({ params }: { params: Promise<{ genre: s
                   packName={`${genreDisplay} Collection`} 
                   coverUrl={null} 
               />
+
+              {samples && samples.length > 0 && (
+                  <div className="mt-20">
+                      <Pagination 
+                          currentPage={pageVal} 
+                          totalCount={count} 
+                          pageSize={pageSize} 
+                          baseUrl={`/genres/${genre}`}
+                          searchParams={sParams}
+                      />
+                  </div>
+              )}
           </div>
       )}
 
