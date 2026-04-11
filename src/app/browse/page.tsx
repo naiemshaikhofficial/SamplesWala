@@ -175,7 +175,7 @@ export default async function BrowsePage({
                                         {pack.cover_url ? (
                                             <Image 
                                                 src={pack.cover_url} 
-                                                alt={pack.name} 
+                                                alt={`${pack.name} Royalty Free Sample Pack Loops`} 
                                                 fill 
                                                 sizes="(max-width: 1024px) 100vw, 33vw"
                                                 className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 pt-10" 

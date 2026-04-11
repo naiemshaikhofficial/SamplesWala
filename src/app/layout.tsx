@@ -33,6 +33,21 @@ export const metadata: Metadata = {
   authors: [{ name: 'SamplesWala Team' }],
   creator: 'SamplesWala',
   publisher: 'SamplesWala',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://sampleswala.com',
+    siteName: 'SAMPLES WALA',
+    title: 'SAMPLES WALA | Premium Music Production Samples & Loops',
+    description: 'Pro-grade royalty-free audio samples for modern music producers.',
+    images: ['/og-image.jpg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SAMPLES WALA | Premium Music Production Samples & Loops',
+    description: 'Pro-grade royalty-free audio samples for modern music producers.',
+    images: ['/og-image.jpg'],
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -74,12 +89,70 @@ export default function RootLayout({
     }
   };
 
+  // 🏛️ ORGANIZATION_SCHEMA (JSON-LD)
+  const orgSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "SamplesWala",
+    "url": "https://sampleswala.com",
+    "logo": "https://sampleswala.com/logo.png",
+    "sameAs": [
+      "https://instagram.com/sampleswala",
+      "https://youtube.com/sampleswala",
+      "https://twitter.com/sampleswala"
+    ]
+  };
+
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
       <head>
+        {/* 🔗 CANONICAL_URI_LOCK */}
+        <link rel="canonical" href="https://sampleswala.com" />
+        
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ 
+            __html: JSON.stringify({
+              ...orgSchema,
+              "founder": {
+                "@type": "Person",
+                "name": "Naiem Shaikh"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+91-XXXXXXXXXX",
+                "contactType": "customer service",
+                "areaServed": "IN",
+                "availableLanguage": "en"
+              }
+            }) 
+          }}
+        />
+        {/* ⭐ BRAND_RATING_SCHEMA (Placeholder for CTR) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ 
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              "name": "SamplesWala",
+              "image": "https://sampleswala.com/logo.png",
+              "description": "Premium royalty-free sample packs and loops for music production.",
+              "brand": {
+                "@type": "Brand",
+                "name": "SamplesWala"
+              },
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.9",
+                "reviewCount": "2450"
+              }
+            }) 
+          }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>

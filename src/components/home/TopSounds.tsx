@@ -105,7 +105,7 @@ export function TopSounds({
                             <div className={`relative shrink-0 w-12 h-12 md:w-16 md:h-16 flex items-center justify-center bg-black border overflow-hidden transition-all ${shouldSlideUp ? 'border-studio-yellow/50' : 'border-white/10 md:group-hover:border-studio-yellow/50'}`}>
                                 <Image 
                                     src={sound.sample_packs?.cover_url || '/placeholder.png'} 
-                                    alt={sound.name} 
+                                    alt={`${sound.name} - ${sound.sample_packs?.name || 'Trending'} Sample | SamplesWala`} 
                                     fill 
                                     className={`object-cover transition-all duration-500 ${shouldSlideUp ? 'opacity-100 grayscale-0 scale-110' : 'opacity-50 grayscale md:group-hover:grayscale-0 md:group-hover:scale-110'}`} 
                                 />

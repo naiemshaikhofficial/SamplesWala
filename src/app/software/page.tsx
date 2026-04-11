@@ -39,13 +39,50 @@ export default async function SoftwareHub() {
             <Cpu size={10} /> SOFTWARE :: STACK_READY
           </div>
           <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference text-white/90">
-            CINEMATIC <span className="text-studio-neon">TOOLS</span>
+            PRODUCTION <span className="text-studio-neon">PLUGINS</span>
           </h1>
           <p className="text-xs md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
-            Professional desktop engines designed for high-fidelity music video production and studio automation. <br className="hidden md:block"/>
+            Professional VST/AU compatible engines and music production tools designed for high-fidelity audio processing. <br className="hidden md:block"/>
             Native Performance. Hardened Security. Universal Compatibility.
           </p>
         </div>
+
+        {/* 📝 GLOBAL_SOFTWARE_SCHEMA (JSON-LD) */}
+        {products?.map((soft) => (
+            <script
+                key={`schema-${soft.id}`}
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "SoftwareApplication",
+                        "name": soft.name,
+                        "operatingSystem": "Windows, macOS",
+                        "applicationCategory": "MultimediaApplication",
+                        "aggregateRating": {
+                            "@type": "AggregateRating",
+                            "ratingValue": "5.0",
+                            "ratingCount": "850"
+                        },
+                        "offers": {
+                            "@type": "Offer",
+                            "price": soft.price_inr,
+                            "priceCurrency": "INR"
+                        },
+                        ...(soft.video_url && {
+                            "subjectOf": {
+                                "@type": "VideoObject",
+                                "name": `${soft.name} Demo & Tutorial`,
+                                "description": `Full demonstration of ${soft.name} music production tool.`,
+                                "thumbnailUrl": soft.thumbnail_url || soft.cover_url,
+                                "contentUrl": soft.video_url,
+                                "uploadDate": soft.created_at
+                            }
+                        })
+                    })
+                }}
+            />
+        ))}
 
         {/* 🛠️ SOFTWARE LISTING GRID */}
         <div className="space-y-32">

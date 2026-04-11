@@ -73,7 +73,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                         {pack.cover_url ? (
                                             <Image 
                                                 src={pack.cover_url} 
-                                                alt={pack.name} 
+                                                alt={`${pack.name} - ${pack.categories?.name || 'Pro'} Sample Pack | SamplesWala`} 
                                                 fill 
                                                 sizes="(max-width: 768px) 50vw, 25vw"
                                                 className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 opacity-60 group-hover:opacity-100" 

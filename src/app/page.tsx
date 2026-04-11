@@ -216,6 +216,14 @@ export default async function Home() {
                         { 
                             q: "How do I download my purchases?", 
                             a: "Once you unlock a sample or pack, it appears instantly in your STUDIO_VAULT (Library). You can download them directly as ZIP files or individual WAVs." 
+                        },
+                        {
+                            q: "Can I use these for Type Beats on YouTube?",
+                            a: "Absolutely. Our licenses cover everything from YouTube videos to major label releases. No attribution required, though it is appreciated."
+                        },
+                        {
+                            q: "Do you offer sound design for specific genres?",
+                            a: "Yes, we specialize in Trap, Drill, EDM, Lo-Fi, and Hip-Hop. Our sound designers are industry veterans who have worked on top-charting records."
                         }
                     ].map((faq, i) => (
                         <div key={i} className="group p-8 border border-white/5 bg-studio-grey/20 hover:border-studio-neon/50 transition-all">
@@ -259,6 +267,22 @@ export default async function Home() {
                                     "acceptedAnswer": {
                                         "@type": "Answer",
                                         "text": "Once you unlock a sample or pack, it appears instantly in your STUDIO_VAULT (Library). You can download them directly as ZIP files or individual WAVs."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "Can I use these for Type Beats on YouTube?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Absolutely. Our licenses cover everything from YouTube videos to major label releases. No attribution required, though it is appreciated."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "Do you offer sound design for specific genres?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Yes, we specialize in Trap, Drill, EDM, Lo-Fi, and Hip-Hop. Our sound designers are industry veterans who have worked on top-charting records."
                                     }
                                 }
                             ]

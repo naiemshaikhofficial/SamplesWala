@@ -15,6 +15,44 @@ export function Footer() {
   return (
     <footer className="hidden md:block w-full bg-[#050505] border-t border-white/10 relative overflow-hidden font-mono z-30 select-none">
       
+      {/* 🚀 DEEP_LINK_SEO_SILO (Sitemap Injection) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 p-8 md:p-16 border-b border-white/5 bg-black/20">
+          <div className="space-y-6">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon">Top Genres</h4>
+              <nav className="flex flex-col gap-4">
+                  {['Trap', 'Drill', 'Lo-Fi', 'EDM', 'Hip-Hop'].map(g => (
+                      <Link key={g} href={`/genres/${g.toLowerCase()}`} className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">
+                          {g} Samples
+                      </Link>
+                  ))}
+              </nav>
+          </div>
+          <div className="space-y-6">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-yellow">Free Assets</h4>
+              <nav className="flex flex-col gap-4">
+                  {['Drum Kits', 'Piano Loops', 'Vocals', '808s', 'Melodies'].map(f => (
+                      <Link key={f} href="/free" className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">
+                          Free {f}
+                      </Link>
+                  ))}
+              </nav>
+          </div>
+          <div className="space-y-6">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Production Tools</h4>
+              <nav className="flex flex-col gap-4">
+                  <Link href="/software" className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">Visualizer Studio</Link>
+                  <Link href="/browse?filter=presets" className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">Serum Presets</Link>
+                  <Link href="/browse?filter=bundles" className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">Sample Bundles</Link>
+                  <Link href="/faq" className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">Usage Licensing</Link>
+              </nav>
+          </div>
+          <div className="p-8 bg-studio-neon/5 border border-white/5 flex flex-col justify-center">
+              <p className="text-[9px] font-black uppercase tracking-widest leading-loose text-white/40 italic">
+                  SamplesWala is the industry gold standard for <span className="text-white">Music Production Tools</span> and <span className="text-white">Royalty-Free Samples</span>. Dominate your DAW with precision-engineered sounds and cinematic software.
+              </p>
+          </div>
+      </div>
+
       {/* 🧬 PRIMARY_DAW_CONSOLE_BAR */}
       <div className="flex flex-col md:flex-row items-stretch border-b border-white/5 bg-black/40">
         

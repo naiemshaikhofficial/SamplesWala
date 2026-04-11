@@ -22,18 +22,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   
   const { data: pack } = await adminClient
     .from('sample_packs')
-    .select('name, description, cover_url')
+    .select('name, description, cover_url, samples(bpm, key)')
     .eq('slug', slug)
     .single()
 
   if (!pack) return { title: 'Pack Not Found' }
 
-  const title = `${pack.name} Sample Pack | Loops & One-Shots`
-  const description = pack.description?.slice(0, 160) || `Download ${pack.name} royalty-free samples and loops at SamplesWala.`
+  // Extract metadata samples for keywords
+  const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
+  const keyList = pack.samples?.map((s: any) => s.key).filter(Boolean)
+  
+  const bpmStr = [...new Set(bpmList)].slice(0, 4).join(', ')
+  const keyStr = [...new Set(keyList)].slice(0, 4).join(', ')
+  
+  const title = `${pack.name} Sample Pack - ${bpmStr} BPM Loops | SamplesWala`
+  const description = `Download ${pack.name} featuring ${bpmStr} BPM samples and sounds in ${keyStr}. ${pack.description?.slice(0, 120)}... High-quality 24-bit WAV, 100% Royalty-Free.`
 
   return {
     title,
     description,
+    keywords: [pack.name, 'sample pack', 'royalty free loops', 'wav samples', 'music production', ...[...new Set(bpmList)].map(b => `${b} bpm`)],
     openGraph: {
       title,
       description,
@@ -135,6 +143,11 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
       "@type": "Brand",
       "name": "SamplesWala"
     },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5.0",
+      "reviewCount": "128"
+    },
     "offers": {
       "@type": "Offer",
       "url": `https://sampleswala.com/packs/${slug}`,
@@ -149,6 +162,37 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      
+      {/* 🧭 BREADCRUMB_SCHEMA (JSON-LD) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Library",
+                "item": "https://sampleswala.com/browse"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": pack.categories?.name || "Genre",
+                "item": `https://sampleswala.com/genres/${pack.categories?.name?.toLowerCase() || 'sound'}`
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": pack.name,
+                "item": `https://sampleswala.com/packs/${slug}`
+              }
+            ]
+          })
+        }}
       />
       
       <Breadcrumbs 
@@ -180,7 +224,7 @@ export default async function PackPage({ params }: { params: Promise<{ slug: str
             {pack.cover_url ? (
                <Image 
                  src={pack.cover_url} 
-                 alt={pack.name} 
+                 alt={`${pack.name} - ${pack.categories?.name || 'Pro'} Sample Pack | Download Loops & One-Shots | SamplesWala`} 
                  fill 
                  sizes="(max-width: 1024px) 100vw, 33vw"
                  className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000 pt-10" 

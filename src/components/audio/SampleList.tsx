@@ -149,8 +149,10 @@ export function SampleList({ samples, packName, coverUrl, unlockedSampleIds, isF
                                                 "@type": "AudioObject",
                                                 "name": `${sample.name} - ${sample.bpm ? sample.bpm + ' BPM' : ''} ${sample.key ? sample.key : ''}`,
                                                 "contentUrl": sample.audio_url,
-                                                "description": `Download ${sample.name} royalty-free sample from ${packName} pack.`,
+                                                "description": `Download ${sample.name} royalty-free sample from the ${packName} collection. Optimized for modern music production.`,
                                                 "encodingFormat": "audio/wav",
+                                                "genre": packName.split(' ')[0], // Best effort genre extraction
+                                                "thumbnailUrl": coverUrl,
                                                 "about": {
                                                     "@type": "Thing",
                                                     "name": packName
