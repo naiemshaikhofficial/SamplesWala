@@ -23,9 +23,12 @@ type SampleListProps = {
     packName: string
     coverUrl?: string | null
     packId?: string
+    totalCount?: number
+    loopsCount?: number
+    oneShotsCount?: number
 }
 
-export function SampleList({ samples, packName, coverUrl, packId }: SampleListProps) {
+export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount }: SampleListProps) {
     const { unlockedIds, isLoading } = useVault()
     const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots'>('all')
     const { setPlaylist, activeId } = useAudio()
@@ -64,9 +67,9 @@ export function SampleList({ samples, packName, coverUrl, packId }: SampleListPr
             {/* 🎛️ SIGNAL_FILTER_BAR (Full-Width Balance) */}
             <div className="w-full flex items-center p-1 bg-black/40 border border-white/5 rounded-sm">
                 {[
-                    { id: 'all', label: 'All', count: samples.length },
-                    { id: 'loops', label: 'Loops', count: samples.filter(s => s.bpm).length },
-                    { id: 'oneshots', label: '1-shots', count: samples.filter(s => !s.bpm).length }
+                    { id: 'all', label: 'All', count: typeof totalCount !== 'undefined' ? totalCount : samples.length },
+                    { id: 'loops', label: 'Loops', count: typeof loopsCount !== 'undefined' ? loopsCount : samples.filter(s => s.bpm).length },
+                    { id: 'oneshots', label: '1-shots', count: typeof oneShotsCount !== 'undefined' ? oneShotsCount : samples.filter(s => !s.bpm).length }
                 ].map((t) => (
                     <button
                         key={t.id}
@@ -192,6 +195,7 @@ export function SampleList({ samples, packName, coverUrl, packId }: SampleListPr
                                         <DownloadButton 
                                             sampleId={sample.id} 
                                             creditCost={sample.credit_cost}
+                                            packId={packId}
                                         />
                                     </div>
                                 </div>

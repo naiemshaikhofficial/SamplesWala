@@ -68,19 +68,34 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     /** 
-     * 🛰️ ULTRA_STEALTH_HUB (V8_HMAC_ENCRYPTED)
-     * Security Upgrade: We now use a HMAC signature instead of a plaintext secret.
-     * Your master secret stays hidden on the server!
+     * 🛰️ ULTRA_STEALTH_HUB (V8_HMAC_ENCRYPTED + AES_GCM)
+     * Security Upgrade: We now encrypt the drive ID and use a HMAC signature.
+     * Your master secret totally hides the Drive ID from the end user!
      **/
     const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
     const proxySecret = process.env.PROXY_SECRET;
 
     if (workerUrl && proxySecret && driveIdMatch) {
+         // 🔐 Encrypt Drive ID natively using Node Crypto (AES-256-GCM)
+        const crypto = await import('crypto');
+        
+        // 1. Key derivation (32 bytes required for AES-256)
+        const secretHash = crypto.createHash('sha256').update(proxySecret).digest();
+        const iv = crypto.randomBytes(12);
+        
+        // 2. Encryption
+        const cipher = crypto.createCipheriv('aes-256-gcm', secretHash, iv);
+        let encryptedId = cipher.update(driveIdMatch, 'utf8', 'hex');
+        encryptedId += cipher.final('hex');
+        const authTag = cipher.getAuthTag().toString('hex');
+        
+        // 3. Compact Payload (iv + ciphertext + authTag)
+        const payload = iv.toString('hex') + encryptedId + authTag;
+
         // 🔐 Generate EXPIRING HMAC-SHA256 Signature (Valid for 1 Hour)
         const timestamp = Math.floor(Date.now() / 1000) + 3600;
-        const crypto = await import('crypto');
         const hmac = crypto.createHmac('sha256', proxySecret);
-        hmac.update(`${driveIdMatch}:${timestamp}`);
+        hmac.update(`${payload}:${timestamp}`);
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
             .replace(/\//g, "_")
@@ -91,7 +106,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const fileName = brandName + (isSample ? '.wav' : '.zip');
         const encodedName = encodeURIComponent(fileName);
 
-        return NextResponse.redirect(`${workerUrl}?id=${driveIdMatch}&sig=${sig}&exp=${timestamp}&name=${encodedName}&download=1`);
+        return NextResponse.redirect(`${workerUrl}?payload=${payload}&sig=${sig}&exp=${timestamp}&name=${encodedName}&download=1`);
     }
 
     // 🔄 Fallback: Direct Drive

@@ -7,17 +7,17 @@ import { unlockSample } from '@/app/packs/[slug]/actions'
 import { getSecureDownloadUrl } from '@/app/packs/actions'
 
 import { useNotify } from '@/components/ui/NotificationProvider'
-import { useVault } from '@/components/VaultProvider'
+import { useVault, useIsUnlocked } from '@/components/VaultProvider'
 import { useSWRConfig } from 'swr'
 
 type DownloadButtonProps = {
   sampleId: string
   creditCost?: number
+  packId?: string
 }
 
-export function DownloadButton({ sampleId, creditCost = 1 }: DownloadButtonProps) {
-    const { unlockedIds } = useVault()
-    const isUnlocked = unlockedIds.has(sampleId)
+export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadButtonProps) {
+    const isUnlocked = useIsUnlocked(sampleId, packId)
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
     const { mutate } = useSWRConfig()

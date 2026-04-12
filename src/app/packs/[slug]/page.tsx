@@ -77,7 +77,7 @@ export default async function PackPage({
   // 🎹 ENHANCED FETCH WITH RELATIONAL FALLBACK (Admin Signal)
   let { data: pack, error } = await adminClient
     .from('sample_packs')
-    .select('*, categories(name, id)')
+    .select('*, categories(name, id), samples(bpm, key, credit_cost)')
     .eq('slug', slug)
     .single()
 
@@ -85,7 +85,7 @@ export default async function PackPage({
   if (!pack || error) {
     const { data: fallbackPack } = await adminClient
         .from('sample_packs')
-        .select('*')
+        .select('*, samples(bpm, key, credit_cost)')
         .eq('slug', slug)
         .single()
     pack = fallbackPack;
@@ -103,12 +103,13 @@ export default async function PackPage({
   const categoryId = pack.category_id;
   const relatedPacks = categoryId ? await getRelatedPacks(pack.id, categoryId) : [];
   
-  const melodies = samples?.filter(s => s.bpm && s.key).length || 0
-  const loops = samples?.filter(s => s.bpm && !s.key).length || 0
-  const oneShots = samples?.filter(s => !s.bpm).length || 0
+  const allSamples = pack?.samples || []
+  const melodies = allSamples.filter((s: any) => s.bpm && s.key).length || 0
+  const loops = allSamples.filter((s: any) => s.bpm && !s.key).length || 0
+  const oneShots = allSamples.filter((s: any) => !s.bpm).length || 0
   
   // 💹 Master Credit Summation Engine
-  const totalIndividualCredits = samples?.reduce((sum, s) => sum + (s.credit_cost || 1), 0) || 0
+  const totalIndividualCredits = allSamples.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0) || 0
 
   // 🧪 DETECTION_PROTOCOL: IDENTIFY IF THIS IS A PREMIUM ARTIFACT (DRIVE / STEMS / MIDI)
   const hasPremiumArtifacts = pack.description?.toLowerCase().includes('stems') || 
@@ -374,7 +375,15 @@ export default async function PackPage({
             </div>
         </div>
 
-        <SampleList samples={samples || []} packName={pack.name} coverUrl={pack.cover_url} packId={pack.id} />
+        <SampleList 
+            samples={samples || []} 
+            packName={pack.name} 
+            coverUrl={pack.cover_url} 
+            packId={pack.id} 
+            totalCount={allSamples.length}
+            loopsCount={loops + melodies}
+            oneShotsCount={oneShots}
+        />
         
         {samples && samples.length > 0 && (
             <div className="mt-20">

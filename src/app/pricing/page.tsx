@@ -44,14 +44,14 @@ export default async function PricingPage() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 px-4">
           <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
-            <Activity size={10} /> {activeSub ? `MEMBERSHIP :: ${currentPlanName.toUpperCase()}_PLAN` : 'PRICING :: READY'}
+            <Activity size={10} /> {activeSub ? `CURRENT PLAN : ${currentPlanName.toUpperCase()}` : 'CHOOSE YOUR PLAN'}
           </div>
           <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
-            SIGNAL <span className="text-studio-neon">TIERS</span>
+            SIMPLE <span className="text-studio-neon">PRICING</span>
           </h1>
           <p className="text-xs md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
-            Select your monthly artifact allocation or top-up your vault with one-time credit top-ups. <br className="hidden md:block"/>
-            Zero latency. Universal Licensing. Performance Guaranteed.
+            Choose a monthly subscription or buy credit packs to fit your needs. <br className="hidden md:block"/>
+            100% Royalty Free. Keep What You Download Forever.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default async function PricingPage() {
         {(!plans || plans.length === 0) && (
             <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-sm bg-black/20 text-white/10 uppercase font-black tracking-widest mb-32">
                 <Database className="h-12 w-12 mb-6 animate-pulse" />
-                Commerce Signal Lost: Plans not found in database.
+                No pricing plans available at the moment. Please check back later.
             </div>
         )}
 
@@ -81,8 +81,8 @@ export default async function PricingPage() {
                 // Fallback features if not synced yet (though SQL adds them)
                 const features = plan.features || [
                     `${plan.credits_per_month || 0} Monthly Credits`,
-                    `${plan.name} License Rights`,
-                    'Access to Exclusive Packs'
+                    '100% Royalty Free',
+                    'Keep Downloaded Sounds Forever'
                 ]
                 
                 return (
@@ -95,13 +95,13 @@ export default async function PricingPage() {
                     
                     {plan.name === 'Professional' && !isActive && !isLower && (
                         <div className="absolute -top-3 right-6 bg-studio-yellow text-black text-[8px] md:text-[10px] font-black uppercase tracking-widest px-4 md:px-6 py-2 rounded-sm shadow-[0_0_20px_rgba(234,179,8,0.3)] z-20 italic">
-                            BEST_VALUE
+                            BEST VALUE
                         </div>
                     )}
 
                     {isActive && (
                         <div className="absolute -top-3 right-6 bg-studio-neon text-black text-[8px] md:text-[10px] font-black uppercase tracking-widest px-4 md:px-6 py-2 rounded-sm flex items-center gap-2 z-20 italic">
-                            ACTIVE
+                            ACTIVE PLAN
                         </div>
                     )}
                     
@@ -118,7 +118,7 @@ export default async function PricingPage() {
                     <div className="space-y-3 md:space-y-4 mb-8 md:mb-10">
                         <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">{plan.name}</h3>
                         <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#fff]/20 leading-relaxed max-w-full md:max-w-[80%] italic">
-                            {plan.description || "Initializing tier-level artifact allocation sequence."}
+                            {plan.description || "Get full access to all essential sounds with this plan."}
                         </p>
                     </div>
 
@@ -147,7 +147,7 @@ export default async function PricingPage() {
                                 isUpgrade && currentPlanName !== 'Free' ? 'UPGRADE' : 
                                 isLower ? '—' : 
                                 (plan.name === 'Starter' && !activeSub?.is_trial_used) ? 'START FREE TRIAL' : 
-                                'INITIALIZE'
+                                'SUBSCRIBE'
                             }
                             isFeatured={plan.name === 'Professional' || isActive} 
                             mode="subscription"
@@ -174,9 +174,9 @@ export default async function PricingPage() {
 
         {/* ⚡ 2. CREDIT PACKS (ONE-TIME) SECTION */}
         <div>
-            <div className="flex items-center gap-4 mb-16 text-white/10 group">
-                <Database className="h-6 w-6 group-hover:text-studio-yellow transition-colors" />
-                <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Artifact_Vault_TopUps</h2>
+            <div className="flex items-center gap-4 mb-16 text-white/10 group px-2">
+                <Database className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-yellow transition-colors" />
+                <h2 className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] italic">Credit Packs</h2>
                 <div className="h-px flex-1 bg-white/5" />
             </div>
 
@@ -189,7 +189,7 @@ export default async function PricingPage() {
                     <div className="flex justify-between items-start">
                         <div className="flex flex-col gap-1">
                              <h3 className="text-2xl font-black uppercase tracking-tight text-white/30 italic">{pack.name}</h3>
-                             <p className="text-[8px] font-black uppercase tracking-widest text-white/15 italic">{pack.description || "One-time artifact injection."}</p>
+                             <p className="text-[8px] font-black uppercase tracking-widest text-white/15 italic">{pack.description || "One-time credit purchase."}</p>
                         </div>
                         <div className="h-10 w-10 flex items-center justify-center bg-black border border-white/10 text-studio-yellow">
                             <Cpu size={16} />
@@ -205,12 +205,12 @@ export default async function PricingPage() {
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex flex-col">
                             <span className="text-3xl font-black tracking-tighter text-white">₹{pack.price_inr}</span>
-                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">Single_Allocation</span>
+                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">ONE TIME PAYMENT</span>
                         </div>
                         <div className="flex-1 max-w-[180px]">
                             <SubscribeButton 
                                 planId={pack.id} 
-                                planName={`INJECT_${pack.credits}_CR`} 
+                                planName={`BUY ${pack.credits} CREDITS`} 
                                 mode="pack"
                                 isFeatured={pack.is_featured}
                             />
@@ -231,19 +231,19 @@ export default async function PricingPage() {
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity">
                     <ShieldCheck className="h-40 w-40" />
                 </div>
-                <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">Transaction<br/>Secured</h4>
-                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">Global linking integrated with Razorpay & Stripe for zero-latency artifact acquisition.</p>
+                <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">100%<br/>Secure</h4>
+                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">Safe and encrypted payments powered by industry leaders Razorpay and Stripe.</p>
                 <div className="flex gap-4">
-                    <div className="h-10 px-6 bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">RAZORPAY_LINKED</div>
-                    <div className="h-10 px-6 bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">STRIPE_ACTIVE</div>
+                    <div className="h-10 px-6 bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">RAZORPAY</div>
+                    <div className="h-10 px-6 bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">STRIPE</div>
                 </div>
             </div>
              <div className="p-12 bg-black border-4 border-white/5 relative group hover:border-studio-neon transition-all rounded-sm overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity rotate-45">
                     <Database className="h-40 w-40" />
                 </div>
-                <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">Usage<br/>History</h4>
-                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">All artifact downloads are linked to your universal license node for perpetual high-fidelity recall.</p>
+                <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">Yours<br/>Forever</h4>
+                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">Every sound you download from SamplesWala is 100% royalty-free and yours to keep forever.</p>
                 <Link href="/profile/library" className="inline-flex items-center gap-4 text-studio-neon text-[10px] font-black uppercase tracking-widest group">
                     View My Sounds <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
                 </Link>
@@ -252,7 +252,7 @@ export default async function PricingPage() {
 
         <div className="mt-32 text-center">
              <p className="text-white/10 text-[9px] font-black uppercase tracking-[0.5em] italic">
-                SAMPLES_WALA :: COMMERCE_STACK :: PRODUCER_AUTHENTICATED
+                SAMPLESWALA © {new Date().getFullYear()}
              </p>
         </div>
       </div>

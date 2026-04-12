@@ -125,18 +125,30 @@ export async function GET(req: NextRequest) {
     const extractedId = getDriveFileId(dbUrl);
 
     /** 
-     * 🛰️ PREVIEW_SIGNAL_BRIDGE (V9_CLOUDFLARE_HYBRID)
-     * Total Zero-Egress logic: Instead of proxying here, we sign a signal for Cloudflare.
+     * 🛰️ PREVIEW_SIGNAL_BRIDGE (V9_CLOUDFLARE_HYBRID + AES_GCM)
+     * Total Zero-Egress logic: Instead of proxying here, we encrypt the ID and sign a signal for Cloudflare.
      **/
     const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
     const proxySecret = process.env.PROXY_SECRET;
 
     if (workerUrl && proxySecret && extractedId) {
+        // 🔐 Encrypt Drive ID natively using Node Crypto (AES-256-GCM)
+        const crypto = (await import('crypto')).default || await import('crypto');
+        
+        const secretHash = crypto.createHash('sha256').update(proxySecret).digest();
+        const iv = crypto.randomBytes(12);
+        
+        const cipher = crypto.createCipheriv('aes-256-gcm', secretHash, iv);
+        let encryptedId = cipher.update(extractedId, 'utf8', 'hex');
+        encryptedId += cipher.final('hex');
+        const authTag = cipher.getAuthTag().toString('hex');
+        
+        const payload = iv.toString('hex') + encryptedId + authTag;
+
         // 🔐 Generate EXPIRING HMAC-SHA256 Signature (Valid for 1 Hour)
         const timestamp = Math.floor(Date.now() / 1000) + 3600;
-        const crypto = await import('crypto');
         const hmac = crypto.createHmac('sha256', proxySecret);
-        hmac.update(`${extractedId}:${timestamp}`);
+        hmac.update(`${payload}:${timestamp}`);
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
             .replace(/\//g, "_")
@@ -147,7 +159,7 @@ export async function GET(req: NextRequest) {
         const encodedName = encodeURIComponent(brandName);
 
         // Redirect to Cloudflare
-        const redirectUrl = `${workerUrl}?id=${extractedId}&sig=${sig}&exp=${timestamp}&name=${encodedName}${isDownload ? '&download=1' : ''}`;
+        const redirectUrl = `${workerUrl}?payload=${payload}&sig=${sig}&exp=${timestamp}&name=${encodedName}${isDownload ? '&download=1' : ''}`;
         return NextResponse.redirect(redirectUrl);
     }
 
