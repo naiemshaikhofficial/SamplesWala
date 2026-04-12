@@ -38,16 +38,18 @@ export function CreditCounter() {
   }, [supabase])
 
   useEffect(() => {
+    let isMounted = true;
     let activeChannel: any = null;
 
     const setupRealtime = async () => {
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        if (!user || !isMounted) return
 
         syncState()
 
-        // 🧬 DYNAMIC_SIGNAL_ISOLATION (Stable channel name for this session)
-        activeChannel = supabase.channel(`acc-sync-${user.id}`)
+        // 🧬 DYNAMIC_SIGNAL_ISOLATION (Unique channel per mount to avoid Strict Mode reuse errors)
+        const channelId = `acc-sync-${user.id}-${Math.random().toString(36).substring(7)}`
+        activeChannel = supabase.channel(channelId)
           .on(
             'postgres_changes', 
             { 
@@ -56,7 +58,7 @@ export function CreditCounter() {
               table: 'user_accounts',
               filter: `user_id=eq.${user.id}`
             }, 
-            () => syncState()
+            () => { if (isMounted) syncState(); }
           )
         
         // 📡 Subscribe after setup
@@ -69,6 +71,7 @@ export function CreditCounter() {
     window.addEventListener('refresh-credits', onManualRefresh);
 
     return () => { 
+        isMounted = false;
         if (activeChannel) supabase.removeChannel(activeChannel) 
         window.removeEventListener('refresh-credits', onManualRefresh);
     }

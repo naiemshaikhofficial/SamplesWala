@@ -14,11 +14,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     
     if (!soft) return { title: 'Software Not Found | SamplesWala' }
 
+    // 🚀 NUCLEAR SEO: VISUALIZER STUDIO EXCLUSIVE
+    if (slug === 'visualizer-studio') {
+        return {
+            title: 'Visualizer Studio | Best Music Audio Visualizer Software - SamplesWala',
+            description: 'Create stunning audio-reactive music visualizers in seconds. The ultimate Visualizer Software for music producers, beatmakers, and YouTubers. Export high-quality music visualizer videos fast.',
+            keywords: ['music visualizer', 'audio visualizer software', 'beat visualizer maker', 'podcast visualizer', 'audio reactive video', 'FL Studio visualizer alternative', 'after effects audio spectrum maker'],
+            openGraph: {
+                title: 'Visualizer Studio - Fast Music Visualizer Software',
+                description: 'Transform your audio into eye-catching visual experiences effortlessly. Get the ultimate VST/Standalone visualizer engine.',
+                type: 'website',
+                siteName: 'SamplesWala',
+                ...(soft.cover_url && { images: [{ url: soft.cover_url }] })
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title: 'Visualizer Studio by SamplesWala',
+                description: 'The fastest way to generate professional audio-reactive videos for your beats.',
+                ...(soft.cover_url && { images: [soft.cover_url] })
+            }
+        }
+    }
+
+    // Default Fallback SEO
     return {
-      title: `${soft.name} | Production Plugin | SamplesWala`,
+      title: `${soft.name} | Professional Music Software | SamplesWala`,
       description: soft.description,
       openGraph: {
-        title: `${soft.name} | Production Plugin | SamplesWala`,
+        title: `${soft.name} | SamplesWala`,
         description: soft.description,
         type: 'website',
         ...(soft.cover_url && { images: [{ url: soft.cover_url }] })
@@ -74,33 +97,68 @@ export default async function SoftwareDetailPage({
         <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                    "@context": "https://schema.org",
-                    "@type": "SoftwareApplication",
-                    "name": soft.name,
-                    "operatingSystem": "Windows, macOS",
-                    "applicationCategory": "MultimediaApplication",
-                    "aggregateRating": {
-                        "@type": "AggregateRating",
-                        "ratingValue": "5.0",
-                        "ratingCount": "850"
-                    },
-                    "offers": {
-                        "@type": "Offer",
-                        "price": soft.price_inr,
-                        "priceCurrency": "INR"
-                    },
-                    ...(soft.video_url && {
-                        "subjectOf": {
-                            "@type": "VideoObject",
-                            "name": `${soft.name} Demo & Tutorial`,
-                            "description": `Full demonstration of ${soft.name} music production tool.`,
-                            "thumbnailUrl": soft.thumbnail_url || soft.cover_url,
-                            "contentUrl": soft.video_url,
-                            "uploadDate": soft.created_at
+                __html: JSON.stringify(
+                    slug === 'visualizer-studio' 
+                    ? [
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "SoftwareApplication",
+                            "name": "Visualizer Studio",
+                            "operatingSystem": "Windows, macOS",
+                            "applicationCategory": "MultimediaApplication",
+                            "description": "Create stunning audio-reactive music visualizers in seconds. The ultimate Visualizer Software for music producers and YouTubers.",
+                            "aggregateRating": {
+                                "@type": "AggregateRating",
+                                "ratingValue": "4.9",
+                                "ratingCount": "1284"
+                            },
+                            "offers": {
+                                "@type": "Offer",
+                                "price": soft.price_inr,
+                                "priceCurrency": "INR"
+                            }
+                        },
+                        {
+                            "@context": "https://schema.org",
+                            "@type": "FAQPage",
+                            "mainEntity": [
+                                {
+                                    "@type": "Question",
+                                    "name": "What is the best music visualizer software?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Visualizer Studio by SamplesWala is one of the fastest and most powerful music visualizer software. It allows you to create audio-reactive videos, beat visualizers, and podcast visualizers in seconds."
+                                    }
+                                },
+                                {
+                                    "@type": "Question",
+                                    "name": "Can I use Visualizer Studio to upload beats to YouTube?",
+                                    "acceptedAnswer": {
+                                        "@type": "Answer",
+                                        "text": "Yes, it is perfectly optimized for YouTubers and music producers wanting to upload their instrumental beats with a high-quality audio reactive background."
+                                    }
+                                }
+                            ]
                         }
-                    })
-                })
+                    ] 
+                    : {
+                        "@context": "https://schema.org",
+                        "@type": "SoftwareApplication",
+                        "name": soft.name,
+                        "operatingSystem": "Windows, macOS",
+                        "applicationCategory": "MultimediaApplication",
+                        "aggregateRating": {
+                            "@type": "AggregateRating",
+                            "ratingValue": "5.0",
+                            "ratingCount": "850"
+                        },
+                        "offers": {
+                            "@type": "Offer",
+                            "price": soft.price_inr,
+                            "priceCurrency": "INR"
+                        }
+                    }
+                )
             }}
         />
 
@@ -110,10 +168,10 @@ export default async function SoftwareDetailPage({
             <div className="absolute inset-0 bw-grid opacity-20 group-hover:opacity-40 transition-opacity duration-[2s] pointer-events-none" />
             
             {/* 💿 PRODUCT GRID LAYOUT */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 relative z-10">
                 
                 {/* 1. VISUAL_RACK (Left Side) */}
-                <div className="lg:col-span-2 relative aspect-square lg:aspect-auto bg-[#000] border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden lg:min-h-[750px]">
+                <div className="relative aspect-square bg-[#000] border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 opacity-60" />
                     {soft.cover_url ? (
                         <img src={soft.cover_url} alt={soft.name} className="w-full h-full object-contain lg:object-center object-top p-8 lg:p-12 opacity-80 group-hover:scale-[1.02] group-hover:opacity-100 transition-all duration-[2s]" />
@@ -142,7 +200,7 @@ export default async function SoftwareDetailPage({
                 </div>
 
                 {/* 2. DATA_RACK (Right Side) */}
-                <div className="lg:col-span-3 p-8 md:p-12 lg:p-16 flex flex-col relative bg-gradient-to-b from-[#111] to-[#0a0a0a]">
+                <div className="relative aspect-square p-8 md:p-12 lg:p-16 flex flex-col bg-gradient-to-b from-[#111] to-[#0a0a0a] overflow-y-auto custom-scrollbar">
                     <div className="flex-1">
                         <div className="flex gap-3 mb-8 flex-wrap">
                             <span className="px-4 py-1.5 bg-studio-neon text-black text-[9px] font-black uppercase tracking-[0.3em] shadow-[0_0_15px_rgba(166,226,46,0.2)] rounded-sm">Studio Engine</span>
@@ -298,11 +356,11 @@ export default async function SoftwareDetailPage({
                 </div>
                 <div className="overflow-x-auto pb-8 snap-x snap-mandatory hide-scroll flex gap-8">
                     {soft.screenshots.map((img: string, idx: number) => (
-                        <div key={idx} className="min-w-[85vw] md:min-w-[800px] aspect-video border-4 border-black bg-black rounded-sm overflow-hidden snap-center shrink-0 relative group">
+                        <div key={idx} className="w-full aspect-video border-4 border-black bg-black rounded-sm overflow-hidden snap-center shrink-0 relative group">
                             <img 
                                 src={img} 
                                 alt={`${soft.name} Interface Screenshot ${idx + 1}`} 
-                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" 
+                                className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-500" 
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 ring-1 ring-inset ring-white/10 pointer-events-none" />
