@@ -48,13 +48,13 @@ export function AdaptiveHero() {
                 <div className="flex items-center justify-center gap-4 md:gap-10 text-studio-neon w-full">
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                     <span className="text-[8px] md:text-sm font-black uppercase tracking-[0.3em] md:tracking-[0.8em] flex items-center gap-2 bg-black/60 px-4 py-1.5 border border-studio-neon/20 italic">
-                         MASTER_CONSOLE
+                         PREMIUM SOUNDS
                     </span>
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                 </div>
 
                 <p className="max-w-lg mx-auto text-[10px] md:text-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] leading-relaxed text-white/40 px-4 text-center">
-                    PRO-GRADE_ARCHIVE_NODE :: UNLIMITED_SIGNAL_ACCESS
+                    PRO-GRADE SAMPLES :: UNLIMITED ACCESS
                 </p>
             </div>
 
@@ -77,8 +77,8 @@ export function AdaptiveHero() {
                          <Play size={20} fill="currentColor" className="text-white group-hover:text-studio-neon transition-colors" />
                     </div>
                     <div className="text-left">
-                        <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/40 group-hover:text-studio-neon">Audio_Preview</p>
-                        <p className="text-[8px] md:text-[10px] text-white/20 font-bold uppercase tracking-widest italic group-hover:text-white">Load session metadata</p>
+                        <p className="text-[10px] md:text-xs font-black uppercase tracking-widest text-white/40 group-hover:text-studio-neon">Sound Preview</p>
+                        <p className="text-[8px] md:text-[10px] text-white/20 font-bold uppercase tracking-widest italic group-hover:text-white">Listen to high-quality audio</p>
                     </div>
                 </div>
             </div>

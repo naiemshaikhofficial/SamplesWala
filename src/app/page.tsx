@@ -9,13 +9,9 @@ import { NewArrivals } from "@/components/home/NewArrivals";
 import { FreshSounds } from "@/components/home/FreshSounds";
 import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
+import { SoftwareSpotlight } from "@/components/home/SoftwareSpotlight";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
 import { Suspense } from 'react'
-import { 
-  MasterBusSkeleton, 
-  DAWGridSkeleton, 
-  MixerTrackSkeleton 
-} from "@/components/ui/StudioSkeletons";
 
 export const revalidate = 3600;
 
@@ -66,6 +62,18 @@ async function TopChartsSection() {
   return <TopSounds samples={topSamples || []} />
 }
 
+async function SoftwareSection() {
+  const adminClient = getAdminClient()
+  const { data: products } = await adminClient
+    .from('software_products')
+    .select('id, name, slug, description, price_inr, cover_url, current_version')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(2)
+
+  return <SoftwareSpotlight products={products || []} />
+}
+
 export default function Home() {
 
   return (
@@ -105,6 +113,11 @@ export default function Home() {
               </Suspense>
             </div>
         </section>
+
+        {/* 🛠️ SOFTWARE SPOTLIGHT */}
+        <Suspense fallback={null}>
+            <SoftwareSection />
+        </Suspense>
 
         {/* 🎚️ MIXER MATRIX (FX RACK) - FORCED ROW ON MOBILE */}
         <section className="relative z-20 border-b-4 border-white/5 bg-studio-charcoal overflow-hidden">
@@ -296,10 +309,10 @@ export default function Home() {
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
                 <div className="flex gap-10 items-center">
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">System_Status</p>
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Status</p>
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-studio-neon animate-pulse" />
-                            <span className="text-xs font-bold text-studio-neon">ALL_MODULES_ACTIVE</span>
+                            <span className="text-xs font-bold text-studio-neon">ALL SYSTEMS OPERATIONAL</span>
                         </div>
                     </div>
                 </div>
