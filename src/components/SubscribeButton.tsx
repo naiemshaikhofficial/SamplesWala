@@ -111,16 +111,16 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none
       `}
     >
-      <div className="relative z-10 flex items-center justify-center gap-3">
+      <div className="relative z-10 flex flex-row items-center justify-center gap-3 px-4 w-full">
         {isPending ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Processing...</span>
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+            <span className="leading-snug break-words">PROCESSING...</span>
           </>
         ) : (
           <>
-            <Sparkles className={`h-4 w-4 ${isFeatured ? 'text-yellow-600' : 'text-white/20'} group-hover:animate-pulse`} />
-            <span>{planName}</span>
+            <Sparkles className={`h-4 w-4 shrink-0 ${isFeatured ? 'text-yellow-600' : 'text-white/20'} group-hover:animate-pulse`} />
+            <span className="leading-snug break-words">{planName}</span>
           </>
         )}
       </div>
