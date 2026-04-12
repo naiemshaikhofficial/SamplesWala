@@ -143,12 +143,29 @@ export async function unlockFullPack(packId: string) {
 
     if (vaultError) throw new Error("Ownership Registration Failed: " + vaultError.message)
 
-    // 3. AUTOMATED_SIGNAL_PERMISSION (DISABLED: Using Direct Proxy V4 instead)
-    /*
+    // 3. 📧 Dispatch Credit Purchase Email Note
     if (user.email) {
-        await grantDrivePermission(user.email, packId, true);
+        // Must dynamically import crypto for server logic
+        const crypto = await import('crypto') 
+        const orderId = `crd_${crypto.randomBytes(4).toString('hex')}`
+        
+        const links = [];
+        if (pack.download_url) links.push({ label: 'Download Pack (.ZIP)', url: pack.download_url });
+        
+        // Let it run async without blocking the client response
+        const { sendPurchaseEmail } = await import('@/lib/email')
+        sendPurchaseEmail(
+            user.id, 
+            user.email, 
+            user.user_metadata?.full_name || 'Producer', 
+            pack.name, 
+            'Master Sample Pack (Credit Purchase)', 
+            cost, 
+            orderId, 
+            links, 
+            'CREDITS'
+        ).catch(e => console.error("[CREDIT_EMAIL_ERROR]", e));
     }
-    */
 
     revalidatePath(`/packs/${pack.slug}`)
     return { success: true }

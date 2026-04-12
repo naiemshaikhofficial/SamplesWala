@@ -6,130 +6,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
-import { Resend } from 'resend'
 import { generateInvoicePDF } from '@/lib/pdfGenerator'
-
-// 📧 INITIALIZE RESEND
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-// 🟢 INTERNAL EMAIL SENDER / INVOICE DISPATCH
-async function sendPurchaseEmail(email: string, name: string, itemName: string, itemType: string, amountPaid: number, orderId: string, downloadUrls?: {label: string, url: string}[]) {
-    if (!resend) {
-        console.log('[EMAIL_SYSTEM] RESEND_API_KEY missing. Skipping email for:', email);
-        return;
-    }
-
-    const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #050505; color: #ffffff; padding: 40px; border-radius: 12px; border: 1px solid #1a1a1a;">
-            
-            <!-- HEADER WITH LOGO -->
-            <div style="text-align: center; border-bottom: 1px dashed #333; padding-bottom: 25px; margin-bottom: 30px;">
-                <img src="https://imagizer.imageshack.com/img924/3983/vzoEZd.png" alt="SamplesWala Root" style="height: 55px; margin-bottom: 15px;" />
-                <h1 style="color: #a6e22e; font-style: italic; font-weight: 900; text-transform: uppercase; margin: 0; font-size: 20px; letter-spacing: 2px;">Auto-Generated Invoice</h1>
-            </div>
-
-            <p style="font-size: 16px; margin-bottom: 20px;">Hey ${name || 'Producer'},</p>
-            
-            <p style="font-size: 16px; margin-bottom: 20px; line-height: 1.5;">
-                Your payment was successfully processed. Access to <strong>${itemName}</strong> is now securely linked to your profile. Please keep this invoice for your financial records.
-            </p>
-
-            <div style="background-color: #111; padding: 25px; border-radius: 8px; border: 1px solid #222; margin: 30px 0;">
-                <p style="margin: 0 0 20px 0; font-size: 14px; font-weight: bold; color: #a6e22e; text-transform: uppercase; letter-spacing: 1px;">Order Information</p>
-                
-                <table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 14px;">
-                    <tr>
-                        <td style="padding: 10px 0; color: #888;">Order ID:</td>
-                        <td style="padding: 10px 0; text-align: right; color: #fff; font-weight: bold;">${orderId}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px 0; color: #888;">Date of Issue:</td>
-                        <td style="padding: 10px 0; text-align: right; color: #fff;">${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px 0; color: #888;">Product Identity:</td>
-                        <td style="padding: 10px 0; text-align: right; color: #fff;">${itemName}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px 0; color: #888;">License Format:</td>
-                        <td style="padding: 10px 0; text-align: right; color: #fff;">${itemType}</td>
-                    </tr>
-                    <tr style="border-top: 1px dashed #333;">
-                        <td style="padding: 15px 0 0 0; font-weight: 900; color: #a6e22e; font-size: 16px; text-transform: uppercase;">Total Paid</td>
-                        <td style="padding: 15px 0 0 0; text-align: right; font-weight: 900; color: #a6e22e; font-size: 16px;">₹${amountPaid}</td>
-                    </tr>
-                </table>
-            </div>
-
-            ${downloadUrls && downloadUrls.length > 0 ? `
-            <div style="background-color: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-                <p style="margin: 0 0 15px 0; font-size: 14px; font-weight: bold; color: #a6e22e; text-transform: uppercase;">Direct Download Links</p>
-                ${downloadUrls.map(link => `
-                    <a href="${link.url}" style="display: block; background-color: #111; color: #fff; text-decoration: none; padding: 12px 20px; border: 1px solid #333; margin-bottom: 10px; border-radius: 4px; font-weight: bold; text-align: center;">
-                        ⬇️ ${link.label}
-                    </a>
-                `).join('')}
-            </div>
-            ` : ''}
-
-            <p style="font-size: 16px; margin-bottom: 30px; line-height: 1.5; text-align: center;">
-                You can also access your assets anytime directly from your dashboard.
-            </p>
-
-            <div style="margin-bottom: 40px; text-align: center;">
-                <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://sampleswala.com'}/profile" style="display: inline-block; background-color: #a6e22e; color: #000; text-decoration: none; padding: 16px 32px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px; font-size: 14px;">Access Library</a>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid #1a1a1a; margin: 40px 0 30px 0;">
-            
-            <!-- EXCLUSIVE FOOTER -->
-            <div style="text-align: center;">
-                <p style="font-size: 14px; color: #aaa; line-height: 1.5; margin: 0 0 15px 0;">
-                    Need help? Contact us: <a href="mailto:Support@Sampleswala.com" style="color: #a6e22e; text-decoration: none; font-weight: bold;">Support@Sampleswala.com</a>
-                </p>
-                
-                <div style="margin: 25px 0;">
-                    <a href="https://instagram.com/SamplesWala" style="color: #fff; text-decoration: none; margin: 0 12px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">📷 @SamplesWala</a>
-                    <a href="https://twitter.com/SamplesWala" style="color: #fff; text-decoration: none; margin: 0 12px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">🐦 @SamplesWala</a>
-                    <a href="https://youtube.com/@SamplesWala" style="color: #fff; text-decoration: none; margin: 0 12px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">📺 @SamplesWala</a>
-                </div>
-                
-                <p style="font-size: 10px; color: #444; line-height: 1.6; margin: 30px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
-                    This is a computer-generated tax invoice and requires no physical signature.<br>
-                    Generated securely by the Samples Wala Payment Network.
-                </p>
-            </div>
-
-        </div>
-    `;
-
-    try {
-        const pdfBase64 = await generateInvoicePDF(
-            orderId, 
-            name || 'Producer', 
-            itemName, 
-            itemType, 
-            amountPaid, 
-            new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })
-        );
-
-        await resend.emails.send({
-            from: 'SamplesWala <info@sampleswala.com>',
-            to: email,
-            subject: `Invoice: ${itemName} | SamplesWala`,
-            html: html,
-            attachments: [
-                {
-                    filename: `Invoice_${orderId}.pdf`,
-                    content: pdfBase64,
-                }
-            ]
-        });
-        console.log(`[EMAIL_SENT] Invoice sent to: ${email} for ${itemName}`);
-    } catch (e) {
-        console.error('[EMAIL_FAILED]', e);
-    }
-}
+import { sendPurchaseEmail } from '@/lib/email'
 
 // 💳 INITIALIZE RAZORPAY (Build-safe)
 const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
@@ -386,7 +264,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         })
 
         // 📧 4. Send Confirmation Email
-        await sendPurchaseEmail(user.email!, user.user_metadata?.full_name, plan.name, 'Premium Subscription', plan.price_inr, subscriptionId || orderId);
+        await sendPurchaseEmail(user.id, user.email!, user.user_metadata?.full_name, plan.name, 'Premium Subscription', plan.price_inr, subscriptionId || orderId);
 
     } else if (itemType === 'pack') {
         const { data: pack } = await adminSupabase.from('credit_packs').select('*').eq('id', itemId).single()
@@ -411,7 +289,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         })
 
         // 📧 Send Confirmation Email
-        await sendPurchaseEmail(user.email!, user.user_metadata?.full_name, pack.name, 'Credit Top-up Pack', pack.price_inr, orderId);
+        await sendPurchaseEmail(user.id, user.email!, user.user_metadata?.full_name, pack.name, 'Credit Top-up Pack', pack.price_inr, orderId);
 
     } else if (itemType === 'sample_pack') {
         // 🔥 MINIMALIST FULL PACK UNLOCK
@@ -443,7 +321,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         // 📧 Send Confirmation Email With Download Link
         const links = [];
         if (pack.download_url) links.push({ label: 'Download Pack (.ZIP)', url: pack.download_url });
-        await sendPurchaseEmail(user.email!, user.user_metadata?.full_name, pack.name, 'Master Sample Pack', pack.price_inr || 0, orderId, links);
+        await sendPurchaseEmail(user.id, user.email!, user.user_metadata?.full_name, pack.name, 'Master Sample Pack', pack.price_inr || 0, orderId, links);
 
     } else if (itemType === 'software') {
         const { data: soft } = await adminSupabase.from('software_products').select('*').eq('id', itemId).single()
@@ -476,7 +354,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         const links = [];
         if (soft.download_url_win) links.push({ label: 'Download for Windows', url: soft.download_url_win });
         if (soft.download_url_mac) links.push({ label: 'Download for Mac', url: soft.download_url_mac });
-        await sendPurchaseEmail(user.email!, user.user_metadata?.full_name, soft.name, 'Software Perpetual License', soft.price_inr, orderId, links);
+        await sendPurchaseEmail(user.id, user.email!, user.user_metadata?.full_name, soft.name, 'Software Perpetual License', soft.price_inr, orderId, links);
     }
 
     revalidatePath('/')
