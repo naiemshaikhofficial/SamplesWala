@@ -38,8 +38,9 @@ export function SampleList({ samples, packName, coverUrl, packId }: SampleListPr
         return samples
     }, [samples, filter])
 
-    useEffect(() => {
-        const playlistData = filteredSamples.map(s => {
+    // 🧬 MEMOIZED_PLAYLIST_GENERATOR
+    const playlistData = useMemo(() => {
+        return filteredSamples.map(s => {
             const isUnlocked = unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false)
             return {
                 id: s.id,
@@ -52,8 +53,11 @@ export function SampleList({ samples, packName, coverUrl, packId }: SampleListPr
                 isUnlocked: isUnlocked
             }
         })
+    }, [filteredSamples, packName, coverUrl, unlockedIds, packId])
+
+    useEffect(() => {
         setPlaylist(playlistData)
-    }, [filteredSamples, packName, coverUrl, unlockedIds, packId, setPlaylist])
+    }, [playlistData, setPlaylist])
 
     return (
         <div className="space-y-6 md:space-y-8 w-full">

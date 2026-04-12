@@ -11,6 +11,11 @@ import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
 import { Suspense } from 'react'
+import { 
+  MasterBusSkeleton, 
+  DAWGridSkeleton, 
+  MixerTrackSkeleton 
+} from "@/components/ui/StudioSkeletons";
 
 export const revalidate = 3600;
 
@@ -19,36 +24,49 @@ export const metadata = {
   description: 'Pro-grade sample packs, loops, and individual sounds for music producers. Industry-standard royalty-free audio for Trap, EDM, Hip-Hop, and more.',
 }
 
-export default async function Home() {
+async function NewArrivalsSection() {
   const adminClient = getAdminClient()
-  
-  let { data: latestPacks, error: packsError } = await adminClient
+  let { data: latestPacks } = await adminClient
     .from('sample_packs')
-    .select('*, categories(name), samples(bpm, key)')
+    .select('id, name, slug, price_inr, cover_url, categories(name), samples(bpm, key)')
     .order('created_at', { ascending: false })
     .limit(12)
 
-  if (packsError || !latestPacks || latestPacks.length === 0) {
-      const { data: fallbackScan } = await adminClient
-        .from('sample_packs')
-        .select('*, samples(bpm, key)')
-        .order('created_at', { ascending: false })
-        .limit(12)
-      latestPacks = fallbackScan as any;
+  // Fallback check
+  if (!latestPacks || latestPacks.length === 0) {
+    const { data: fallbackScan } = await adminClient
+      .from('sample_packs')
+      .select('id, name, slug, price_inr, cover_url, samples(bpm, key)')
+      .order('created_at', { ascending: false })
+      .limit(12)
+    latestPacks = fallbackScan as any;
   }
 
-  const topSamples = await getTopPopularSounds(20)
+  return <NewArrivals packs={latestPacks || []} />
+}
 
-  let { data: freshSounds, error: freshError } = await adminClient
+async function FreshSoundsSection() {
+  const adminClient = getAdminClient()
+  let { data: freshSounds } = await adminClient
     .from('samples')
-    .select('*, sample_packs(name, slug, cover_url)')
+    .select('id, name, audio_url, bpm, key, credit_cost, sample_packs(name, slug, cover_url)')
     .order('created_at', { ascending: false })
     .limit(20)
 
-  if (freshError || !freshSounds || freshSounds.length === 0) {
-      const { data: rawFresh } = await adminClient.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
-      freshSounds = rawFresh as any;
+  if (!freshSounds || freshSounds.length === 0) {
+    const { data: rawFresh } = await adminClient.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
+    freshSounds = rawFresh as any;
   }
+
+  return <FreshSounds samples={freshSounds || []} />
+}
+
+async function TopChartsSection() {
+  const topSamples = await getTopPopularSounds(20)
+  return <TopSounds samples={topSamples || []} />
+}
+
+export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
@@ -57,7 +75,7 @@ export default async function Home() {
         <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-black/20 to-black h-full w-full" />
 
         <div className="relative z-10">
-          <Suspense fallback={<div className="h-[600px] bg-black flex items-center justify-center"><Activity className="animate-pulse text-studio-neon" /></div>}>
+          <Suspense fallback={null}>
               <AdaptiveHero />
           </Suspense>
         </div>
@@ -73,16 +91,18 @@ export default async function Home() {
                     <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">LATEST ARRIVALS</span>
                 </div>
                 
-                <NewArrivals packs={latestPacks || []} />
+                <Suspense fallback={null}>
+                    <NewArrivalsSection />
+                </Suspense>
             </div>
         </section>
 
         {/* 📡 LIVE CHANNEL RACK: FRESH SOUNDS */}
         <section id="fresh-sounds" className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
             <div className="max-w-7xl mx-auto">
-              <FreshSounds 
-                  samples={freshSounds || []} 
-              />
+              <Suspense fallback={null}>
+                <FreshSoundsSection />
+              </Suspense>
             </div>
         </section>
 
@@ -153,10 +173,8 @@ export default async function Home() {
                 Trending
             </div>
             <div className="max-w-7xl mx-auto px-4 md:px-20 relative">
-                <Suspense fallback={<div className="h-64 flex items-center justify-center"><Activity className="animate-pulse text-studio-yellow" /></div>}>
-                  <TopSounds 
-                      samples={topSamples || []} 
-                  />
+                <Suspense fallback={null}>
+                  <TopChartsSection />
                 </Suspense>
             </div>
         </section>

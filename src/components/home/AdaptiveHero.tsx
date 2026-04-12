@@ -19,7 +19,6 @@ export function AdaptiveHero() {
   return (
     <section className="relative min-h-[600px] md:min-h-screen flex flex-col items-center justify-center pt-24 pb-16 md:pb-24 overflow-hidden bg-black w-full">
         
-        {/* 🧬 STUDIO ATMOSPHERE */}
         <div className="absolute inset-0 pointer-events-none z-0">
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-studio-neon opacity-[0.1] blur-[80px] md:blur-[180px] rounded-full" />
             <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[200px] md:w-[600px] h-[200px] md:h-[600px] bg-spider-red opacity-[0.05] blur-[60px] md:blur-[150px] rounded-full" />
@@ -32,25 +31,10 @@ export function AdaptiveHero() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/40 to-black z-10" />
         </div>
 
-        {/* 🧬 CONSOLE SCAN PASS */}
-        <div className="absolute inset-x-0 h-[2px] bg-studio-neon opacity-20 shadow-[0_0_15px_#a6e22e] animate-scan pointer-events-none z-20" />
-
         <div className="relative z-30 flex flex-col items-center text-center px-4 md:px-6 w-full max-w-full overflow-hidden">
             
-            {/* TECHNICAL HEADER - CLEANER FOR MOBILE */}
-            <div className="mb-8 md:mb-12 flex flex-wrap items-center justify-center gap-4 md:gap-10 opacity-40">
-                <div className="flex items-center gap-2">
-                    <Cpu className="w-3 h-3 text-studio-neon" />
-                    <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest leading-none">CORE: v4</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Database className="w-3 h-3 text-studio-yellow" />
-                    <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest leading-none">SYNC: LIVE</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Activity className="w-3 h-3 text-spider-red" />
-                    <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest leading-none">SIG: OK</span>
-                </div>
+            {/* TECHNICAL HEADER - REMOVED AS PER USER REQUEST */}
+            <div className="mb-8 md:mb-12 flex flex-wrap items-center justify-center gap-4 md:gap-10 opacity-0 h-4">
             </div>
 
             {/* LOGO CONTAINER */}
@@ -64,7 +48,7 @@ export function AdaptiveHero() {
                 <div className="flex items-center justify-center gap-4 md:gap-10 text-studio-neon w-full">
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                     <span className="text-[8px] md:text-sm font-black uppercase tracking-[0.3em] md:tracking-[0.8em] flex items-center gap-2 bg-black/60 px-4 py-1.5 border border-studio-neon/20 italic">
-                        <Zap className="h-3 w-3 animate-pulse" /> MASTER_CONSOLE
+                         MASTER_CONSOLE
                     </span>
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                 </div>
@@ -101,11 +85,9 @@ export function AdaptiveHero() {
         </div>
 
         {/* Level Decor - Responsive count */}
-         <div className="absolute bottom-6 left-0 right-0 h-10 flex items-end gap-[2px] md:gap-1 px-4 opacity-30 pointer-events-none justify-center">
-              {isMounted && [...Array(meterCount)].map((_, i) => (
-                  <div key={i} className="flex-1 max-w-[10px] bg-studio-neon animate-meter" style={{ height: `${20 + Math.random() * 60}%`, animationDelay: `${i * 0.1}s` }} />
-              ))}
-         </div>
+        <div className="absolute bottom-6 left-0 right-0 h-10 flex items-end gap-[2px] md:gap-1 px-4 opacity-10 pointer-events-none justify-center">
+             {/* Animating meter removed to avoid "fake loader" perception */}
+        </div>
     </section>
   )
 }

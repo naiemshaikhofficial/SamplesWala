@@ -55,9 +55,12 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
           />
       )}
 
-      {/* 🎧 SOUND_CLOUD: 80 Precise Bars */}
+      {/* 🎧 SOUND_CLOUD: Optimized Bar Rendering */}
       <div className="relative z-10 flex items-center justify-center gap-[2px] w-full h-full px-4">
         {staticBars.map((baseHeight, i) => {
+            // 🚀 PERFORMANCE_MODE: Render fewer bars for non-active components to save DOM nodes
+            if (!isActive && i % 2 !== 0) return null;
+
             const barPos = (i / staticBars.length) * 100;
             const isPast = barPos < progress;
             
@@ -81,7 +84,9 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
                     : 'rgba(255,255,255,0.1)',
                   boxShadow: (isPast && isActive && isPlaying) ? '0 0 10px rgba(166,226,46,0.3)' : 'none',
                   transform: `scaleY(${pulseFactor.toFixed(2)})`,
-                  opacity: isPast ? 1 : 0.3
+                  opacity: isPast ? 1 : 0.3,
+                  // Disable pointer events on individual bars to speed up paint
+                  pointerEvents: 'none'
                 }}
               />
             )

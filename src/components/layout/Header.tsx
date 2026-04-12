@@ -54,9 +54,16 @@ export function Header() {
               { label: 'Library', href: '/library' },
               { label: 'Account', href: '/profile' }
             ].map((item: any) => (
-                <Link key={item.label} href={item.href} className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group" title={item.label}>
-                   <div className="w-1.5 h-1.5 rounded-full bg-studio-neon opacity-20 group-hover:opacity-100 transition-opacity" />
+                <Link 
+                  key={item.label} 
+                  href={item.href} 
+                  prefetch={true}
+                  className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group relative" 
+                  title={item.label}
+                >
+                   <div className="w-1.5 h-1.5 rounded-full bg-studio-neon opacity-20 group-hover:opacity-100 group-hover:animate-pulse transition-opacity" />
                    {item.label}
+                   <div className="absolute -bottom-2.5 left-0 w-0 h-[1px] bg-studio-neon group-hover:w-full transition-all duration-300" />
                 </Link>
             ))}
         </div>
@@ -137,8 +144,9 @@ export function Header() {
                         </Link>
                     )}
                     <CreditCounter />
-                    <Link href="/profile" className="h-8 w-8 md:h-11 md:w-11 flex items-center justify-center studio-panel border border-white/10 hover:border-studio-neon transition-all bg-[#222] pointer-events-auto cursor-pointer">
-                        <User className="h-4 w-4 text-white/40" />
+                    <Link href="/profile" className="h-8 w-8 md:h-11 md:w-11 flex items-center justify-center studio-panel border border-white/10 hover:border-studio-neon transition-all bg-[#222] pointer-events-auto cursor-pointer relative overflow-hidden group">
+                        <User className="h-4 w-4 text-white/40 group-hover:text-studio-neon" />
+                        <div className="absolute top-0 right-0 w-1.5 h-1.5 bg-studio-neon opacity-40 animate-pulse" />
                     </Link>
                 </div>
             ) : (

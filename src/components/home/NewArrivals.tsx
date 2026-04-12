@@ -48,7 +48,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
             </div>
 
             <div className="w-full">
-                {packs && packs.length > 0 ? (
+                {packs && packs.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 mt-8">
                         {packs.map((pack, i) => (
                             <motion.div 
@@ -76,6 +76,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                                 alt={`${pack.name} - ${pack.categories?.name || 'Pro'} Sample Pack | SamplesWala`} 
                                                 fill 
                                                 sizes="(max-width: 768px) 50vw, 25vw"
+                                                priority={i < 4}
                                                 className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 opacity-60 group-hover:opacity-100" 
                                             />
                                         ) : (
@@ -104,11 +105,6 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                 </Link>
                             </motion.div>
                         ))}
-                    </div>
-                ) : (
-                    <div className="h-64 flex flex-col items-center justify-center border-4 border-dashed border-white/5 text-white/10 uppercase font-black tracking-widest italic">
-                        <Layers className="w-16 h-16 mb-4 opacity-10" />
-                        Awaiting Signal...
                     </div>
                 )}
             </div>

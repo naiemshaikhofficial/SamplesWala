@@ -58,12 +58,17 @@ export default async function GenrePage({
       // But for SEO silos, we usually want these to match categories
   }
 
-  const packs = await getFilteredPacks({ category: category?.id })
-  const { samples, count } = await getFilteredSamples({ 
-    category: category?.id, 
-    limit: pageSize.toString(),
-    page: page
-  })
+  // 🚀 PARALLEL_SIGNAL_INTAKE: Fetch packs and samples simultaneously
+  const [packs, samplesResult] = await Promise.all([
+    getFilteredPacks({ category: category?.id }),
+    getFilteredSamples({ 
+      category: category?.id, 
+      limit: pageSize.toString(),
+      page: page
+    })
+  ])
+
+  const { samples, count } = samplesResult
 
   const genreDisplay = category?.name || genre.toUpperCase()
 

@@ -180,6 +180,54 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-white/10 hover:bg-studio-neon transition-colors;
   }
+
+  /* 📟 DAW_TERMINAL_SCANLINE */
+  .daw-scanline {
+    position: relative;
+    overflow: hidden;
+  }
+  .daw-scanline::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+  }
+
+  /* 🎚️ VU_METER_ANIMATION */
+  .vu-meter-bar {
+    @apply w-1.5 rounded-sm transition-all duration-75;
+  }
+  .vu-meter-green { @apply bg-studio-neon shadow-[0_0_8px_rgba(166,226,46,0.4)]; }
+  .vu-meter-yellow { @apply bg-studio-yellow shadow-[0_0_8px_rgba(255,200,0,0.4)]; }
+  .vu-meter-red { @apply bg-spider-red shadow-[0_0_8px_rgba(225,29,72,0.4)]; }
+
+  /* 🧬 SHIMMER_SIGNAL (For Skeletons) */
+  .shimmer-signal {
+    @apply relative overflow-hidden bg-white/5;
+  }
+  .shimmer-signal::after {
+    @apply absolute inset-0 -translate-x-full;
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.05) 20%,
+      rgba(255, 255, 255, 0.1) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+    content: '';
+  }
+
+  @keyframes shimmer {
+    100% { transform: translateX(100%); }
+  }
 }
 
 /* 🤫 HIDE SCROLLBAR BUT KEEP SCROLLING */
@@ -226,49 +274,24 @@
     animation: audio-meter 0.6s ease-in-out infinite;
 }
 
-/* ⚡ MASTER SECTION REVEAL */
+/* ⚡ MASTER SECTION REVEAL - ANIMATIONS REMOVED AS PER USER REQUEST */
 .section-reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .section-reveal.active {
   opacity: 1;
   transform: translateY(0);
 }
-
-@media (max-width: 768px) {
-  .section-reveal {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
-}
-
+/*
 .section-reveal::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(166, 226, 46, 0) 40%,
-    rgba(166, 226, 46, 0.6) 50%,
-    rgba(166, 226, 46, 0) 60%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 10;
+  ...
 }
-
 .section-reveal.active::after {
   animation: laser-scan 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+*/
 
 /* 💿 SIGNAL SWEEP HOVER */
 .signal-sweep {
