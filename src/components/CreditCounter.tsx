@@ -46,8 +46,8 @@ export function CreditCounter() {
 
         syncState()
 
-        // 🧬 DYNAMIC_SIGNAL_ISOLATION (Force fresh channel via timestamp)
-        activeChannel = supabase.channel(`acc-sync-${user.id}-${Date.now()}`)
+        // 🧬 DYNAMIC_SIGNAL_ISOLATION (Stable channel name for this session)
+        activeChannel = supabase.channel(`acc-sync-${user.id}`)
           .on(
             'postgres_changes', 
             { 

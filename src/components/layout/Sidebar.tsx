@@ -57,14 +57,21 @@ export function Sidebar() {
     }
     checkUser();
 
-    // Live Credit Mirroring
+    // Live Credit Mirroring (Scoped to this user only)
     const accountSubscription = supabase
-        .channel('public:user_accounts')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_accounts' }, (payload: any) => {
-            if (user && payload.new.user_id === user.id) {
+        .channel(`sidebar-credits-${user?.id || 'anon'}`)
+        .on(
+            'postgres_changes', 
+            { 
+                event: 'UPDATE', 
+                schema: 'public', 
+                table: 'user_accounts',
+                filter: user ? `user_id=eq.${user.id}` : undefined 
+            }, 
+            (payload: any) => {
                 setCreditCount(payload.new.credits);
             }
-        })
+        )
         .subscribe();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
@@ -78,7 +85,7 @@ export function Sidebar() {
         authListener.subscription.unsubscribe();
         supabase.removeChannel(accountSubscription);
     }
-  }, [supabase, user?.id]);
+  }, [supabase]); // ⚡ FIXED: Removed user?.id dependency to prevent infinite DB loops
 
   // Fetch Categories from DB
   useEffect(() => {
