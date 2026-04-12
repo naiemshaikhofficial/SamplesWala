@@ -2,15 +2,21 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 
-export async function getAllCategories() {
-  const adminClient = getAdminClient()
-  const { data, error } = await adminClient.from('categories').select('*').order('name')
-  if (error) {
-    console.error('[BROWSE_ACTION_ERROR]', error);
-    return [];
-  }
-  return data
-}
+import { unstable_cache } from 'next/cache'
+
+export const getAllCategories = unstable_cache(
+  async () => {
+    const adminClient = getAdminClient()
+    const { data, error } = await adminClient.from('categories').select('*').order('name')
+    if (error) {
+      console.error('[BROWSE_ACTION_ERROR]', error);
+      return [];
+    }
+    return data
+  },
+  ['global-categories-cache'],
+  { revalidate: 3600 }
+)
 
 export async function getFilteredPacks(filters: { query?: string, category?: string, filter?: string }) {
   const adminClient = getAdminClient()
@@ -46,11 +52,11 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
     }
   }
   
-  let { data, error } = await queryBuilder.order('created_at', { ascending: false })
+  let { data, error } = await queryBuilder.order('created_at', { ascending: false }).limit(50)
   
   if (error && error.code === 'PGRST200') {
     const fallbackQuery = adminClient.from('sample_packs').select('id, name, slug, description, price_inr, price_usd, cover_url, category_id, is_featured, created_at')
-    const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false })
+    const { data: fallbackData, error: fallbackError } = await fallbackQuery.order('created_at', { ascending: false }).limit(50)
     if (fallbackError) {
         console.error('[BROWSE_ACTION_CRITICAL_FAILURE]', fallbackError);
         return [];

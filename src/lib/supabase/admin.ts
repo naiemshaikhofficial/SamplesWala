@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
+let adminClientInstance: ReturnType<typeof createClient> | null = null
+
 export const getAdminClient = () => {
-  return createClient(
+  if (adminClientInstance) return adminClientInstance
+  
+  adminClientInstance = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
@@ -11,6 +15,7 @@ export const getAdminClient = () => {
       }
     }
   )
+  return adminClientInstance
 }
 
 /**
