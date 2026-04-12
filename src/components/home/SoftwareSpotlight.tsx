@@ -127,7 +127,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
                         </div>
 
                         {/* Background Scanline Artifacts */}
-                        <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(rgba(166,226,46,0.05)_1px,transparent_1px)] bg-[size:20px:20px] opacity-20" />
+                        <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-[radial-gradient(rgba(166,226,46,0.05)_1px,transparent_1px)] bg-[size:20px_20px] opacity-20" />
                     </motion.div>
                 ))}
             </div>

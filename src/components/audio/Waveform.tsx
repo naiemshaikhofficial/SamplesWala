@@ -45,7 +45,7 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       className={`relative h-14 w-full flex items-center justify-center gap-[2px] overflow-hidden select-none group cursor-pointer transition-all duration-700 rounded-sm bg-black/40 border border-white/[0.03] active:bg-black/60`}
     >
       {/* 🧬 SCANLINE OVERLAY: Professional Studio Texture */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.05] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-20" />
+      <div className="absolute inset-0 pointer-events-none opacity-[0.05] scanline-bg z-20" />
       
       {/* 🔋 ACTIVE GLOW AURA */}
       {isActive && isPlaying && (

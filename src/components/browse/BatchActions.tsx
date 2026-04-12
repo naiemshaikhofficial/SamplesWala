@@ -25,7 +25,7 @@ export function BatchActions({ selectedIds, onClear, onBulkAction, isProcessing 
             className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-2xl bg-black border-2 border-studio-neon p-6 shadow-[0_0_50px_rgba(166,226,46,0.2)] rounded-none"
         >
              {/* 🧬 SCANLINE OVERLAY */}
-            <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+            <div className="absolute inset-0 pointer-events-none opacity-5 scanline-bg" />
 
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-6">

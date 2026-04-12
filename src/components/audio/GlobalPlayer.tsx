@@ -44,7 +44,7 @@ export function GlobalPlayer() {
           className={`fixed bottom-[96px] md:bottom-0 left-0 right-0 z-[500] bg-black/95 border-t-2 border-white/5 font-mono select-none overflow-hidden backdrop-blur-3xl ${isOpen ? 'lg:pl-80' : 'lg:pl-20'}`}
         >
           {/* ⚡ DOS SCANLINE OVERLAY */}
-          <div className="absolute inset-0 pointer-events-none z-10 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
+          <div className="absolute inset-0 pointer-events-none z-10 opacity-10 scanline-bg" />
           
           {/* Header Strip - HIDDEN ON MOBILE TO SAVE HEIGHT */}
           <div className="hidden md:flex bg-white/5 border-b border-white/5 px-4 md:px-6 py-2 justify-between items-center text-[8px] md:text-[9px] font-black tracking-widest uppercase relative z-20">
