@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  * NEXT_SAMPLESWALA_V5 RELIANCE PROXY
  * This version uses the modern 'proxy' convention for route gating.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -73,7 +73,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-export default middleware;
+export default proxy;
 
 export const config = {
   matcher: [
