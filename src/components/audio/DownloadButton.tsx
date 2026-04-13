@@ -23,7 +23,7 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
     const { isPlaying, updateMetadataUnlocked, user } = useAudio()
-    const { showToast, showConfirm, showAuthGate } = useNotify()
+    const { showToast, showConfirm, showAuthGate, showTopUpModal } = useNotify()
 
     const handleAction = async (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -82,10 +82,18 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
             console.error("[VAULT_ROLLBACK] Unlocking failed. Reverting local state.", err);
             removeItem(sampleId)
             
-            if (err.message === 'Authentication required') {
+            const errMsg = err.message || ""
+            if (errMsg === 'Authentication required') {
                 showAuthGate()
                 return
             }
+
+            if (errMsg.toLowerCase().includes('insufficient')) {
+                showToast("Insufficient credits. Opening top-up terminal...", "warning")
+                showTopUpModal()
+                return
+            }
+
             showToast(err.message || "Error", "error")
         } finally {
             setIsProcessing(false)

@@ -89,7 +89,7 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       rzp.open()
       
     } catch (err: any) {
-      alert(err.message || 'Checkout failed. Please try again.')
+      showToast(err.message || 'Checkout failed. Please try again.', 'error')
     } finally {
       setIsPending(false)
     }

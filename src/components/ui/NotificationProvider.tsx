@@ -51,7 +51,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [])
 
   const showAuthGate = useCallback(() => {
-    setIsAuthGateOpen(true)
+    // 🧬 DIRECT_REDRIRECT: Instead of showing a modal, we push to login with a return signal
+    const returnPath = window.location.pathname + window.location.search
+    window.location.href = `/auth/login?redirect=${encodeURIComponent(returnPath)}`
   }, [])
 
   const showTopUpModal = useCallback(() => {
@@ -308,20 +310,24 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
             const { data: { session } } = await supabase.auth.getSession()
             const user = session?.user;
             if (!user) throw new Error("Unauthenticated");
+            
+            // 🚀 ATOMIC_UPSERT: Create if doesn't exist, update if it does.
             const { error } = await supabase
                 .from('user_accounts')
-                .update({
+                .upsert({
+                    user_id: user.id,
                     full_name: billing.full_name,
                     phone_number: billing.phone,
                     address_line1: billing.address,
                     city: billing.city,
                     state: billing.state,
-                    postal_code: billing.zip
-                }).eq('user_id', user.id)
+                    postal_code: billing.zip,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id' })
 
             if (error) throw error
 
-            // 🧬 EDGE SYNC: Update local signature
+            // 🧬 EDGE SYNC: Update local signature for zero-latency retrieval
             localStorage.setItem(`billing_${user.id}`, JSON.stringify(billing))
             
             setStep('payment')

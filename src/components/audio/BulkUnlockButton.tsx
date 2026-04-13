@@ -13,7 +13,7 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
   const router = useRouter()
   const { mutate } = useSWRConfig()
   const { unlockItem } = useVault()
-  const { showToast, showAuthGate } = useNotify()
+  const { showToast, showAuthGate, showTopUpModal } = useNotify()
 
   const handleBulkUnlock = async () => {
     // 🛡️ DOUBLE-CLICK CONFIRMATION SYSTEM (Same as Individual Samples)
@@ -48,11 +48,19 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
           }, 2000)
       }
     } catch (err: any) {
-      if (err.message === 'Authentication required') {
+      const errMsg = err.message || ""
+      if (errMsg === 'Authentication required') {
           showAuthGate()
           return
       }
-      alert(err.message || 'Error unlocking bundle.')
+
+      if (errMsg.toLowerCase().includes('insufficient')) {
+          showToast("Insufficient credits. Opening top-up terminal...", "warning")
+          showTopUpModal()
+          return
+      }
+
+      showToast(err.message || 'Error unlocking bundle.', 'error')
     } finally {
       setLoading(false)
     }

@@ -57,9 +57,9 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   }
   
   // 🧬 REALTIME_VAULT_SYNC
+  const channelRef = React.useRef<any>(null);
+
   useEffect(() => {
-    let channel: any = null;
-    
     const setup = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) {
@@ -77,8 +77,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
           const ids = JSON.parse(cached)
           const set = new Set(Array.isArray(ids) ? ids : [])
           if (set.size > 0) {
-            console.log(`[VAULT_CACHE] Hydrated ${set.size} items from local persistence.`)
-            // We inject into SWR cache immediately so UI is 0ms
             globalMutate('user_vault', set, false)
           }
         }
@@ -86,7 +84,13 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         console.error("[VAULT_CACHE_ERROR] Hydration failed", e)
       }
       
-      channel = supabase.channel(`vault-realtime-${userId}`)
+      // 🛡️ CLEANUP_PREVIOUS: Remove existing channel if any
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+
+      // 📡 INITIATE_REALTIME: Chain events BEFORE subscribe
+      channelRef.current = supabase.channel(`vault-realtime-${userId}`)
         .on(
           'postgres_changes', 
           { event: 'INSERT', schema: 'public', table: 'user_vault', filter: `user_id=eq.${userId}` }, 
@@ -99,7 +103,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     }
 
     setup()
-    return () => { if (channel) supabase.removeChannel(channel) }
+    return () => { 
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
   }, [supabase, globalMutate])
 
   const { data: unlockedIds, isLoading } = useSWR('user_vault', async () => {
