@@ -12,7 +12,8 @@ export function CreditCounter() {
 
   const syncState = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user;
       if (!user) return
 
       // 📀 FETCH INTEGRATED STATE (Credits + Active Subscription from User Node)
@@ -42,7 +43,8 @@ export function CreditCounter() {
     let activeChannel: any = null;
 
     const setupRealtime = async () => {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { session } } = await supabase.auth.getSession()
+        const user = session?.user;
         if (!user || !isMounted) return
 
         syncState()

@@ -51,15 +51,18 @@ export function Sidebar() {
     }
 
     const checkUser = async () => {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user ?? null;
         setUser(currentUser);
         if (currentUser) fetchCredits(currentUser.id);
     }
     checkUser();
 
     // Live Credit Mirroring (Scoped to this user only)
+    // Live Credit Mirroring (Scoped to this user only)
+    const channelId = `sidebar-cdts-${user?.id || 'anon'}-${Math.random().toString(36).substring(7)}`;
     const accountSubscription = supabase
-        .channel(`sidebar-credits-${user?.id || 'anon'}`)
+        .channel(channelId)
         .on(
             'postgres_changes', 
             { 

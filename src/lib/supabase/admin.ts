@@ -5,7 +5,7 @@ let adminClientInstance: ReturnType<typeof createClient> | null = null
 export const getAdminClient = () => {
   if (adminClientInstance) return adminClientInstance
   
-  adminClientInstance = createClient(
+  adminClientInstance = createClient<any, "public", any>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {

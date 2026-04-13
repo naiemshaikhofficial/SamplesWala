@@ -18,7 +18,8 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   
   const { data: unlockedIds, isLoading } = useSWR('user_vault', async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user;
     if (!user) return new Set<string>()
 
     const { data: vaultItems } = await supabase

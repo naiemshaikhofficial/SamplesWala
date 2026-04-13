@@ -92,9 +92,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const { createClient } = require('@/lib/supabase/client');
     const supabase = createClient();
     
-    supabase.auth.getUser().then(({ data }: { data: any }) => {
-        setUser(data.user);
-        userRef.current = data.user;
+    supabase.auth.getSession().then(({ data }: { data: any }) => {
+        setUser(data.session?.user || null);
+        userRef.current = data.session?.user || null;
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {

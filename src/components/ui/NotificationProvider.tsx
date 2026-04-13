@@ -253,7 +253,8 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     useEffect(() => {
         const fetchBilling = async () => {
             try {
-                const { data: { user } } = await supabase.auth.getUser()
+                const { data: { session } } = await supabase.auth.getSession()
+                const user = session?.user;
                 if (!user) return
 
                 // 🧬 EDGE CACHE: Check local signature first
@@ -304,7 +305,9 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
         }
         setLoading(true)
         try {
-            const { data: { user } } = await supabase.auth.getUser()
+            const { data: { session } } = await supabase.auth.getSession()
+            const user = session?.user;
+            if (!user) throw new Error("Unauthenticated");
             const { error } = await supabase
                 .from('user_accounts')
                 .update({
