@@ -52,18 +52,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   
   // 🎹 NUCLEAR_SEO: Enhanced Description Injection
   const genreName = pack.categories?.name || 'Electronic'
-  const title = `Download ${pack.name} - Premium ${genreName} Sample Pack | SamplesWala`
-  const description = `Get ${pack.name} by SamplesWala. High-quality ${genreName} samples including loops and one-shots. 100% Royalty-Free WAV files for FL Studio, Ableton, and Logic Pro. BPM: ${bpmStr || 'Variable'}.`
+  const title = `${pack.name} - Elite ${genreName} Samples [International Standard] | SamplesWala`
+  const description = `The #1 world-class alternative to Splice. Download ${pack.name} by SamplesWala. Professional ${genreName} loops, Trap melody, and Drill drums. 100% Royalty-Free 24-bit WAV files.`
   
   const keywords = [
     pack.name, 
     `${genreName} samples`, 
-    'sample pack', 
+    'global sample pack', 
     'royalty free loops', 
-    'wav samples', 
+    'pro wav samples', 
+    'trap loops',
+    'drill samples',
+    'afrobeat sounds',
+    'phonik loops',
     'splice alternative',
-    'indian splice sounds',
-    'looperman indian samples',
+    'looperman style sounds',
+    'industry standard audio',
     ...[...new Set(bpmList)].map(b => `${b} bpm`),
     ...[...new Set(keyList)].map(k => `${k} key`)
   ]

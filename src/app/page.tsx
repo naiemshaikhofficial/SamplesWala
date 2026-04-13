@@ -17,12 +17,13 @@ import { Suspense } from 'react'
 export const revalidate = 3600;
 
 export const metadata = {
-  title: 'Samples Wala | India’s Biggest Store for Indian Sample Packs & Loops',
-  description: 'The premium Indian alternative to Splice and LooperMan. Download 100% royalty-free Indian sample packs, Bollywood loops, and sounds. Optimized for FL Studio & Ableton.',
+  title: 'Samples Wala - Pro Global & Indian Sample Packs [Splice Alternative]',
+  description: 'The elite destination for high-quality Global & Indian samples. 100% royalty-free Trap, Drill, Hip-Hop, and Bollywood loops. Industry-standard WAV sounds for producers worldwide on FL Studio & Ableton.',
   keywords: [
-    'indian samples', 'bollywood sample packs', 'royalty free loops india', 
-    'wav samples', 'music production india', 'fl studio indian packs', 
-    'sampleswala', 'splice alternative india', 'indian splice', 'looperman alternative'
+    'global sample packs', 'trap samples', 'drill loops', 'hip hop sounds', 'edm samples',
+    'indian samples', 'bollywood sample packs', 'royalty free loops', 
+    'wav samples', 'music production', 'fl studio packs', 'sampleswala', 
+    'splice alternative', 'looperman alternative', 'cymatics style loops', 'landr samples'
   ],
   alternates: {
     canonical: 'https://sampleswala.com'
@@ -167,6 +168,43 @@ export default function Home() {
                 <Suspense fallback={null}>
                     <NewArrivalsSection />
                 </Suspense>
+            </div>
+        </section>
+
+        {/* 🧬 GENRE_MATRIX: GLOBAL_SIGNAL_BROADCAST */}
+        <section className="relative z-20 py-20 bg-black border-b-4 border-white/5">
+            <div className="max-w-7xl mx-auto px-4 md:px-20">
+                <div className="flex items-center justify-between mb-16 px-4 border-l-4 border-studio-neon">
+                   <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Browse_By_Protocol</h2>
+                   <Link href="/browse" className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon transition-colors">See_All_Node</Link>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4">
+                    {[
+                        { name: 'Hard Trap', color: 'bg-spider-red', slug: 'trap' },
+                        { name: 'UK / NY Drill', color: 'bg-studio-grey', slug: 'drill' },
+                        { name: 'Indian Fusion', color: 'bg-orange-500', slug: 'indian' },
+                        { name: 'Hip-Hop / Boombap', color: 'bg-studio-yellow', slug: 'hip-hop' },
+                        { name: 'Tech House', color: 'bg-studio-neon', slug: 'techno' },
+                        { name: 'Afrobeat', color: 'bg-green-500', slug: 'afrobeat' },
+                        { name: 'Astro-Pop', color: 'bg-purple-500', slug: 'pop' },
+                        { name: 'Phonk', color: 'bg-pink-600', slug: 'phonk' }
+                    ].map((genre) => (
+                        <Link 
+                            key={genre.name} 
+                            href={`/browse?category=${genre.slug}`}
+                            className="group relative h-32 md:h-48 overflow-hidden border-2 border-white/5 hover:border-white/20 transition-all studio-panel"
+                        >
+                            <div className={`absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity ${genre.color}`} />
+                            <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                                <span className="text-8xl font-black absolute top-0 -left-4 text-white/[0.03] italic group-hover:text-white/[0.05] transition-all">
+                                    {genre.name.split(' ')[0]}
+                                </span>
+                                <h3 className="text-sm md:text-xl font-black uppercase tracking-tighter italic z-10">{genre.name}</h3>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
             </div>
         </section>
 
