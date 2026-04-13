@@ -20,7 +20,7 @@ export const metadata = {
   title: 'Samples Wala - Pro Global & Indian Sample Packs [Splice Alternative]',
   description: 'The elite destination for high-quality Global & Indian samples. 100% royalty-free Trap, Drill, Hip-Hop, and Bollywood loops. Industry-standard WAV sounds for producers worldwide on FL Studio & Ableton.',
   keywords: [
-    'global sample packs', 'trap samples', 'drill loops', 'hip hop sounds', 'edm samples',
+    'sample packs', 'trap samples', 'drill loops', 'hip hop sounds', 'edm samples',
     'indian samples', 'bollywood sample packs', 'royalty free loops', 
     'wav samples', 'music production', 'fl studio packs', 'sampleswala', 
     'splice alternative', 'looperman alternative', 'cymatics style loops', 'landr samples'
