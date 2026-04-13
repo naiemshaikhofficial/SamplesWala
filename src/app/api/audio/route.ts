@@ -131,9 +131,6 @@ export async function GET(req: NextRequest) {
     const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
     const proxySecret = process.env.PROXY_SECRET;
     
-    const headersList = await import('next/headers').then(h => h.headers());
-    const clientIp = (await headersList).get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
-
     if (workerUrl && proxySecret && extractedId) {
         const crypto = (await import('crypto')).default || await import('crypto');
         
@@ -146,14 +143,13 @@ export async function GET(req: NextRequest) {
         const authTag = cipher.getAuthTag().toString('hex');
         const payload = iv.toString('hex') + encryptedId + authTag;
 
-        // 🔐 Generate SHORT-LIVED & TRIPLE-LOCKED Signature (2 Minute Preview)
+        // 🔐 Generate SHORT-LIVED Signature (2 Minute Preview)
         const timestamp = Math.floor(Date.now() / 1000) + 120; 
-        const userAgent = (await headersList).get('user-agent') || 'UNKNOWN';
         
         const hmac = crypto.createHmac('sha256', proxySecret);
-        // 🧬 V12_STABLE_SIGNAL :: Removed User-Agent from signature to prevent mobile playback blocks
-        // Payload + Expiry + IP
-        hmac.update(`${payload}:${timestamp}:${clientIp}`);
+        // 🧬 V19_SIGNAL :: Removed clientIp to support mobile devices with rotating IPs
+        // Payload + Expiry is already unique per request thanks to fresh IV
+        hmac.update(`${payload}:${timestamp}`);
         
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
