@@ -11,6 +11,7 @@ import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { SoftwareSpotlight } from "@/components/home/SoftwareSpotlight";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
+import { FAQSection } from "@/components/seo/FAQSection";
 import { Suspense } from 'react'
 
 export const revalidate = 3600;
@@ -207,102 +208,30 @@ export default function Home() {
         </section>
 
         {/* ❓ FAQ_PROTOCOL: DEEP_SEARCH_REAL_ESTATE */}
-        <section className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
-            <div className="max-w-4xl mx-auto px-6">
-                <div className="flex items-center gap-4 mb-16 border-l-4 border-studio-neon pl-8">
-                    <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white">
-                        Common_Inquiries <span className="text-studio-neon">[FAQ]</span>
-                    </h2>
-                </div>
-
-                <div className="space-y-8">
-                    {[
-                        { 
-                            q: "Are these samples royalty-free?", 
-                            a: "Yes, 100%. Every pack and individual sound on SamplesWala is cleared for commercial use. You can use them in your tracks and sell them on Spotify, Apple Music, and more without any legal issues." 
-                        },
-                        { 
-                            q: "What format are the sounds in?", 
-                            a: "All sounds are delivered in high-fidelity 24-bit WAV format, ensuring compatibility with FL Studio, Ableton Live, Logic Pro, and all major DAWs." 
-                        },
-                        { 
-                            q: "How do I download my purchases?", 
-                            a: "Once you unlock a sample or pack, it appears instantly in your STUDIO_VAULT (Library). You can download them directly as ZIP files or individual WAVs." 
-                        },
-                        {
-                            q: "Can I use these for Type Beats on YouTube?",
-                            a: "Absolutely. Our licenses cover everything from YouTube videos to major label releases. No attribution required, though it is appreciated."
-                        },
-                        {
-                            q: "Do you offer sound design for specific genres?",
-                            a: "Yes, we specialize in Trap, Drill, EDM, Lo-Fi, and Hip-Hop. Our sound designers are industry veterans who have worked on top-charting records."
-                        }
-                    ].map((faq, i) => (
-                        <div key={i} className="group p-8 border border-white/5 bg-studio-grey/20 hover:border-studio-neon/50 transition-all">
-                            <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-white/80 group-hover:text-studio-neon mb-4 transition-colors">
-                                {faq.q}
-                            </h3>
-                            <p className="text-sm md:text-base text-white/40 leading-relaxed font-bold italic">
-                                {faq.a}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* 📝 FAQ_SCHEMA (JSON-LD) for SEO */}
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{
-                        __html: JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": "FAQPage",
-                            "mainEntity": [
-                                {
-                                    "@type": "Question",
-                                    "name": "Are these samples royalty-free?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "Yes, 100%. Every pack and individual sound on SamplesWala is cleared for commercial use. You can use them in your tracks and sell them on Spotify, Apple Music, and more without any legal issues."
-                                    }
-                                },
-                                {
-                                    "@type": "Question",
-                                    "name": "What format are the sounds in?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "All sounds are delivered in high-fidelity 24-bit WAV format, ensuring compatibility with FL Studio, Ableton Live, Logic Pro, and all major DAWs."
-                                    }
-                                },
-                                {
-                                    "@type": "Question",
-                                    "name": "How do I download my purchases?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "Once you unlock a sample or pack, it appears instantly in your STUDIO_VAULT (Library). You can download them directly as ZIP files or individual WAVs."
-                                    }
-                                },
-                                {
-                                    "@type": "Question",
-                                    "name": "Can I use these for Type Beats on YouTube?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "Absolutely. Our licenses cover everything from YouTube videos to major label releases. No attribution required, though it is appreciated."
-                                    }
-                                },
-                                {
-                                    "@type": "Question",
-                                    "name": "Do you offer sound design for specific genres?",
-                                    "acceptedAnswer": {
-                                        "@type": "Answer",
-                                        "text": "Yes, we specialize in Trap, Drill, EDM, Lo-Fi, and Hip-Hop. Our sound designers are industry veterans who have worked on top-charting records."
-                                    }
-                                }
-                            ]
-                        })
-                    }}
-                />
-            </div>
-        </section>
+        <FAQSection 
+            items={[
+                { 
+                    q: "Are these samples royalty-free?", 
+                    a: "Yes, 100%. Every pack and individual sound on SamplesWala is cleared for commercial use. You can use them in your tracks and sell them on Spotify, Apple Music, and more without any legal issues." 
+                },
+                { 
+                    q: "What format are the sounds in?", 
+                    a: "All sounds are delivered in high-fidelity 24-bit WAV format, ensuring compatibility with FL Studio, Ableton Live, Logic Pro, and all major DAWs." 
+                },
+                { 
+                    q: "How do I download my purchases?", 
+                    a: "Once you unlock a sample or pack, it appears instantly in your STUDIO_VAULT (Library). You can download them directly as ZIP files or individual WAVs." 
+                },
+                {
+                    q: "Can I use these for Type Beats on YouTube?",
+                    a: "Absolutely. Our licenses cover everything from YouTube videos to major label releases. No attribution required, though it is appreciated."
+                },
+                {
+                    q: "Do you offer sound design for specific genres?",
+                    a: "Yes, we specialize in Trap, Drill, EDM, Lo-Fi, and Hip-Hop. Our sound designers are industry veterans who have worked on top-charting records."
+                }
+            ]}
+        />
 
         {/* 📟 STATUS FOOTER */}
         <footer className="relative z-20 pt-20 pb-32 md:py-16 px-6 bg-black border-t-8 border-black">

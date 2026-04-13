@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 
 type VaultContextType = {
   unlockedIds: Set<string>
@@ -16,7 +16,32 @@ const VaultContext = createContext<VaultContextType>({
 
 export function VaultProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
+  const { mutate } = useSWRConfig()
   
+  // 🧬 REALTIME_VAULT_SYNC
+  useEffect(() => {
+    let channel: any = null;
+    
+    const setup = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) return
+
+      channel = supabase.channel(`vault-realtime-${session.user.id}`)
+        .on(
+          'postgres_changes', 
+          { event: 'INSERT', schema: 'public', table: 'user_vault', filter: `user_id=eq.${session.user.id}` }, 
+          () => {
+            console.log("[REALTIME] New item unlocked, syncing vault...");
+            mutate('user_vault');
+          }
+        )
+        .subscribe()
+    }
+
+    setup()
+    return () => { if (channel) supabase.removeChannel(channel) }
+  }, [supabase, mutate])
+
   const { data: unlockedIds, isLoading } = useSWR('user_vault', async () => {
     const { data: { session } } = await supabase.auth.getSession()
     const user = session?.user;

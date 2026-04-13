@@ -25,11 +25,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://sampleswala.com'),
   title: {
-    default: 'SAMPLES WALA | Premium Music Production Samples & Loops',
+    default: 'SAMPLES WALA | Premium Musical Samples, Loops & VSTs',
     template: '%s | SAMPLES WALA'
   },
-  description: 'Pro-grade royalty-free audio samples, loops, and sample packs for modern music producers. High-performance sounds for Trap, EDM, Lo-Fi, and more.',
-  keywords: ['music samples', 'sample packs', 'royalty free loops', 'trap samples', 'edm loops', 'music production', 'drum kits', 'sampleswala'],
+  description: 'Pro-grade royalty-free audio samples, loops, and sample packs for modern music producers. High-performance sounds for Trap, EDM, Lo-Fi, and industry-standard VST software.',
+  keywords: ['music samples', 'sample packs', 'royalty free loops', 'trap samples', 'edm loops', 'music production', 'drum kits', 'sampleswala', 'vst plugins', 'audio samples'],
   authors: [{ name: 'SamplesWala Team' }],
   creator: 'SamplesWala',
   publisher: 'SamplesWala',
@@ -38,13 +38,18 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://sampleswala.com',
     siteName: 'SAMPLES WALA',
-    title: 'SAMPLES WALA | Premium Music Production Samples & Loops',
-    description: 'Pro-grade royalty-free audio samples for modern music producers.',
-    images: ['/og-image.jpg'],
+    title: 'SAMPLES WALA | Premium Musical Samples, Loops & VSTs',
+    description: 'Pro-grade royalty-free audio samples for modern music producers. Industry-standard sound kits.',
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: 'SAMPLES WALA - Premium Music Samples'
+    }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SAMPLES WALA | Premium Music Production Samples & Loops',
+    title: 'SAMPLES WALA | Premium Musical Samples & Loops',
     description: 'Pro-grade royalty-free audio samples for modern music producers.',
     images: ['/og-image.jpg'],
   },
@@ -65,7 +70,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://sampleswala.com',
+    canonical: '/',
   },
 }
 

@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   
   const { data: pack } = await adminClient
     .from('sample_packs')
-    .select('name, description, cover_url, samples(bpm, key)')
+    .select('name, description, cover_url, categories(name), samples(bpm, key)')
     .eq('slug', slug)
     .single()
 
@@ -35,21 +35,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Extract metadata samples for keywords
   const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
   const keyList = pack.samples?.map((s: any) => s.key).filter(Boolean)
+  const genre = pack.categories?.name || 'Music'
   
   const bpmStr = [...new Set(bpmList)].slice(0, 4).join(', ')
   const keyStr = [...new Set(keyList)].slice(0, 4).join(', ')
   
-  const title = `${pack.name} Sample Pack - ${bpmStr} BPM Loops | SamplesWala`
-  const description = `Download ${pack.name} featuring ${bpmStr} BPM samples and sounds in ${keyStr}. ${pack.description?.slice(0, 120)}... High-quality 24-bit WAV, 100% Royalty-Free.`
+  const title = `${pack.name} - ${genre} Sample Pack (${bpmStr} BPM, ${keyStr}) | SAMPLES WALA`
+  const description = `Download ${pack.name} by SamplesWala. Premium ${genre} loops, one-shots, and samples in ${bpmStr} BPM. 100% Royalty-Free. Optimized for all DAWs.`
+  const keywords = [
+    pack.name, 
+    `${genre} samples`, 
+    'sample pack', 
+    'royalty free loops', 
+    'wav samples', 
+    'music production', 
+    ...[...new Set(bpmList)].map(b => `${b} bpm`),
+    ...[...new Set(keyList)].map(k => `${k} key`)
+  ]
 
   return {
     title,
     description,
-    keywords: [pack.name, 'sample pack', 'royalty free loops', 'wav samples', 'music production', ...[...new Set(bpmList)].map(b => `${b} bpm`)],
+    keywords,
     openGraph: {
       title,
       description,
-      images: pack.cover_url ? [{ url: pack.cover_url }] : [],
+      type: 'article',
+      url: `https://sampleswala.com/packs/${slug}`,
+      images: pack.cover_url ? [{ url: pack.cover_url, width: 800, height: 800, alt: pack.name }] : [],
     },
     twitter: {
       card: 'summary_large_image',
@@ -57,6 +70,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       images: pack.cover_url ? [pack.cover_url] : [],
     },
+    alternates: {
+      canonical: `/packs/${slug}`
+    }
   }
 }
 
@@ -148,37 +164,6 @@ export default async function PackPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-      />
-      
-      {/* 🧭 BREADCRUMB_SCHEMA (JSON-LD) */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Library",
-                "item": "https://sampleswala.com/browse"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": pack.categories?.name || "Genre",
-                "item": `https://sampleswala.com/genres/${pack.categories?.name?.toLowerCase() || 'sound'}`
-              },
-              {
-                "@type": "ListItem",
-                "position": 3,
-                "name": pack.name,
-                "item": `https://sampleswala.com/packs/${slug}`
-              }
-            ]
-          })
-        }}
       />
       
       <Breadcrumbs 

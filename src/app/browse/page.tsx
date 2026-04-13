@@ -27,16 +27,31 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const category = params.category
   
   let title = 'Sounds Library | SAMPLES WALA'
-  let description = 'Browse our massive library of premium royalty-free samples and loops.'
+  let description = 'Browse our massive library of premium royalty-free samples, drum kits, and loops. Filter by BPM, Key, and Genre to find your perfect sound.'
+  const domain = 'https://sampleswala.com'
 
   if (q) {
-    title = `Search results for "${q}" | SAMPLES WALA`
+    title = `Download "${q}" Samples & Loops | SAMPLES WALA`
+    description = `Explore high-quality "${q}" audio samples and loops for music production. Pro-grade 24-bit WAV files, 100% royalty-free.`
   } else if (category) {
-    title = `Unlimited ${category.toUpperCase()} Samples & Loops | SAMPLES WALA`
-    description = `Download high-quality ${category} samples, drum kits, and loops for your music production.`
+    const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
+    title = `Best ${formattedCategory} Samples & Drum Kits | SAMPLES WALA`
+    description = `Premium ${formattedCategory} loops and sounds for modern music producers. Discover the best royalty-free ${category} packs.`
   }
 
-  return { title, description }
+  return { 
+    title, 
+    description,
+    alternates: {
+      canonical: category ? `/browse?category=${category}` : '/browse'
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${domain}/browse`,
+      images: ['/og-image.jpg']
+    }
+  }
 }
 
 export default async function BrowsePage({
@@ -89,6 +104,34 @@ export default async function BrowsePage({
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white bg-[#0a0a0a]">
+      {/* 🧭 BREADCRUMB_NAV */}
+      <Breadcrumbs 
+        items={[
+          { label: 'BROWSE', href: '/browse', active: true }
+        ]} 
+      />
+
+      {/* 📝 COLLECTION_SCHEMA (JSON-LD) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": dynamicTitle,
+            "description": `Browse our collection of premium ${params.category || ''} sample packs and individual sounds.`,
+            "url": "https://sampleswala.com/browse",
+            "mainEntity": {
+              "@type": "ItemList",
+              "itemListElement": (packs || []).map((p: any, i: number) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "url": `https://sampleswala.com/packs/${p.slug}`
+              }))
+            }
+          })
+        }}
+      />
       
       {/* 🎚️ BROWSER_TERMINAL_HEADER */}
       <header className="mb-16 md:mb-24 shrink-0">

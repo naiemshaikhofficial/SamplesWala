@@ -159,10 +159,13 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                                                 "@type": "AudioObject",
                                                 "name": `${sample.name} - ${sample.bpm ? sample.bpm + ' BPM' : ''} ${sample.key ? sample.key : ''}`,
                                                 "contentUrl": sample.audio_url,
-                                                "description": `Download ${sample.name} royalty-free sample from the ${packName} collection. Optimized for modern music production.`,
+                                                "description": `Download ${sample.name} royalty-free sample from the ${packName} collection. Optimized for modern music production. High-quality 24-bit WAV.`,
                                                 "encodingFormat": "audio/wav",
-                                                "genre": packName.split(' ')[0], // Best effort genre extraction
+                                                "bitrate": "1411kbps",
+                                                "isAccessibleForFree": "False",
+                                                "genre": packName.split(' ')[0],
                                                 "thumbnailUrl": coverUrl,
+                                                "keywords": `${packName}, ${sample.bpm || ''} bpm, ${sample.key || ''}, royalty free samples, music loops`,
                                                 "about": {
                                                     "@type": "Thing",
                                                     "name": packName

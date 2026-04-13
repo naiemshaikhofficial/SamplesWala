@@ -53,9 +53,9 @@ export function AdaptiveHero() {
                     <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
                 </div>
 
-                <p className="max-w-lg mx-auto text-[10px] md:text-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] leading-relaxed text-white/40 px-4 text-center">
+                <h1 className="max-w-lg mx-auto text-[10px] md:text-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] leading-relaxed text-white/40 px-4 text-center">
                     PRO-GRADE SAMPLES :: UNLIMITED ACCESS
-                </p>
+                </h1>
             </div>
 
             {/* 🔎 MASTER SEARCH - ENSURE CENTERED */}
