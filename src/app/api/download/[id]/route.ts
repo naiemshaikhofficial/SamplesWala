@@ -68,40 +68,41 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     /** 
-     * 🛰️ ULTRA_STEALTH_HUB (V8_HMAC_ENCRYPTED + AES_GCM)
-     * Security Upgrade: We now encrypt the drive ID and use a HMAC signature.
-     * Your master secret totally hides the Drive ID from the end user!
+     * 🛰️ SAMPLES_WALA :: V11_IP_LOCKED_STEALTH
+     * Signatures are now locked to the requester's IP.
      **/
     const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
     const proxySecret = process.env.PROXY_SECRET;
+    
+    const headersList = await import('next/headers').then(h => h.headers());
+    const clientIp = (await headersList).get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
     if (workerUrl && proxySecret && driveIdMatch) {
-         // 🔐 Encrypt Drive ID natively using Node Crypto (AES-256-GCM)
         const crypto = await import('crypto');
         
-        // 1. Key derivation (32 bytes required for AES-256)
+        // 🔐 AES-256-GCM Encryption
         const secretHash = crypto.createHash('sha256').update(proxySecret).digest();
         const iv = crypto.randomBytes(12);
-        
-        // 2. Encryption
         const cipher = crypto.createCipheriv('aes-256-gcm', secretHash, iv);
         let encryptedId = cipher.update(driveIdMatch, 'utf8', 'hex');
         encryptedId += cipher.final('hex');
         const authTag = cipher.getAuthTag().toString('hex');
-        
-        // 3. Compact Payload (iv + ciphertext + authTag)
         const payload = iv.toString('hex') + encryptedId + authTag;
 
-        // 🔐 Generate EXPIRING HMAC-SHA256 Signature (Valid for 1 Hour)
-        const timestamp = Math.floor(Date.now() / 1000) + 3600;
+        // 🔐 Generate EXPIRING & TRIPLE-LOCKED Signature (IP + UserAgent)
+        const timestamp = Math.floor(Date.now() / 1000) + 3600; // 1 Hour for Downloads
+        const userAgent = (await headersList).get('user-agent') || 'UNKNOWN';
+        
         const hmac = crypto.createHmac('sha256', proxySecret);
-        hmac.update(`${payload}:${timestamp}`);
+        // Payload + Expiry + IP + UA
+        hmac.update(`${payload}:${timestamp}:${clientIp}:${userAgent}`);
+        
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
             .replace(/\//g, "_")
             .replace(/=/g, "");
 
-        // 🏷️ Add Branding, Filename & Extension (e.g. SamplesWala - DrumKit.zip)
+        // 🏷️ Filename Branding
         const brandName = `SamplesWala - ${name || 'Asset'}`;
         const fileName = brandName + (isSample ? '.wav' : '.zip');
         const encodedName = encodeURIComponent(fileName);
