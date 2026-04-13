@@ -1,8 +1,9 @@
 'use client'
-
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Layers, Play, Pause, Music, Zap, Download, Search, ChevronDown, ListFilter } from 'lucide-react'
+import { Search, ChevronDown, ListFilter, X, Loader2 } from 'lucide-react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useTransition } from 'react'
 import { PlayButton } from './PlayButton'
 import { DownloadButton } from './DownloadButton'
 import { Waveform } from './Waveform'
@@ -29,56 +30,61 @@ type SampleListProps = {
 }
 
 export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount }: SampleListProps) {
-    const { unlockedIds, isLoading } = useVault()
+    const { unlockedIds } = useVault()
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
+    const [isPending, startTransition] = useTransition()
+    
     const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots'>('all')
-    const [searchQuery, setSearchQuery] = useState('')
-    const [sortBy, setSortBy] = useState<'newest' | 'name' | 'bpm-high' | 'bpm-low'>('newest')
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+    const [sortBy, setSortBy] = useState<any>(searchParams.get('sort') || 'newest')
     const { setPlaylist, activeId } = useAudio()
 
-    // 🧬 ENHANCED_SIGNAL_PROCESSING: Search -> Filter -> Sort
+    // 🧬 GLOBAL_URL_SYNC_BRIDGE: Handle Search & Sort Globally
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString())
+            
+            // Search Sync
+            if (searchQuery) params.set('search', searchQuery)
+            else params.delete('search')
+
+            // Sort Sync
+            if (sortBy && sortBy !== 'newest') params.set('sort', sortBy)
+            else params.delete('sort')
+
+            // Reset page on filter change
+            params.set('page', '1') 
+            
+            startTransition(() => {
+                router.push(`${pathname}?${params.toString()}`, { scroll: false })
+            })
+        }, searchQuery ? 500 : 0) // Only debounce if searching
+
+        return () => clearTimeout(timer)
+    }, [searchQuery, sortBy, pathname, router, searchParams])
+
+    // 🧬 LOCAL_TYPE_FILTERING: Still instant for current result set
     const processedSamples = useMemo(() => {
         let result = [...samples]
-
-        // 1. Search Filter
-        if (searchQuery) {
-            result = result.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
-        }
-
-        // 2. Type Filter
         if (filter === 'loops') result = result.filter(s => s.bpm)
         else if (filter === 'oneshots') result = result.filter(s => !s.bpm)
-
-        // 3. Sort Logic
-        if (sortBy === 'newest') {
-            // Default array order is usually ASC (Oldest First), so we reverse for Newest
-            result = result.reverse()
-        } else {
-            result.sort((a, b) => {
-                if (sortBy === 'name') return a.name.localeCompare(b.name)
-                if (sortBy === 'bpm-high') return (b.bpm || 0) - (a.bpm || 0)
-                if (sortBy === 'bpm-low') return (a.bpm || 0) - (b.bpm || 0)
-                return 0
-            })
-        }
-
         return result
-    }, [samples, filter, searchQuery, sortBy])
+    }, [samples, filter])
 
-    // 🧬 MEMOIZED_PLAYLIST_GENERATOR
+    // 🧬 PLAYLIST_SYNC
     const playlistData = useMemo(() => {
-        return processedSamples.map(s => {
-            const isUnlocked = unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false)
-            return {
-                id: s.id,
-                url: s.audio_url,
-                name: s.name,
-                packName: packName,
-                coverUrl: coverUrl,
-                bpm: s.bpm,
-                audioKey: s.key,
-                isUnlocked: isUnlocked
-            }
-        })
+        return processedSamples.map(s => ({
+            id: s.id,
+            url: s.audio_url,
+            name: s.name,
+            packName,
+            coverUrl,
+            bpm: s.bpm,
+            audioKey: s.key,
+            isUnlocked: unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false)
+        }))
     }, [processedSamples, packName, coverUrl, unlockedIds, packId])
 
     useEffect(() => {
@@ -92,15 +98,23 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                 {/* 🔎 SEARCH BAR */}
                 <div className="flex-1 relative group">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-studio-neon transition-colors">
-                        <Search size={14} />
+                        {isPending ? <Loader2 size={14} className="animate-spin text-studio-neon" /> : <Search size={14} />}
                     </div>
                     <input 
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="SEARCH_SOUNDS..."
+                        placeholder="SEARCH_SOUNDS_GLOBALLY..."
                         className="w-full h-12 bg-black/40 border border-white/5 focus:border-studio-neon/40 focus:bg-black/60 outline-none px-12 text-[10px] font-black uppercase tracking-widest text-white placeholder:text-white/10 transition-all rounded-sm"
                     />
+                    {searchQuery && (
+                        <button 
+                            onClick={() => setSearchQuery('')}
+                            className="absolute inset-y-0 right-4 flex items-center text-white/20 hover:text-white transition-colors"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4 items-stretch">

@@ -97,6 +97,8 @@ export default async function PackPage({
   const { slug } = await params
   const sParams = await searchParams
   const page = (sParams.page as string) || '1'
+  const search = (sParams.search as string) || '' // 🔎 READ SEARCH QUERY
+  const sort = (sParams.sort as string) || 'newest' // 🎚️ READ SORT PARAM
   const pageVal = parseInt(page)
   const pageSize = 20
   
@@ -122,7 +124,9 @@ export default async function PackPage({
   const { samples, count } = await getFilteredSamples({ 
     packId: pack.id,
     limit: pageSize.toString(),
-    page: page
+    page: page,
+    search: search,
+    sort: sort // 🎚️ PASS SORT TO GLOBAL DB QUERY
   })
   
   // Handled relation locally if joined query failed

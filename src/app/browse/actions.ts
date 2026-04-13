@@ -130,8 +130,31 @@ export async function getFilteredSamples(filters: {
     }
   }
 
-  const sortCol = filters.sort === 'bpm' ? 'bpm' : (filters.sort === 'key' ? 'key' : 'created_at');
-  queryBuilder = queryBuilder.order(sortCol, { ascending: filters.sort !== 'newest' });
+  // 🧬 ADVANCED STUDIO SORTING
+  let sortCol = 'created_at';
+  let isAsc = false;
+
+  switch(filters.sort) {
+    case 'name':
+        sortCol = 'name';
+        isAsc = true;
+        break;
+    case 'bpm-high':
+        sortCol = 'bpm';
+        isAsc = false;
+        break;
+    case 'bpm-low':
+        sortCol = 'bpm';
+        isAsc = true;
+        break;
+    case 'newest':
+    default:
+        sortCol = 'created_at';
+        isAsc = false;
+        break;
+  }
+
+  queryBuilder = queryBuilder.order(sortCol, { ascending: isAsc, nullsFirst: false });
 
   // Range-based pagination
   let { data, error, count } = await queryBuilder.range(from, to)
