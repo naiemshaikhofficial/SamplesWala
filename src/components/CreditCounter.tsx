@@ -69,7 +69,11 @@ export function CreditCounter() {
 
     setupRealtime()
 
-    const onManualRefresh = () => syncState();
+    const onManualRefresh = () => {
+        syncState();
+        // Retry once after 500ms to be 100% sure we get the latest DB state
+        setTimeout(syncState, 500);
+    };
     window.addEventListener('refresh-credits', onManualRefresh);
 
     return () => { 
