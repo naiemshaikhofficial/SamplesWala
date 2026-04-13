@@ -23,6 +23,7 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
       if (res.success) {
           showToast('ACCESS GRANTED: Full Pack Unlocked!', 'success')
           mutate('user_vault')
+          window.dispatchEvent(new Event('refresh-credits'))
           setTimeout(() => router.refresh(), 1000)
       }
     } catch (err: any) {

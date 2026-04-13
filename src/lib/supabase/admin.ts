@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-let adminClientInstance: ReturnType<typeof createClient> | null = null
+let adminClientInstance: any = null
 
 export const getAdminClient = () => {
   if (adminClientInstance) return adminClientInstance

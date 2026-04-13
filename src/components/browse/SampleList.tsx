@@ -8,6 +8,7 @@ import { DownloadButton } from '@/components/audio/DownloadButton'
 import { BatchActions } from './BatchActions'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import { unlockSampleBatch } from '@/app/browse/actions'
+import { useSWRConfig } from 'swr'
 
 interface SampleListProps {
   samples: any[]
@@ -18,6 +19,7 @@ export function SampleList({ samples, unlockedSampleIds }: SampleListProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const { showToast, showConfirm } = useNotify()
+  const { mutate } = useSWRConfig()
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
@@ -36,7 +38,8 @@ export function SampleList({ samples, unlockedSampleIds }: SampleListProps) {
            if (result.success) {
                showToast(`Successfully unlocked ${result.count} artifacts.`, 'success')
                clearSelection()
-               window.location.reload() // Re-fetch all data to update UI
+               mutate('user_vault')
+               window.dispatchEvent(new Event('refresh-credits'))
            } else {
                showToast(result.error || 'Acquisition terminal error.', 'error')
            }
