@@ -156,8 +156,8 @@ export async function GET(req: NextRequest) {
             .replace(/\//g, "_")
             .replace(/=/g, "");
 
-        // Branding & Name
-        const brandName = `SamplesWala - ${sample.name || 'Preview'}`;
+        // 🏷️ Filename Branding (Forcing .wav for previews)
+        const brandName = `SamplesWala - ${sample.name || 'Preview'}.wav`;
         const encodedName = encodeURIComponent(brandName);
 
         // Redirect using V11 Parameters

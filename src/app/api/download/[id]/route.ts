@@ -102,9 +102,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             .replace(/\//g, "_")
             .replace(/=/g, "");
 
-        // 🏷️ Filename Branding
-        const brandName = `SamplesWala - ${name || 'Asset'}`;
-        const fileName = brandName + (isSample ? '.wav' : '.zip');
+        // 🏷️ Dynamic Extension Detection
+        const getExtension = (url: string, isSample: boolean) => {
+            const match = url.match(/\.(zip|rar|exe|wav|mp3|7z|dmg|pkg)$/i);
+            if (match) return match[0];
+            return isSample ? '.wav' : '.zip'; // Fallback
+        };
+
+        const extension = getExtension(downloadUrl, isSample);
+        const fileName = `SamplesWala - ${name || 'Asset'}${extension}`;
         const encodedName = encodeURIComponent(fileName);
 
         return NextResponse.redirect(`${workerUrl}?payload=${payload}&sig=${sig}&exp=${timestamp}&name=${encodedName}&download=1`);
