@@ -24,13 +24,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const adminClient = getAdminClient()
   const { slug } = await params
   
-  const { data: pack } = await adminClient
+  let { data: pack, error } = await adminClient
     .from('sample_packs')
     .select('name, description, cover_url, categories(name), samples(bpm, key)')
     .eq('slug', slug)
     .single()
 
-  if (!pack) return { title: 'Pack Not Found' }
+  // 🛡️ SEO_FALLBACK: If join fails, fetch basic pack data to prevent "Pack Not Found"
+  if (!pack || error) {
+    const { data: fallback } = await adminClient
+      .from('sample_packs')
+      .select('name, description, cover_url')
+      .eq('slug', slug)
+      .single()
+    pack = fallback as any;
+  }
+
+  if (!pack) return { title: 'Pack Not Found | SAMPLES WALA' }
 
   // Extract metadata samples for keywords
   const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
