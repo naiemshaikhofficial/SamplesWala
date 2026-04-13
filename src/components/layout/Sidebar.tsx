@@ -99,10 +99,24 @@ export function Sidebar() {
     fetchCats();
   }, [supabase]);
 
-  // Update local search state when URL changes
-  useEffect(() => {
-    setSearchVal(currentSearch);
-  }, [currentSearch]);
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    // Update local search state when URL changes
+    useEffect(() => {
+        setSearchVal(currentSearch);
+    }, [currentSearch]);
+
+    // ⌨️ SEARCH_ACCELERATOR (Cmd+K / Ctrl+K)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,9 +165,10 @@ export function Sidebar() {
                 {isOpen ? (
                     <input 
                     type="text" 
+                    ref={inputRef}
                     value={searchVal}
                     onChange={(e) => setSearchVal(e.target.value)}
-                    placeholder="Search sounds..." 
+                    placeholder="Search sounds... (Cmd+K)" 
                     className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none"
                     />
                 ) : (

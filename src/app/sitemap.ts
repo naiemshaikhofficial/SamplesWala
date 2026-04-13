@@ -63,7 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${domain}/free`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.9 },
     { url: `${domain}/software`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.9 },
     { url: `${domain}/pricing`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
-    { url: `${domain}/faq`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.6 },
+    { url: `${domain}/faq`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.9 },
     { url: `${domain}/about`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.5 },
     { url: `${domain}/contact`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.5 },
     { url: `${domain}/license`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.4 },
