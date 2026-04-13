@@ -75,7 +75,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const proxySecret = process.env.PROXY_SECRET;
     
     const headersList = await import('next/headers').then(h => h.headers());
-    const clientIp = (await headersList).get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    // clientIp already declared at the top, reusing it
 
     if (workerUrl && proxySecret && driveIdMatch) {
         const crypto = await import('crypto');
