@@ -46,6 +46,14 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
             mutate('user_vault')
             router.refresh()
           }, 2000)
+      } else {
+          // 🩸 SOFT_FAIL_PROTOCOL
+          if (res.error === 'INSUFFICIENT_FUNDS') {
+              showToast("Insufficient credits. Opening top-up terminal...", "warning")
+              showTopUpModal()
+              return
+          }
+          showToast(res.error || 'Error unlocking bundle.', 'error')
       }
     } catch (err: any) {
       const errMsg = err.message || ""

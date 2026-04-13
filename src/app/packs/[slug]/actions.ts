@@ -47,9 +47,9 @@ export async function unlockSample(sampleId: string) {
 
     if (error) {
         console.error("[VAULT_ERROR]", error)
-        if (error.message.includes('INSUFFICIENT_FUNDS')) throw new Error('Insufficient credits.')
-        if (error.message.includes('USER_ACCOUNT_NOT_FOUND')) throw new Error('Account sync error.')
-        throw new Error(error.message)
+        if (error.message.includes('INSUFFICIENT_FUNDS')) return { success: false, error: 'INSUFFICIENT_FUNDS' }
+        if (error.message.includes('USER_ACCOUNT_NOT_FOUND')) return { success: false, error: 'USER_ACCOUNT_NOT_FOUND' }
+        return { success: false, error: error.message }
     }
 
     return { success: true }
@@ -108,8 +108,8 @@ export async function unlockFullPack(packId: string) {
 
     if (error) {
         console.error("[VAULT_ERROR]", error)
-        if (error.message.includes('INSUFFICIENT_FUNDS')) throw new Error('Insufficient credits.')
-        throw new Error(error.message)
+        if (error.message.includes('INSUFFICIENT_FUNDS')) return { success: false, error: 'INSUFFICIENT_FUNDS' }
+        return { success: false, error: error.message }
     }
 
     // 2. 📧 Background Email (Non-blocking)

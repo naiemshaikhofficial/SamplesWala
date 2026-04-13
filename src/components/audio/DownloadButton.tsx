@@ -67,7 +67,14 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
                     window.dispatchEvent(new Event('refresh-credits'))
                     mutate('user_vault')
                 } else {
-                    throw new Error("Transaction failed")
+                    // 🩸 SOFT_FAIL_PROTOCOL: Handle returned errors without throwing
+                    if (result.error === 'INSUFFICIENT_FUNDS') {
+                        showToast("Insufficient credits. Opening top-up terminal...", "warning")
+                        showTopUpModal()
+                        removeItem(sampleId)
+                        return
+                    }
+                    throw new Error(result.error || "Transaction failed")
                 }
             } else {
                 // 📥 Flow 2: Download unlocked sample via Secure Signal Bridge

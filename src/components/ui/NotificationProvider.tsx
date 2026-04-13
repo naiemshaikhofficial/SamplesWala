@@ -301,17 +301,20 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     }, [supabase])
 
     const saveBilling = async () => {
-        if (!billing.full_name || !billing.address || !billing.state) {
-            showToast('ALL BILLING FIELDS REQUIRED FOR GST COMPLIANCE', 'error')
+        if (!billing.full_name || !billing.address || !billing.state || !billing.zip) {
+            showToast('PLEASE FILL ALL BILLING FIELDS (NAME, ADDRESS, CITY, STATE, ZIP)', 'error')
             return
         }
         setLoading(true)
         try {
             const { data: { session } } = await supabase.auth.getSession()
             const user = session?.user;
-            if (!user) throw new Error("Unauthenticated");
-            
-            // 🚀 ATOMIC_UPSERT: Create if doesn't exist, update if it does.
+            if (!user) {
+                showToast("UNAUTHORIZED: PLEASE LOGIN AGAIN", "error")
+                return
+            }
+
+            // 🚀 ATOMIC_UPSERT: Create or Update billing node
             const { error } = await supabase
                 .from('user_accounts')
                 .upsert({
@@ -325,15 +328,25 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'user_id' })
 
-            if (error) throw error
+            if (error) {
+                console.error("[VAULT_UPSERT_ERROR]", error)
+                throw new Error(error.message)
+            }
 
-            // 🧬 EDGE SYNC: Update local signature for zero-latency retrieval
+            // 🧬 EDGE SYNC: Persist signature locally
             localStorage.setItem(`billing_${user.id}`, JSON.stringify(billing))
             
-            setStep('payment')
+            showToast('BILLING SECURED. OPENING PAYMENT GATEWAY...', 'success')
+            
+            // Artificial delay for UI feedback
+            setTimeout(() => {
+                setStep('payment')
+                setLoading(false)
+            }, 800)
+
         } catch (e: any) {
-            showToast(e.message, 'error')
-        } finally {
+            console.error("[STUDIO_BILLING_FAILURE]", e)
+            showToast(e.message || "FIELD VALIDATION OR PERMISSION ERROR", 'error')
             setLoading(false)
         }
     }
