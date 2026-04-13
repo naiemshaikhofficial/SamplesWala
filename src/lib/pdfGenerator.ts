@@ -83,7 +83,7 @@ export async function generateInvoicePDF(
     page.drawLine({ start: { x: 40, y: tableTop }, end: { x: width - 40, y: tableTop }, thickness: 4, color: black })
     
     // Table Headers
-    page.drawText('ITEM DESCRIPTION (SAC 997332)', { x: 50, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
+    page.drawText('ITEM DESCRIPTION (SAC 998432)', { x: 50, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
     page.drawText('FORMAT', { x: 350, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
     page.drawText('AMOUNT', { x: width - 120, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
     
@@ -103,10 +103,17 @@ export async function generateInvoicePDF(
     page.drawText('TOTAL PAID', { x: width - 245, y: tableTop - 177, size: 12, font: helveticaBold, color: white })
     page.drawText(`Rs. ${amount.toFixed(2)}`, { x: width - 140, y: tableTop - 177, size: 16, font: helveticaBold, color: white })
 
-    // 4. Disclaimers at the bottom
-    page.drawLine({ start: { x: 40, y: 100 }, end: { x: width - 40, y: 100 }, thickness: 2, color: black })
-    page.drawText('AUTHORIZED SIGNATURE NOT REQUIRED. GST NOT APPLICABLE (UNREGISTERED).', { x: 40, y: 80, size: 8, font: helveticaBold, color: black })
-    page.drawText('THIS IS A COMPUTER-GENERATED BILL OF SUPPLY. ISSUED BY SAMPLES WALA STUDIO, SANGAMNER.', { x: 40, y: 65, size: 7, font: helveticaBold, color: gray })
+    // 4. Disclaimers at the bottom (LEGAL_HARDENING)
+    page.drawLine({ start: { x: 40, y: 120 }, end: { x: width - 40, y: 120 }, thickness: 2, color: black })
+    page.drawText('AUTHORIZED SIGNATURE NOT REQUIRED. COMPUTER GENERATED BILL OF SUPPLY.', { x: 40, y: 105, size: 8, font: helveticaBold, color: black })
+    
+    // Compliance & Policy Notes
+    const footStyle = { size: 7, font: helveticaFont, color: gray };
+    page.drawText('GST NOT APPLICABLE - SUPPLIER NOT REGISTERED UNDER GST.', { x: 40, y: 92, ...footStyle })
+    page.drawText('DIGITAL PRODUCT - NO PHYSICAL DELIVERY. ALL SALES ARE FINAL (NON-REFUNDABLE).', { x: 40, y: 82, ...footStyle })
+    page.drawText('LICENSED FOR INDIVIDUAL USE ONLY. REDISTRIBUTION IS STRICTLY PROHIBITED.', { x: 40, y: 72, ...footStyle })
+    
+    page.drawText('ISSUED SECURELY BY SAMPLES WALA STUDIO, SANGAMNER, MAHARASHTRA 422605.', { x: 40, y: 55, size: 6, font: helveticaBold, color: gray })
 
     // Build the final PDF array buffer and convert to base64
     const pdfBytes = await pdfDoc.save()

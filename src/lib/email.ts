@@ -111,9 +111,11 @@ export async function sendPurchaseEmail(
                         <a href="https://youtube.com/@SamplesWala" style="color: #fff; text-decoration: none; margin: 0 12px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">📺 @SamplesWala</a>
                     </div>
                     
-                    <p style="font-size: 10px; color: #444; line-height: 1.6; margin: 30px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
-                        SamplesWala Studio, Sangamner, Maharashtra 422605<br>
-                        This is a computer-generated invoice and requires no physical signature.<br>
+                    <p style="font-size: 10px; color: #666; line-height: 1.6; margin: 30px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                        <strong>SamplesWala Studio</strong> • Sangamner, Maharashtra 422605<br>
+                        <strong>License:</strong> Licensed for individual use only. Redistribution is prohibited.<br>
+                        <strong>Policy:</strong> Digital product (No physical delivery). All sales are final/non-refundable.<br>
+                        GST NOT APPLICABLE (Unregistered Supplier).<br>
                         Generated securely by the Samples Wala Network.
                     </p>
                 </div>
