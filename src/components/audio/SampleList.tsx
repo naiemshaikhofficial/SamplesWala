@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Layers, Play, Pause, Music, Zap, Download } from 'lucide-react'
+import { Layers, Play, Pause, Music, Zap, Download, Search, ChevronDown, ListFilter } from 'lucide-react'
 import { PlayButton } from './PlayButton'
 import { DownloadButton } from './DownloadButton'
 import { Waveform } from './Waveform'
@@ -31,19 +31,42 @@ type SampleListProps = {
 export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount }: SampleListProps) {
     const { unlockedIds, isLoading } = useVault()
     const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots'>('all')
+    const [searchQuery, setSearchQuery] = useState('')
+    const [sortBy, setSortBy] = useState<'newest' | 'name' | 'bpm-high' | 'bpm-low'>('newest')
     const { setPlaylist, activeId } = useAudio()
 
-    // 🧬 SPLICE-STYLE CATEGORIZATION
-    const filteredSamples = useMemo(() => {
-        if (filter === 'all') return samples
-        if (filter === 'loops') return samples.filter(s => s.bpm)
-        if (filter === 'oneshots') return samples.filter(s => !s.bpm)
-        return samples
-    }, [samples, filter])
+    // 🧬 ENHANCED_SIGNAL_PROCESSING: Search -> Filter -> Sort
+    const processedSamples = useMemo(() => {
+        let result = [...samples]
+
+        // 1. Search Filter
+        if (searchQuery) {
+            result = result.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        }
+
+        // 2. Type Filter
+        if (filter === 'loops') result = result.filter(s => s.bpm)
+        else if (filter === 'oneshots') result = result.filter(s => !s.bpm)
+
+        // 3. Sort Logic
+        if (sortBy === 'newest') {
+            // Default array order is usually ASC (Oldest First), so we reverse for Newest
+            result = result.reverse()
+        } else {
+            result.sort((a, b) => {
+                if (sortBy === 'name') return a.name.localeCompare(b.name)
+                if (sortBy === 'bpm-high') return (b.bpm || 0) - (a.bpm || 0)
+                if (sortBy === 'bpm-low') return (a.bpm || 0) - (b.bpm || 0)
+                return 0
+            })
+        }
+
+        return result
+    }, [samples, filter, searchQuery, sortBy])
 
     // 🧬 MEMOIZED_PLAYLIST_GENERATOR
     const playlistData = useMemo(() => {
-        return filteredSamples.map(s => {
+        return processedSamples.map(s => {
             const isUnlocked = unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false)
             return {
                 id: s.id,
@@ -56,7 +79,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                 isUnlocked: isUnlocked
             }
         })
-    }, [filteredSamples, packName, coverUrl, unlockedIds, packId])
+    }, [processedSamples, packName, coverUrl, unlockedIds, packId])
 
     useEffect(() => {
         setPlaylist(playlistData)
@@ -64,22 +87,56 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
 
     return (
         <div className="space-y-6 md:space-y-8 w-full">
-            {/* 🎛️ SIGNAL_FILTER_BAR (Full-Width Balance) */}
-            <div className="w-full flex items-center p-1 bg-black/40 border border-white/5 rounded-sm">
-                {[
-                    { id: 'all', label: 'All', count: typeof totalCount !== 'undefined' ? totalCount : samples.length },
-                    { id: 'loops', label: 'Loops', count: typeof loopsCount !== 'undefined' ? loopsCount : samples.filter(s => s.bpm).length },
-                    { id: 'oneshots', label: '1-shots', count: typeof oneShotsCount !== 'undefined' ? oneShotsCount : samples.filter(s => !s.bpm).length }
-                ].map((t) => (
-                    <button
-                        key={t.id}
-                        onClick={() => setFilter(t.id as any)}
-                        className={`flex-1 min-w-0 py-3 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 md:gap-3 whitespace-nowrap ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'}`}
-                    >
-                        <span className="truncate">{t.label}</span>
-                        <span className={`text-[8px] opacity-40 ${filter === t.id ? 'text-black/60' : ''}`}>({t.count})</span>
-                    </button>
-                ))}
+            {/* 🎛️ STUDIO CONTROL RACK */}
+            <div className="flex flex-col xl:flex-row gap-4 w-full">
+                {/* 🔎 SEARCH BAR */}
+                <div className="flex-1 relative group">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-studio-neon transition-colors">
+                        <Search size={14} />
+                    </div>
+                    <input 
+                        type="text" 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="SEARCH_SOUNDS..."
+                        className="w-full h-12 bg-black/40 border border-white/5 focus:border-studio-neon/40 focus:bg-black/60 outline-none px-12 text-[10px] font-black uppercase tracking-widest text-white placeholder:text-white/10 transition-all rounded-sm"
+                    />
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4 items-stretch">
+                    {/* 🧬 TYPE FILTERS */}
+                    <div className="flex bg-black/40 border border-white/5 rounded-sm p-1 min-w-[300px]">
+                        {[
+                            { id: 'all', label: 'All', count: totalCount },
+                            { id: 'loops', label: 'Loops', count: loopsCount },
+                            { id: 'oneshots', label: '1-shots', count: oneShotsCount }
+                        ].map((t) => (
+                            <button
+                                key={t.id}
+                                onClick={() => setFilter(t.id as any)}
+                                className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'}`}
+                            >
+                                {t.label} <span className="text-[7px] opacity-40 ml-1">({t.count || 0})</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* 🎚️ SORT MODULE */}
+                    <div className="relative group min-w-[180px]">
+                        <ListFilter className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-hover:text-studio-neon pointer-events-none" />
+                        <select 
+                            value={sortBy}
+                            onChange={(e: any) => setSortBy(e.target.value)}
+                            className="w-full h-12 bg-black/40 border border-white/5 hover:border-white/10 focus:border-studio-neon/40 outline-none pl-11 pr-8 appearance-none text-[9px] font-black uppercase tracking-widest text-white/60 cursor-pointer rounded-sm"
+                        >
+                            <option value="newest">Latest First</option>
+                            <option value="name">Name (A-Z)</option>
+                            <option value="bpm-high">BPM (150-70)</option>
+                            <option value="bpm-low">BPM (70-150)</option>
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20 pointer-events-none" />
+                    </div>
+                </div>
             </div>
 
             <div className="bg-black/60 studio-panel border-2 border-white/5 overflow-hidden w-full">
@@ -94,7 +151,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                 </div>
 
                 <div className="divide-y divide-black">
-                    {filteredSamples.map((sample, idx) => {
+                    {processedSamples.map((sample, idx) => {
                         const isUnlocked = unlockedIds.has(sample.id) || (packId ? unlockedIds.has(packId) : false)
                         const isActive = activeId === sample.id
                         
@@ -209,7 +266,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                     })}
                 </div>
 
-                {filteredSamples.length === 0 && (
+                {processedSamples.length === 0 && (
                     <div className="p-32 text-center text-[11px] font-black uppercase tracking-[0.5em] text-white/10 italic">
                         No sounds found.
                     </div>

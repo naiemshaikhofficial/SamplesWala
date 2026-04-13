@@ -38,10 +38,19 @@ export function AdaptiveHero() {
             </div>
 
             {/* LOGO CONTAINER */}
-            <div className="mb-10 md:mb-16 relative w-full flex justify-center">
+            <div className="mb-10 md:mb-16 relative w-full flex flex-col items-center justify-center">
                 <div className="scale-75 sm:scale-90 md:scale-100 max-w-full">
                     <AnimatedHeroLogo />
                 </div>
+                {/* 🧬 BRAND_IDENTITY_CORE */}
+                <motion.p 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                    className="mt-6 md:mt-8 text-[8px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-studio-neon italic px-4 text-center max-w-3xl"
+                >
+                    Indias Biggest Website For Samples, Plugins And Music Production Tools
+                </motion.p>
             </div>
 
             <div className="space-y-4 mb-12 md:mb-20 w-full flex flex-col items-center">
