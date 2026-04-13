@@ -250,7 +250,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     return url;
   }
 
-  const play = async (id: string, url?: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) => {
+  async function play(id: string, url?: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) {
     if (!audioRef.current) return
     
     // 🛰️ TRANSFORM_SIGNAL :: Resolve direct stream for admin/external nodes (if URL provided)
@@ -329,15 +329,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const pause = () => { audioRef.current?.pause(); }
-  const seek = (time: number) => { 
+  function pause() { audioRef.current?.pause(); }
+  function seek(time: number) { 
     if (audioRef.current) {
         audioRef.current.currentTime = time
         setCurrentTime(time)
     }
   }
 
-  const stop = () => {
+  function stop() {
     if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
@@ -349,15 +349,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
   }
 
-  const toggleLoop = () => {
+  function toggleLoop() {
     if (audioRef.current) {
-        const next = !isLooping;
-        audioRef.current.loop = next;
-        setIsLooping(next);
+        const nxt = !isLooping;
+        audioRef.current.loop = nxt;
+        setIsLooping(nxt);
     }
   }
 
-    const next = () => {
+    function next() {
         const currentPlaylist = playlistRef.current
         if (currentPlaylist.length === 0) return
         const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
@@ -366,7 +366,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         play(nextSample.id, nextSample.url, nextSample)
     }
 
-    const prev = () => {
+    function prev() {
         const currentPlaylist = playlistRef.current
         if (currentPlaylist.length === 0) return
         const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
