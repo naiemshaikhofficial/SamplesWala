@@ -1,11 +1,11 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { unstable_cache } from 'next/cache'
 
 export const getVibeSuggestions = unstable_cache(
   async (sampleId: string, limit = 6) => {
-    const supabase = await createClient()
+    const supabase = getAdminClient()
 
     // 1. Get the target sample's DNA
     const { data: target, error: targetError } = await supabase
