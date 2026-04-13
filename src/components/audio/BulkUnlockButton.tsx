@@ -31,10 +31,21 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
           // 🧬 OPTIMISTIC_UNLOCK: Force UI to update at 0ms
           unlockItem(packId)
           
+          // 💉 CACHE_INJECTION: Manually update SWR cache to prevent "relocking" glitch
+          mutate('user_vault', (current: any) => {
+              const next = new Set(current instanceof Set ? current : (current || []))
+              next.add(packId)
+              return next
+          }, false)
+
           showToast('ACCESS GRANTED: Full Pack Unlocked!', 'success')
-          mutate('user_vault')
           window.dispatchEvent(new Event('refresh-credits'))
-          setTimeout(() => router.refresh(), 1000)
+          
+          // Delay server sync slightly to ensure DB replication is complete
+          setTimeout(() => {
+            mutate('user_vault')
+            router.refresh()
+          }, 2000)
       }
     } catch (err: any) {
       if (err.message === 'Authentication required') {
