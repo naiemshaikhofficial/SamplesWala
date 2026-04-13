@@ -4,6 +4,20 @@ import Link from 'next/link'
 import { SubscribeButton } from '@/components/SubscribeButton'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'Professional Music Production Software & VST Plugins | SAMPLES WALA',
+    description: 'Explore the SamplesWala plugin suite. High-performance audio visualizers, MIDI engines, and professional production tools for modern music creators.',
+    keywords: ['vst plugins', 'music visualizer', 'audio software', 'sampleswala software', 'production tools', 'beat making software'],
+    openGraph: {
+        title: 'SamplesWala Software & Plugin Suite',
+        description: 'Native performance plugins and professional audio tools for high-fidelity music production.',
+        url: 'https://sampleswala.com/software',
+        siteName: 'SamplesWala',
+        images: [{ url: '/og-software.jpg', width: 1200, height: 630, alt: 'SamplesWala Software Hub' }]
+    }
+}
 
 export default async function SoftwareHub() {
   const supabase = await createClient()

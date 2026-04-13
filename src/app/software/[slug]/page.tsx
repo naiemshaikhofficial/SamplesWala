@@ -37,13 +37,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
 
     // Default Fallback SEO
+    const title = `${soft.name} | Professional Music Software & VST Plugin | SAMPLES WALA`
+    const description = `Download ${soft.name} from SamplesWala. ${soft.description}. Premium production tool available for Windows and macOS. Lifetime updates included.`
+    
     return {
-      title: `${soft.name} | Professional Music Software | SamplesWala`,
-      description: soft.description,
+      title,
+      description,
+      keywords: [soft.name, 'vst plugin', 'music production tool', 'audio engine', 'sampleswala software'],
       openGraph: {
-        title: `${soft.name} | SamplesWala`,
-        description: soft.description,
+        title,
+        description,
         type: 'website',
+        url: `https://sampleswala.com/software/${slug}`,
         ...(soft.cover_url && { images: [{ url: soft.cover_url }] })
       }
     }

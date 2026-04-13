@@ -120,9 +120,11 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                                     </div>
                                     
                                     <div className="flex flex-col min-w-0">
-                                        <span className={`text-[13px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
-                                            {sample.name}
-                                        </span>
+                                        <Link href={`/samples/${sample.id}`}>
+                                            <span className={`text-[13px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
+                                                {sample.name}
+                                            </span>
+                                        </Link>
                                         <div className="flex items-center gap-2 mt-0.5">
                                             {sample.bpm && (
                                                 <Link 

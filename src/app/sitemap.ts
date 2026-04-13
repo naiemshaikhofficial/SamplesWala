@@ -35,6 +35,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .eq('is_active', true)
 
+  // 🔊 4. FETCH DYNAMIC SAMPLES (Nuclear SEO)
+  const { data: samples } = await adminClient
+    .from('samples')
+    .select('id, created_at')
+    .order('created_at', { ascending: false })
+    .limit(1000) // 🛡️ Limit to preserve performance while indexing high-value assets
+
+  const sampleUrls = (samples || []).map((s: any) => ({
+    url: `${domain}/samples/${s.id}`,
+    lastModified: s.created_at || new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }))
+
   const softwareUrls = (software || []).map((prod: any) => ({
     url: `${domain}/software/${prod.slug}`,
     lastModified: prod.updated_at || new Date(),
@@ -58,5 +72,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${domain}/refund`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
   ]
 
-  return [...staticUrls, ...packUrls, ...genreUrls, ...softwareUrls]
+  return [...staticUrls, ...packUrls, ...genreUrls, ...softwareUrls, ...sampleUrls]
 }

@@ -16,17 +16,28 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
   const { genre } = await params
   const genreTitle = genre.charAt(0).toUpperCase() + genre.slice(1)
   
-  const title = `Best ${genreTitle} Samples & Loops | Download ${genreTitle} Drum Kits`
-  const description = `Looking for the best ${genreTitle} samples? Download premium royalty-free ${genreTitle} loops, drum kits, and one-shots for FL Studio, Ableton, and Logic Pro.`
+  const title = `Best ${genreTitle} Samples, Loops & Drum Kits 2026 | SAMPLES WALA`
+  const description = `Download professional royalty-free ${genreTitle} samples, melodies, and drum kits. 24-bit WAV files compatible with FL Studio, Ableton, and Logic. Discover the industry's best ${genreTitle} loops and one-shots.`
 
   return {
     title,
     description,
-    keywords: [`${genre} samples`, `${genre} loops`, `${genre} drum kit`, 'royalty free samples', 'music production'],
+    keywords: [
+        `${genre} samples`, 
+        `${genre} loops`, 
+        `${genre} drum kit`, 
+        `free ${genre} beats`,
+        'royalty free samples',
+        'music production',
+        'wav audio samples',
+        'producers kits'
+    ],
     openGraph: {
       title,
       description,
       type: 'website',
+      url: `https://sampleswala.com/genres/${genre}`,
+      images: [{ url: '/og-genres.jpg' }]
     }
   }
 }
