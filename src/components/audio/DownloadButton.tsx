@@ -40,27 +40,30 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
 
         setIsProcessing(true)
 
+        // 🚀 PRE-EMPTIVE_OPTIMISTIC_UI_SWAP
+        const currentVault = unlockedIds || new Set<string>()
+        const rollbackVault = new Set(currentVault)
+        const optimisticVault = new Set(currentVault)
+        optimisticVault.add(sampleId)
+
         try {
             if (!isUnlocked) {
                 // 💳 Flow 1: Unlock using credits
+                setNeedsConfirm(false)
+                
+                // Switch UI IMMEDIATELY
+                await mutate('user_vault', optimisticVault, { revalidate: false })
+                updateMetadataUnlocked(sampleId)
+
                 const result = await unlockSample(sampleId)
+                
                 if (result.success) {
-                    // 🚀 OPTIMISTIC_UI_SWAP
-                    const currentVault = unlockedIds || new Set<string>()
-                    const newVault = new Set(currentVault)
-                    newVault.add(sampleId)
-                    
-                    // Update cache immediately without waiting for revalidation
-                    await mutate('user_vault', newVault, { revalidate: true })
-                    
-                    // Update metadata locally in provider for instant UI swap
-                    updateMetadataUnlocked(sampleId)
-                    
-                    setNeedsConfirm(false)
+                    // Success! Now revalidate in background to sync with DB
+                    mutate('user_vault')
                     showToast('Sound Unlocked!', 'success')
-                    
-                    // Trigger credit counter refresh
                     window.dispatchEvent(new Event('refresh-credits'))
+                } else {
+                    throw new Error("Transaction failed")
                 }
             } else {
                 // 📥 Flow 2: Download unlocked sample via Secure Signal Bridge
@@ -71,6 +74,9 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
                 }
             }
         } catch (err: any) {
+            // 🔄 ROLLBACK_ON_FAILURE
+            await mutate('user_vault', rollbackVault, { revalidate: true })
+            
             if (err.message === 'Authentication required') {
                 showAuthGate()
                 return

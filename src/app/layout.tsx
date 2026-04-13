@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'SamplesWala Team' }],
   creator: 'SamplesWala',
   publisher: 'SamplesWala',
+  applicationName: 'SamplesWala',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -83,6 +84,8 @@ export default function RootLayout({
   const siteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "name": "SamplesWala",
+    "alternateName": ["Samples Wala", "SamplesWala Music"],
     "url": "https://sampleswala.com",
     "potentialAction": {
       "@type": "SearchAction",

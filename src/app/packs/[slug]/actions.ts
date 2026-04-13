@@ -29,52 +29,31 @@ export async function generateDownloadToken(sampleId: string) {
 
 import { grantDrivePermission } from '@/lib/drive/automation'
 
-/** 💳 THE NEW MINIMALIST UNLOCK SYSTEM (2-Table Strategy) **/
+/** 💳 THE NEW HYPER-SPEED UNLOCK SYSTEM (V13 Atomic Protocol) **/
 export async function unlockSample(sampleId: string) {
     const supabase = await createClient()
     const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    // 1. Get Sample Details (Admin Signal for Verification)
-    const { data: sample } = await adminClient.from('samples').select('name, credit_cost, pack_id').eq('id', sampleId).single()
-    const cost = sample?.credit_cost || 1
+    // 1. Get Sample Details (Still needed for the name/cost for the vault entry)
+    const { data: sample } = await adminClient.from('samples').select('name, credit_cost').eq('id', sampleId).single()
+    if (!sample) throw new Error('Sound not found')
 
-    // 2. CHECK & DEDUCT (Single RPC Call to process_unlock)
-    const { error: deductError } = await supabase.rpc('process_unlock', {
+    // 2. ATOMIC_TRANSACTION (Check + Deduct + Insert)
+    const { error } = await supabase.rpc('atomic_unlock_asset', {
         u_id: user.id,
-        cost: cost
+        a_id: sampleId,
+        a_type: 'sample',
+        a_name: sample.name,
+        a_cost: sample.credit_cost || 1
     })
 
-    if (deductError) throw new Error('Insufficient credits or account missing.')
-
-    // 3. SECURE IN VAULT (Admin Signal for Registry)
-    const { error: vaultError } = await adminClient
-        .from('user_vault')
-        .insert({
-            user_id: user.id,
-            item_id: sampleId,
-            item_type: 'sample',
-            item_name: sample?.name,
-            amount: cost
-        })
-
-    if (vaultError) {
-        // If already in vault, we catch unique constraint (23505) but still allow the flow
-        if (vaultError.code !== '23505') {
-            console.error("[VAULT_LOG_FAILED]", vaultError.message)
-            throw new Error('Ownership Registration Failed: ' + vaultError.message)
-        }
+    if (error) {
+        if (error.message.includes('INSUFFICIENT_FUNDS')) throw new Error('Insufficient credits.')
+        throw new Error(error.message)
     }
 
-    // 4. AUTOMATED_SIGNAL_PERMISSION (DISABLED: Using Direct Proxy V4 instead)
-    /*
-    if (user.email) {
-        await grantDrivePermission(user.email, sampleId, false);
-    }
-    */
-
-    revalidatePath('/', 'layout')
     return { success: true }
 }
 
@@ -112,61 +91,49 @@ export async function getDownloadUrl(sampleId: string) {
     }
 }
 
-/** 🎰 BULK UNLOCK (Purchasing full packs into user_vault) **/
+/** 🎰 BULK UNLOCK (V13 Hyper-Speed Protocol) **/
 export async function unlockFullPack(packId: string) {
     const supabase = await createClient()
     const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    const { data: pack } = await adminClient.from('sample_packs').select('*').eq('id', packId).single()
+    const { data: pack } = await adminClient.from('sample_packs').select('name, bundle_credit_cost, slug').eq('id', packId).single()
     if (!pack) throw new Error('Pack not found')
 
     const cost = pack.bundle_credit_cost || 50
 
-    // 1. Deduct Credits
-    const { error: deductError } = await supabase.rpc('process_unlock', {
+    // 1. ATOMIC_TRANSACTION
+    const { error } = await supabase.rpc('atomic_unlock_asset', {
         u_id: user.id,
-        cost: cost
+        a_id: packId,
+        a_type: 'pack',
+        a_name: `Full Pack: ${pack.name}`,
+        a_cost: cost
     })
 
-    if (deductError) throw new Error('Transaction Failed: Insufficient credits.')
-
-    // 2. Register Ownership in user_vault (Admin Signal)
-    const { error: vaultError } = await adminClient.from('user_vault').insert({
-        user_id: user.id,
-        item_id: packId,
-        item_type: 'pack',
-        item_name: `Full Pack: ${pack.name}`,
-        amount: cost
-    })
-
-    if (vaultError) throw new Error("Ownership Registration Failed: " + vaultError.message)
-
-    // 3. 📧 Dispatch Credit Purchase Email Note
-    if (user.email) {
-        // Must dynamically import crypto for server logic
-        const crypto = await import('crypto') 
-        const orderId = `crd_${crypto.randomBytes(4).toString('hex')}`
-        
-        const links = [];
-        if (pack.download_url) links.push({ label: 'Download Pack (.ZIP)', url: pack.download_url });
-        
-        // Let it run async without blocking the client response
-        const { sendPurchaseEmail } = await import('@/lib/email')
-        sendPurchaseEmail(
-            user.id, 
-            user.email, 
-            user.user_metadata?.full_name || 'Producer', 
-            pack.name, 
-            'Master Sample Pack (Credit Purchase)', 
-            cost, 
-            orderId, 
-            links, 
-            'CREDITS'
-        ).catch(e => console.error("[CREDIT_EMAIL_ERROR]", e));
+    if (error) {
+        if (error.message.includes('INSUFFICIENT_FUNDS')) throw new Error('Insufficient credits.')
+        throw new Error(error.message)
     }
 
-    revalidatePath(`/packs/${pack.slug}`)
+    // 2. 📧 Background Email (Non-blocking)
+    if (user.email) {
+        import('@/lib/email').then(({ sendPurchaseEmail }) => {
+            const orderId = `crd_${Math.random().toString(36).slice(-6)}`
+            sendPurchaseEmail(
+                user.id, 
+                user.email!, 
+                user.user_metadata?.full_name || 'Producer', 
+                pack.name, 
+                'Master Sample Pack', 
+                cost, 
+                orderId, 
+                [], 
+                'CREDITS'
+            ).catch(e => console.error("[CREDIT_EMAIL_ERROR]", e));
+        })
+    }
+
     return { success: true }
 }

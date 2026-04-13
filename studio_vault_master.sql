@@ -82,6 +82,41 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- ⚡ ATOMIC_UNLOCK_PROTO: Combine Check + Deduct + Insert into 1 Transaction
+CREATE OR REPLACE FUNCTION atomic_unlock_asset(
+    u_id UUID, 
+    a_id UUID, 
+    a_type TEXT, 
+    a_name TEXT, 
+    a_cost INTEGER
+)
+RETURNS VOID AS $$
+DECLARE
+    current_bal INTEGER;
+BEGIN
+    -- 1. Lock account for update
+    SELECT credits INTO current_bal FROM user_accounts WHERE user_id = u_id FOR UPDATE;
+    
+    IF current_bal IS NULL THEN
+        RAISE EXCEPTION 'USER_ACCOUNT_NOT_FOUND';
+    END IF;
+
+    IF current_bal < a_cost THEN
+        RAISE EXCEPTION 'INSUFFICIENT_FUNDS';
+    END IF;
+
+    -- 2. Deduct Credits
+    UPDATE user_accounts 
+    SET credits = user_accounts.credits - a_cost 
+    WHERE user_id = u_id;
+
+    -- 3. Insert into Vault
+    INSERT INTO user_vault (user_id, item_id, item_type, item_name, amount)
+    VALUES (u_id, a_id, a_type, a_name, a_cost)
+    ON CONFLICT (user_id, item_id) DO NOTHING;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- 4. 🎚️ POLICIES (RLS)
 ALTER TABLE user_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_vault ENABLE ROW LEVEL SECURITY;
