@@ -17,8 +17,40 @@ import { Suspense } from 'react'
 export const revalidate = 3600;
 
 export const metadata = {
-  title: 'Samples Wala | Download High-Quality Royalty-Free Samples & Loops',
-  description: 'Pro-grade sample packs, loops, and individual sounds for music producers. Industry-standard royalty-free audio for Trap, EDM, Hip-Hop, and more.',
+  title: 'Samples Wala | India’s Biggest Store for Indian Sample Packs & Loops',
+  description: 'Download 100% royalty-free Indian sample packs, Bollywood loops, and high-quality sounds. Optimized for FL Studio, Ableton, and Logic Pro. The #1 destination for Indian music producers.',
+  keywords: ['indian samples', 'bollywood sample packs', 'royalty free loops india', 'wav samples', 'music production india', 'fl studio indian packs', 'sampleswala'],
+  alternates: {
+    canonical: 'https://sampleswala.com'
+  }
+}
+
+// 🧬 NUCLEAR_SEO: Home Page Identity Payloads
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "SamplesWala",
+  "url": "https://sampleswala.com",
+  "logo": "https://imagizer.imageshack.com/img924/3983/vzoEZd.png",
+  "sameAs": [
+    "https://youtube.com/@SamplesWala"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": "contact@sampleswala.com",
+    "contactType": "customer support"
+  }
+}
+
+const searchboxSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "url": "https://sampleswala.com",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://sampleswala.com/browse?query={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
 }
 
 async function NewArrivalsSection() {
@@ -79,6 +111,15 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
+        {/* 🧬 NUCLEAR_SEO: Brand & Search Payloads */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(searchboxSchema) }}
+        />
         
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 footer-grid hidden md:block" />
         <div className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-b from-transparent via-black/20 to-black h-full w-full" />
