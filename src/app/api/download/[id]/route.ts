@@ -90,14 +90,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const authTag = cipher.getAuthTag().toString('hex');
         const payload = iv.toString('hex') + encryptedId + authTag;
 
-        // 🔐 Generate EXPIRING & TRIPLE-LOCKED Signature (IP + UserAgent)
-        const timestamp = Math.floor(Date.now() / 1000) + 3600; // 1 Hour for Downloads
-        const userAgent = (await headersList).get('user-agent') || 'UNKNOWN';
+        // 🔐 Generate EXPIRING Signature (1 Hour for Downloads)
+        const timestamp = Math.floor(Date.now() / 1000) + 3600; 
         
         const hmac = crypto.createHmac('sha256', proxySecret);
-        // 🧬 V12_STABLE_SIGNAL :: Removed User-Agent from signature for mobile compatibility
-        // Payload + Expiry + IP
-        hmac.update(`${payload}:${timestamp}:${clientIp}`);
+        // 🧬 V19_SIGNAL SYNC :: Removed IP/UA for Mobile & Satellite Stability
+        hmac.update(`${payload}:${timestamp}`);
         
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
