@@ -14,6 +14,7 @@ import { PriceDisplay } from '@/components/PriceDisplay'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
+import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 
 import { SidebarFilters } from '@/components/browse/SidebarFilters'
 import { SampleList } from '@/components/audio/SampleList'

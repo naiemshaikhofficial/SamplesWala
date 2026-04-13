@@ -136,8 +136,9 @@ export async function verifyPayment(payload: {
         throw updateError
     }
 
-    // B: Inject Credits via Secure RPC
-    const { error: creditError } = await supabase.rpc('add_credits', {
+    // B: Inject Credits via Secure Admin Signal
+    const adminClient = (await import('@/lib/supabase/admin')).getAdminClient()
+    const { error: creditError } = await adminClient.rpc('add_credits', {
         u_id: order.user_id,
         amount: order.credits_awarded
     })

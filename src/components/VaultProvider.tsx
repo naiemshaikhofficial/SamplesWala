@@ -7,18 +7,40 @@ import useSWR, { useSWRConfig } from 'swr'
 type VaultContextType = {
   unlockedIds: Set<string>
   isLoading: boolean
-  mutate: (data?: any, options?: any) => Promise<any>
+  mutate: (key?: any, data?: any, options?: any) => Promise<any>
+  unlockItem: (id: string) => void
+  removeItem: (id: string) => void
 }
 
 const VaultContext = createContext<VaultContextType>({
   unlockedIds: new Set(),
   isLoading: true,
-  mutate: async () => {}
+  mutate: async () => {},
+  unlockItem: () => {},
+  removeItem: () => {}
 })
 
 export function VaultProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   const { mutate } = useSWRConfig()
+  const [localUnlocked, setLocalUnlocked] = useState<Set<string>>(new Set())
+  
+  // Helper to force instant UI change globally
+  const unlockItem = (id: string) => {
+    setLocalUnlocked(prev => {
+      const next = new Set(prev)
+      next.add(id)
+      return next
+    })
+  }
+
+  const removeItem = (id: string) => {
+    setLocalUnlocked(prev => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
   
   // 🧬 REALTIME_VAULT_SYNC
   useEffect(() => {
@@ -70,11 +92,41 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     return ids
   }, {
     revalidateOnFocus: false,
-    dedupingInterval: 60000 // 1 minute
+    dedupingInterval: 60000,
+    onSuccess: (newData: Set<string>) => {
+        // 🛡️ PERSISTENCE_PROTECTION: Only remove from local if server definitely has it
+        setLocalUnlocked(prev => {
+            const next = new Set(prev)
+            let changed = false
+            prev.forEach(id => {
+                if (newData.has(id)) {
+                    console.log(`[VAULT_CONFIRMED] Asset ${id} now in server state. Clearing local ref.`);
+                    next.delete(id)
+                    changed = true
+                }
+            })
+            return changed ? next : prev
+        })
+    }
   })
 
+  // 🧬 MERGE_SOURCES: Combined Ground Truth + Optimistic Local
+  const combinedIds = React.useMemo(() => {
+    // Ensure we are working with a Set
+    const serverSet = unlockedIds instanceof Set ? unlockedIds : new Set(unlockedIds || [])
+    const merged = new Set(serverSet)
+    localUnlocked.forEach(id => merged.add(id))
+    return merged
+  }, [unlockedIds, localUnlocked])
+
   return (
-    <VaultContext.Provider value={{ unlockedIds: unlockedIds || new Set(), isLoading, mutate }}>
+    <VaultContext.Provider value={{ 
+        unlockedIds: combinedIds, 
+        isLoading, 
+        mutate,
+        unlockItem,
+        removeItem
+    }}>
       {children}
     </VaultContext.Provider>
   )
@@ -89,6 +141,6 @@ export function useVault() {
  */
 export function useIsUnlocked(itemId: string, packId?: string) {
   const { unlockedIds, isLoading } = useVault()
-  if (isLoading) return false
+  // No loading check here for instant feel—if it's in the set, it's unlocked
   return unlockedIds.has(itemId) || (packId ? unlockedIds.has(packId) : false)
 }

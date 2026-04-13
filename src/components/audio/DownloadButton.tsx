@@ -18,7 +18,7 @@ type DownloadButtonProps = {
 
 export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadButtonProps) {
     const isUnlocked = useIsUnlocked(sampleId, packId)
-    const { unlockedIds, mutate } = useVault()
+    const { unlockedIds, mutate, unlockItem, removeItem } = useVault()
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
     const { isPlaying, updateMetadataUnlocked, user } = useAudio()
@@ -40,28 +40,35 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
 
         setIsProcessing(true)
 
-        // 🚀 PRE-EMPTIVE_OPTIMISTIC_UI_SWAP
-        const currentVault = unlockedIds || new Set<string>()
-        const rollbackVault = new Set(currentVault)
-        const optimisticVault = new Set(currentVault)
-        optimisticVault.add(sampleId)
-
         try {
             if (!isUnlocked) {
                 // 💳 Flow 1: Unlock using credits
                 setNeedsConfirm(false)
                 
-                // Switch UI IMMEDIATELY
-                await mutate('user_vault', optimisticVault, { revalidate: false })
+                // 🚀 ABSOLUTE_INSTANT_SIGNAL
+                unlockItem(sampleId) 
                 updateMetadataUnlocked(sampleId)
 
                 const result = await unlockSample(sampleId)
                 
                 if (result.success) {
-                    // Success! Now revalidate in background to sync with DB
-                    mutate('user_vault')
+                    // Success! 🧬 FORCE-SYNC PROTOCOL
+                    // 1. Manually update metadata (Internal Player State)
+                    updateMetadataUnlocked(sampleId)
+                    
+                    // 2. Force-inject into SWR Cache (Bypass network lag)
+                    mutate('user_vault', (current: Set<string> | undefined) => {
+                        const next = new Set(current instanceof Set ? current : (current || []))
+                        next.add(sampleId)
+                        return next
+                    }, false)
+
+                    // 3. Global Notification Signals
                     showToast('Sound Unlocked!', 'success')
                     window.dispatchEvent(new Event('refresh-credits'))
+                    
+                    // 4. Background background validation (Final Ground Truth)
+                    mutate('user_vault')
                 } else {
                     throw new Error("Transaction failed")
                 }
@@ -74,8 +81,9 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
                 }
             }
         } catch (err: any) {
-            // 🔄 ROLLBACK_ON_FAILURE
-            await mutate('user_vault', rollbackVault, { revalidate: true })
+            // 🔄 GLOBAL_ROLLBACK
+            console.error("[VAULT_ROLLBACK] Unlocking failed. Reverting local state.", err);
+            removeItem(sampleId)
             
             if (err.message === 'Authentication required') {
                 showAuthGate()
@@ -105,11 +113,11 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
             title={isUnlocked ? 'Download Sample' : `Unlock for ${creditCost} Credits`}
         >
             <div className="relative z-10 flex items-center justify-center">
-                {isProcessing ? (
+                {(isProcessing && !isUnlocked) ? (
                     <div className="flex items-center gap-2 px-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         <span className="text-[8px] font-black uppercase tracking-widest italic animate-pulse">
-                            {isUnlocked ? 'Downloading...' : 'Unlocking...'}
+                            Processing...
                         </span>
                     </div>
                 ) : (isUnlocked || creditCost === 0) ? (

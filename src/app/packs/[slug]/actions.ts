@@ -40,17 +40,15 @@ export async function unlockSample(sampleId: string) {
     const { data: sample } = await adminClient.from('samples').select('name, credit_cost').eq('id', sampleId).single()
     if (!sample) throw new Error('Sound not found')
 
-    // 2. ATOMIC_TRANSACTION (Check + Deduct + Insert)
+    // 2. ATOMIC_TRANSACTION (Hardened V3 Protocol - Context enforced by DB)
     const { error } = await supabase.rpc('atomic_unlock_asset', {
-        u_id: user.id,
-        a_id: sampleId,
-        a_type: 'sample',
-        a_name: sample.name,
-        a_cost: sample.credit_cost || 1
+        a_id: sampleId
     })
 
     if (error) {
+        console.error("[VAULT_ERROR]", error)
         if (error.message.includes('INSUFFICIENT_FUNDS')) throw new Error('Insufficient credits.')
+        if (error.message.includes('USER_ACCOUNT_NOT_FOUND')) throw new Error('Account sync error.')
         throw new Error(error.message)
     }
 
@@ -105,14 +103,11 @@ export async function unlockFullPack(packId: string) {
 
     // 1. ATOMIC_TRANSACTION
     const { error } = await supabase.rpc('atomic_unlock_asset', {
-        u_id: user.id,
-        a_id: packId,
-        a_type: 'pack',
-        a_name: `Full Pack: ${pack.name}`,
-        a_cost: cost
+        a_id: packId
     })
 
     if (error) {
+        console.error("[VAULT_ERROR]", error)
         if (error.message.includes('INSUFFICIENT_FUNDS')) throw new Error('Insufficient credits.')
         throw new Error(error.message)
     }

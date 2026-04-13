@@ -59,11 +59,14 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 🔴 DEDUCT: Securely deduct credits and validate balance
-CREATE OR REPLACE FUNCTION process_unlock(u_id UUID, cost INTEGER)
+CREATE OR REPLACE FUNCTION process_unlock(cost INTEGER)
 RETURNS VOID AS $$
 DECLARE
+    u_id UUID := auth.uid();
     current_bal INTEGER;
 BEGIN
+    IF u_id IS NULL THEN RAISE EXCEPTION 'AUTHENTICATION_REQUIRED'; END IF;
+
     SELECT credits INTO current_bal FROM user_accounts WHERE user_id = u_id FOR UPDATE;
     
     IF current_bal IS NULL THEN
@@ -82,40 +85,66 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- ⚡ ATOMIC_UNLOCK_PROTO: Combine Check + Deduct + Insert into 1 Transaction
+-- ⚡ ATOMIC_UNLOCK_PROTO V3: Securely Hardened (caller cannot spoof u_id)
 CREATE OR REPLACE FUNCTION atomic_unlock_asset(
-    u_id UUID, 
-    a_id UUID, 
-    a_type TEXT, 
-    a_name TEXT, 
-    a_cost INTEGER
+    a_id UUID
 )
 RETURNS VOID AS $$
 DECLARE
+    u_id UUID := auth.uid();
     current_bal INTEGER;
+    a_cost INTEGER;
+    a_name TEXT;
+    a_type TEXT;
 BEGIN
-    -- 1. Lock account for update
+    IF u_id IS NULL THEN RAISE EXCEPTION 'AUTHENTICATION_REQUIRED'; END IF;
+
+    -- 1. Get info internally (Eliminates client-side cost manipulation)
+    SELECT name, credit_cost, 'sample' INTO a_name, a_cost, a_type FROM samples WHERE id = a_id;
+    
+    -- If not sample, check if it's a pack
+    IF a_name IS NULL THEN
+        SELECT name, bundle_credit_cost, 'pack' INTO a_name, a_cost, a_type FROM sample_packs WHERE id = a_id;
+        IF a_name IS NOT NULL THEN
+            a_name := 'Full Pack: ' || a_name;
+        END IF;
+    END IF;
+
+    IF a_name IS NULL THEN
+        RAISE EXCEPTION 'ASSET_NOT_FOUND';
+    END IF;
+
+    -- 2. Lock account for update
     SELECT credits INTO current_bal FROM user_accounts WHERE user_id = u_id FOR UPDATE;
     
     IF current_bal IS NULL THEN
-        RAISE EXCEPTION 'USER_ACCOUNT_NOT_FOUND';
+        -- Initialize account if missing
+        INSERT INTO user_accounts (user_id, credits) VALUES (u_id, 0);
+        current_bal := 0;
     END IF;
 
-    IF current_bal < a_cost THEN
+    IF current_bal < COALESCE(a_cost, 1) THEN
         RAISE EXCEPTION 'INSUFFICIENT_FUNDS';
     END IF;
 
-    -- 2. Deduct Credits
+    -- 3. Deduct Credits
     UPDATE user_accounts 
-    SET credits = user_accounts.credits - a_cost 
+    SET credits = user_accounts.credits - COALESCE(a_cost, 1) 
     WHERE user_id = u_id;
 
-    -- 3. Insert into Vault
-    INSERT INTO user_vault (user_id, item_id, item_type, item_name, amount)
-    VALUES (u_id, a_id, a_type, a_name, a_cost)
-    ON CONFLICT (user_id, item_id) DO NOTHING;
+    -- 4. Insert into Vault (Atomic Check)
+    IF NOT EXISTS (SELECT 1 FROM user_vault WHERE user_id = u_id AND item_id = a_id) THEN
+        INSERT INTO user_vault (user_id, item_id, item_type, item_name, amount)
+        VALUES (u_id, a_id, a_type, a_name, COALESCE(a_cost, 1));
+    END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5. 🛡️ REVOKE PUBLIC ACCESS
+-- These functions should NOT be called directly via Anon key from a browser.
+-- (Optional: only if you want to block browser direct RPC. Server actions still work.)
+REVOKE EXECUTE ON FUNCTION add_credits(UUID, INTEGER) FROM public, anon, authenticated;
+GRANT EXECUTE ON FUNCTION add_credits(UUID, INTEGER) TO service_role;
 
 -- 4. 🎚️ POLICIES (RLS)
 ALTER TABLE user_accounts ENABLE ROW LEVEL SECURITY;
