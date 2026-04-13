@@ -22,7 +22,7 @@ export async function generateDownloadToken(sampleId: string) {
         sampleId,
         purpose: 'download',
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 300
+        exp: Math.floor(Date.now() / 1000) + 900 // 🛡️ 15 Minute Signal
     }
     return jwt.sign(payload, JWT_SECRET)
 }
@@ -81,7 +81,7 @@ export async function getDownloadUrl(sampleId: string) {
     }
 
     // 3. Generate a secure, temporary download token
-    const token = jwt.sign({ sampleId, purpose: 'download' }, JWT_SECRET, { expiresIn: '5m' })
+    const token = jwt.sign({ sampleId, purpose: 'download' }, JWT_SECRET, { expiresIn: '15m' })
 
     return { 
         url: `/api/audio?id=${sampleId}&token=${token}`,

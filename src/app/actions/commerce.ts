@@ -137,6 +137,12 @@ export async function verifyPayment(payload: {
     }
 
     // B: Inject Credits via Secure Admin Signal
+    // 🛡️ SECURITY_AUDIT: Re-verify that credits being awarded match the payment value
+    if (order.credits_awarded > order.amount_inr) {
+        console.error("[SECURITY_BREACH] Credit mismatch detected. User attempted to award more credits than paid for.");
+        throw new Error("SECURITY_ERROR: Credit amount mismatch. Transaction blocked.");
+    }
+
     const adminClient = (await import('@/lib/supabase/admin')).getAdminClient()
     const { error: creditError } = await adminClient.rpc('add_credits', {
         u_id: order.user_id,

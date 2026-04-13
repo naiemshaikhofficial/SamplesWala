@@ -22,6 +22,8 @@ import { Pagination } from '@/components/layout/Pagination'
 import { Cable } from 'lucide-react'
 import { Metadata } from 'next'
 
+export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
+
 export async function generateMetadata({ searchParams }: { searchParams: Promise<any> }): Promise<Metadata> {
   const params = await searchParams
   const q = params.q

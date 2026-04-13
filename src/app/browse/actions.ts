@@ -93,7 +93,7 @@ export async function getFilteredSamples(filters: {
   const from = (pageVal - 1) * limitVal
   const to = from + limitVal - 1
   
-  let queryBuilder = adminClient.from('samples').select('id, name, audio_url, bpm, key, credit_cost, pack_id, type, ai_genre, tags, time_signature, created_at, sample_packs(name, category_id, cover_url)', { count: 'exact' })
+  let queryBuilder = adminClient.from('samples').select('id, name, audio_url, bpm, key, credit_cost, pack_id, type, created_at, sample_packs(name, category_id, cover_url)', { count: 'exact' })
   
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (cleanQuery) {

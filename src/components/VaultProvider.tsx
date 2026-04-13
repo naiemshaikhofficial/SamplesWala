@@ -10,6 +10,7 @@ type VaultContextType = {
   mutate: (key?: any, data?: any, options?: any) => Promise<any>
   unlockItem: (id: string) => void
   removeItem: (id: string) => void
+  clearCache: () => void
 }
 
 const VaultContext = createContext<VaultContextType>({
@@ -17,14 +18,19 @@ const VaultContext = createContext<VaultContextType>({
   isLoading: true,
   mutate: async () => {},
   unlockItem: () => {},
-  removeItem: () => {}
+  removeItem: () => {},
+  clearCache: () => {}
 })
 
 export function VaultProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
-  const { mutate } = useSWRConfig()
+  const { mutate: globalMutate } = useSWRConfig()
   const [localUnlocked, setLocalUnlocked] = useState<Set<string>>(new Set())
+  const [sessionUser, setSessionUser] = useState<string | null>(null)
   
+  // 🧬 PERSISTENCE_CACHE_KEY
+  const getCacheKey = (userId: string) => `studio_vault_cache_${userId}`;
+
   // Helper to force instant UI change globally
   const unlockItem = (id: string) => {
     setLocalUnlocked(prev => {
@@ -41,6 +47,14 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       return next
     })
   }
+
+  const clearCache = () => {
+      if (sessionUser) {
+          localStorage.removeItem(getCacheKey(sessionUser));
+          setLocalUnlocked(new Set());
+          globalMutate('user_vault', new Set(), false);
+      }
+  }
   
   // 🧬 REALTIME_VAULT_SYNC
   useEffect(() => {
@@ -48,15 +62,37 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     
     const setup = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) return
+      if (!session?.user) {
+        setSessionUser(null)
+        return
+      }
 
-      channel = supabase.channel(`vault-realtime-${session.user.id}`)
+      const userId = session.user.id
+      setSessionUser(userId)
+
+      // 📥 LOAD_PERSISTENCE (Offline-First Start)
+      try {
+        const cached = localStorage.getItem(getCacheKey(userId))
+        if (cached) {
+          const ids = JSON.parse(cached)
+          const set = new Set(Array.isArray(ids) ? ids : [])
+          if (set.size > 0) {
+            console.log(`[VAULT_CACHE] Hydrated ${set.size} items from local persistence.`)
+            // We inject into SWR cache immediately so UI is 0ms
+            globalMutate('user_vault', set, false)
+          }
+        }
+      } catch (e) {
+        console.error("[VAULT_CACHE_ERROR] Hydration failed", e)
+      }
+      
+      channel = supabase.channel(`vault-realtime-${userId}`)
         .on(
           'postgres_changes', 
-          { event: 'INSERT', schema: 'public', table: 'user_vault', filter: `user_id=eq.${session.user.id}` }, 
+          { event: 'INSERT', schema: 'public', table: 'user_vault', filter: `user_id=eq.${userId}` }, 
           () => {
             console.log("[REALTIME] New item unlocked, syncing vault...");
-            mutate('user_vault');
+            globalMutate('user_vault');
           }
         )
         .subscribe()
@@ -64,7 +100,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
 
     setup()
     return () => { if (channel) supabase.removeChannel(channel) }
-  }, [supabase, mutate])
+  }, [supabase, globalMutate])
 
   const { data: unlockedIds, isLoading } = useSWR('user_vault', async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -94,6 +130,11 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
     onSuccess: (newData: Set<string>) => {
+        // 💾 SAVE_PERSISTENCE
+        if (sessionUser && newData instanceof Set) {
+            localStorage.setItem(getCacheKey(sessionUser), JSON.stringify(Array.from(newData)));
+        }
+
         // 🛡️ PERSISTENCE_PROTECTION: Only remove from local if server definitely has it
         setLocalUnlocked(prev => {
             const next = new Set(prev)
@@ -123,9 +164,10 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     <VaultContext.Provider value={{ 
         unlockedIds: combinedIds, 
         isLoading, 
-        mutate,
+        mutate: globalMutate,
         unlockItem,
-        removeItem
+        removeItem,
+        clearCache
     }}>
       {children}
     </VaultContext.Provider>
