@@ -179,7 +179,7 @@ export async function unlockSampleBatch(sampleIds: string[]) {
       .in('id', sampleIds)
 
   if (sError || !samples) return { success: false, error: 'Could not fetch sample metadata' }
-  const totalCost = samples.reduce((sum, s: any) => sum + (s.credit_cost || 1), 0)
+  const totalCost = samples.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0)
 
   // 2. Fetch User Account State
   const { data: account } = await adminClient

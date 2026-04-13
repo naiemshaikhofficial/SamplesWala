@@ -42,7 +42,7 @@ export async function getTopPopularSounds(limit = 10) {
       .limit(500)
 
     const counts: Record<string, number> = {}
-    unlocks?.forEach(u => { if (u.item_id) counts[u.item_id] = (counts[u.item_id] || 0) + 1 })
+    unlocks?.forEach((u: any) => { if (u.item_id) counts[u.item_id] = (counts[u.item_id] || 0) + 1 })
     
     const topIds = Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
@@ -52,7 +52,7 @@ export async function getTopPopularSounds(limit = 10) {
     return topIds
   }
 
-  const topIds = topIdsData.map(d => d.sample_id)
+  const topIds = topIdsData.map((d: any) => d.sample_id)
 
   // 4. Fetch the full sample data with Multilevel Failure Protection
   if (topIds.length === 0) {
@@ -83,5 +83,5 @@ export async function getTopPopularSounds(limit = 10) {
   }
 
   // Final Sort: Re-sort the fetched samples by their original popularity rank
-  return samples.sort((a, b) => topIds.indexOf(a.id) - topIds.indexOf(b.id))
+  return samples.sort((a: any, b: any) => topIds.indexOf(a.id) - topIds.indexOf(b.id))
 }

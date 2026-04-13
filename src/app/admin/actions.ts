@@ -220,9 +220,9 @@ export async function getAllUsersAction() {
 
     // 🧬 SIGNAL_MERGE :: Combine identity data with platform status using variant ID mapping
     return users.map((u: any) => {
-        const acc = accounts?.find(a => a.id === u.id || a.user_id === u.id)
-        const profile = profiles?.find(p => p.id === u.id || p.user_id === u.id)
-        const plan = plans?.find(pl => pl.id === acc?.plan_id)
+        const acc = accounts?.find((a: any) => a.id === u.id || a.user_id === u.id)
+        const profile = profiles?.find((p: any) => p.id === u.id || p.user_id === u.id)
+        const plan = plans?.find((pl: any) => pl.id === acc?.plan_id)
         
         return {
             id: u.id,
@@ -252,20 +252,20 @@ export async function getUserVaultAction(userId: string) {
     if (vaultError) throw new Error(vaultError.message)
 
     // 🎹 RESOLVE_ARTIFACT_NAMES
-    const sampleIds = vaultItems.filter(v => v.item_type === 'sample').map(v => v.item_id)
-    const packIds = vaultItems.filter(v => v.item_type === 'pack').map(v => v.item_id)
+    const sampleIds = vaultItems.filter((v: any) => v.item_type === 'sample').map((v: any) => v.item_id)
+    const packIds = vaultItems.filter((v: any) => v.item_type === 'pack').map((v: any) => v.item_id)
 
     const { data: samples } = await supabase.from('samples').select('id, name').in('id', sampleIds)
     const { data: packs } = await supabase.from('sample_packs').select('id, name').in('id', packIds)
 
-    return vaultItems.map(v => ({
+    return vaultItems.map((v: any) => ({
         ...v,
         item_id: v.item_id,
         item_type: v.item_type,
         added_at: v.added_at,
         name: v.item_type === 'sample' 
-            ? samples?.find(s => s.id === v.item_id)?.name || 'Unknown Sample'
-            : packs?.find(p => p.id === v.item_id)?.name || 'Unknown Pack'
+            ? samples?.find((s: any) => s.id === v.item_id)?.name || 'Unknown Sample'
+            : packs?.find((p: any) => p.id === v.item_id)?.name || 'Unknown Pack'
     }))
 }
 

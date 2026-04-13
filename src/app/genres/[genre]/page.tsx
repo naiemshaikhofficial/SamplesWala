@@ -86,7 +86,7 @@ export default async function GenrePage({
                   "url": `https://sampleswala.com/genres/${genre}`,
                   "mainEntity": {
                       "@type": "ItemList",
-                      "itemListElement": (packs || []).map((p, i) => ({
+                      "itemListElement": (packs || []).map((p: any, i: number) => ({
                           "@type": "ListItem",
                           "position": i + 1,
                           "url": `https://sampleswala.com/packs/${p.slug}`

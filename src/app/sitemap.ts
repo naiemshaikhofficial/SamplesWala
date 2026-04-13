@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('sample_packs')
     .select('slug, updated_at')
 
-  const packUrls = (packs || []).map((pack) => ({
+  const packUrls = (packs || []).map((pack: any) => ({
     url: `${domain}/packs/${pack.slug}`,
     lastModified: pack.updated_at || new Date(),
     changeFrequency: 'weekly' as const,
@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('categories')
     .select('name')
 
-  const genreUrls = (categories || []).map((cat) => ({
+  const genreUrls = (categories || []).map((cat: any) => ({
     url: `${domain}/genres/${cat.name.toLowerCase().replace(/\s+/g, '-')}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,

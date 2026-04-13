@@ -94,7 +94,7 @@ export async function getDownloadUrl(sampleId: string) {
         .select('item_id, item_type')
         .eq('user_id', user.id)
 
-    const isOwned = vaultItems?.some(v => 
+    const isOwned = vaultItems?.some((v: any) => 
         (v.item_type === 'sample' && v.item_id === sampleId) || 
         (v.item_type === 'pack' && v.item_id === sample.pack_id)
     )
