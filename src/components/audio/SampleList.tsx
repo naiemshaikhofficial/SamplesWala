@@ -41,26 +41,29 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
     const [sortBy, setSortBy] = useState<any>(searchParams.get('sort') || 'newest')
     const { setPlaylist, activeId } = useAudio()
 
-    // 🧬 GLOBAL_URL_SYNC_BRIDGE: Handle Search & Sort Globally
+    // 🧬 GLOBAL_URL_SYNC_BRIDGE: Handle Search & Sort Globally (Optimized)
     useEffect(() => {
+        const currentSearch = searchParams.get('search') || ''
+        const currentSort = searchParams.get('sort') || 'newest'
+
+        // 🛑 GUARD: Only sync if state actually differs from URL
+        if (searchQuery === currentSearch && sortBy === currentSort) return
+
         const timer = setTimeout(() => {
             const params = new URLSearchParams(searchParams.toString())
             
-            // Search Sync
-            if (searchQuery) params.set('search', searchQuery)
-            else params.delete('search')
+            if (searchQuery) {
+                params.set('search', searchQuery)
+                params.set('page', '1') 
+            } else params.delete('search')
 
-            // Sort Sync
             if (sortBy && sortBy !== 'newest') params.set('sort', sortBy)
             else params.delete('sort')
 
-            // Reset page on filter change
-            params.set('page', '1') 
-            
             startTransition(() => {
                 router.push(`${pathname}?${params.toString()}`, { scroll: false })
             })
-        }, searchQuery ? 500 : 0) // Only debounce if searching
+        }, searchQuery ? 500 : 0)
 
         return () => clearTimeout(timer)
     }, [searchQuery, sortBy, pathname, router, searchParams])
