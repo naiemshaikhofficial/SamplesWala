@@ -102,7 +102,7 @@ export async function sendPurchaseEmail(
                 <!-- EXCLUSIVE FOOTER -->
                 <div style="text-align: center;">
                     <p style="font-size: 14px; color: #aaa; line-height: 1.5; margin: 0 0 15px 0;">
-                        Need help? Contact us: <a href="mailto:info@sampleswala.com" style="color: #a6e22e; text-decoration: none; font-weight: bold;">info@sampleswala.com</a>
+                        Need help? Contact us: <a href="mailto:contact@sampleswala.com" style="color: #a6e22e; text-decoration: none; font-weight: bold;">contact@sampleswala.com</a>
                     </p>
                     
                     <div style="margin: 25px 0;">
@@ -112,6 +112,7 @@ export async function sendPurchaseEmail(
                     </div>
                     
                     <p style="font-size: 10px; color: #444; line-height: 1.6; margin: 30px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+                        SamplesWala Studio, Sangamner, Maharashtra 422605<br>
                         This is a computer-generated invoice and requires no physical signature.<br>
                         Generated securely by the Samples Wala Network.
                     </p>
@@ -129,7 +130,7 @@ export async function sendPurchaseEmail(
         );
 
         await resend.emails.send({
-            from: 'SamplesWala <info@sampleswala.com>',
+            from: 'SamplesWala <contact@sampleswala.com>',
             to: email,
             subject: `Invoice: ${itemName} | SamplesWala`,
             html: html,

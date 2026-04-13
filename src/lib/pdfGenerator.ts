@@ -21,40 +21,69 @@ export async function generateInvoicePDF(
     const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
     
+    // 🧬 LOGO_INTEGRATION: Fetch and embed the brand identity
+    let logoImage;
+    try {
+        const logoUrl = 'https://imagizer.imageshack.com/img924/3983/vzoEZd.png';
+        const logoResponse = await fetch(logoUrl);
+        const logoBytes = await logoResponse.arrayBuffer();
+        logoImage = await pdfDoc.embedPng(logoBytes);
+    } catch (e) {
+        console.error("[PDF_LOGO_ERROR] Failed to fetch brand logo:", e);
+    }
+
     // Define stark monochrome colors
     const black = rgb(0, 0, 0)
     const white = rgb(1, 1, 1)
     const gray = rgb(0.4, 0.4, 0.4)
     
     // 1. Brutalist Header
-    page.drawRectangle({ x: 40, y: height - 120, width: width - 80, height: 80, color: black })
-    page.drawText('SAMPLES WALA', { x: 60, y: height - 85, size: 32, font: helveticaBold, color: white })
-    page.drawText('INVOICE / RECEIPT', { x: width - 240, y: height - 75, size: 16, font: helveticaBold, color: white })
+    page.drawRectangle({ x: 40, y: height - 150, width: width - 80, height: 110, color: black })
+    
+    if (logoImage) {
+        // Position logo where text used to be
+        page.drawImage(logoImage, {
+            x: 60,
+            y: height - 90,
+            width: 140,
+            height: 40
+        });
+    } else {
+        page.drawText('SAMPLES WALA', { x: 60, y: height - 85, size: 32, font: helveticaBold, color: white })
+    }
+
+    page.drawText('BILL OF SUPPLY / RECEIPT', { x: width - 240, y: height - 75, size: 14, font: helveticaBold, color: white })
+    
+    // Seller Details (Correct Indian Norms)
+    page.drawText('SAMPLES WALA STUDIO', { x: 60, y: height - 105, size: 10, font: helveticaBold, color: white })
+    page.drawText('SANGAMNER, MAHARASHTRA 422605', { x: 60, y: height - 118, size: 9, font: helveticaFont, color: white })
+    page.drawText('EMAIL: CONTACT@SAMPLESWALA.COM', { x: 60, y: height - 131, size: 9, font: helveticaFont, color: white })
+    
     page.drawText('STRICTLY DIGITAL', { x: width - 240, y: height - 95, size: 9, font: helveticaBold, color: gray })
 
     // 2. Order Meta Grid
-    page.drawLine({ start: { x: 40, y: height - 150 }, end: { x: width - 40, y: height - 150 }, thickness: 2, color: black })
+    page.drawLine({ start: { x: 40, y: height - 165 }, end: { x: width - 40, y: height - 165 }, thickness: 2, color: black })
     
     // Columns
-    page.drawText('ORDER ID', { x: 40, y: height - 175, size: 9, font: helveticaBold, color: gray })
-    page.drawText(orderId, { x: 40, y: height - 192, size: 12, font: helveticaBold, color: black })
+    page.drawText('ORDER ID', { x: 40, y: height - 185, size: 9, font: helveticaBold, color: gray })
+    page.drawText(orderId, { x: 40, y: height - 202, size: 12, font: helveticaBold, color: black })
 
-    page.drawText('DATE OF ISSUE', { x: 220, y: height - 175, size: 9, font: helveticaBold, color: gray })
-    page.drawText(date, { x: 220, y: height - 192, size: 12, font: helveticaBold, color: black })
+    page.drawText('DATE OF ISSUE', { x: 220, y: height - 185, size: 9, font: helveticaBold, color: gray })
+    page.drawText(date, { x: 220, y: height - 202, size: 12, font: helveticaBold, color: black })
 
-    page.drawText('BILLED TO', { x: 400, y: height - 175, size: 9, font: helveticaBold, color: gray })
-    page.drawText(name.toUpperCase() || 'PRODUCER', { x: 400, y: height - 192, size: 12, font: helveticaBold, color: black })
+    page.drawText('BILLED TO', { x: 400, y: height - 185, size: 9, font: helveticaBold, color: gray })
+    page.drawText(name.toUpperCase() || 'PRODUCER', { x: 400, y: height - 202, size: 12, font: helveticaBold, color: black })
 
-    page.drawLine({ start: { x: 40, y: height - 210 }, end: { x: width - 40, y: height - 210 }, thickness: 2, color: black })
+    page.drawLine({ start: { x: 40, y: height - 225 }, end: { x: width - 40, y: height - 225 }, thickness: 2, color: black })
 
     // 3. Invoice Table Structure
-    const tableTop = height - 280;
+    const tableTop = height - 295;
     
     // Heavy Top border for table
     page.drawLine({ start: { x: 40, y: tableTop }, end: { x: width - 40, y: tableTop }, thickness: 4, color: black })
     
     // Table Headers
-    page.drawText('ITEM DESCRIPTION', { x: 50, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
+    page.drawText('ITEM DESCRIPTION (SAC 997332)', { x: 50, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
     page.drawText('FORMAT', { x: 350, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
     page.drawText('AMOUNT', { x: width - 120, y: tableTop - 25, size: 10, font: helveticaBold, color: black })
     
@@ -76,8 +105,8 @@ export async function generateInvoicePDF(
 
     // 4. Disclaimers at the bottom
     page.drawLine({ start: { x: 40, y: 100 }, end: { x: width - 40, y: 100 }, thickness: 2, color: black })
-    page.drawText('AUTHORIZED SIGNATURE NOT REQUIRED.', { x: 40, y: 80, size: 9, font: helveticaBold, color: black })
-    page.drawText('THIS IS A COMPUTER-GENERATED TAX INVOICE. SECURELY ISSUED BY THE SAMPLES WALA PAYMENT NETWORK.', { x: 40, y: 65, size: 7, font: helveticaBold, color: gray })
+    page.drawText('AUTHORIZED SIGNATURE NOT REQUIRED. GST NOT APPLICABLE (UNREGISTERED).', { x: 40, y: 80, size: 8, font: helveticaBold, color: black })
+    page.drawText('THIS IS A COMPUTER-GENERATED BILL OF SUPPLY. ISSUED BY SAMPLES WALA STUDIO, SANGAMNER.', { x: 40, y: 65, size: 7, font: helveticaBold, color: gray })
 
     // Build the final PDF array buffer and convert to base64
     const pdfBytes = await pdfDoc.save()
