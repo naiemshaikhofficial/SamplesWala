@@ -61,7 +61,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     'sample pack', 
     'royalty free loops', 
     'wav samples', 
-    'music production', 
+    'splice alternative',
+    'indian splice sounds',
+    'looperman indian samples',
     ...[...new Set(bpmList)].map(b => `${b} bpm`),
     ...[...new Set(keyList)].map(k => `${k} key`)
   ]

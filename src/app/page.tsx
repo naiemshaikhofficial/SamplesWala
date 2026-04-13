@@ -18,8 +18,12 @@ export const revalidate = 3600;
 
 export const metadata = {
   title: 'Samples Wala | India’s Biggest Store for Indian Sample Packs & Loops',
-  description: 'Download 100% royalty-free Indian sample packs, Bollywood loops, and high-quality sounds. Optimized for FL Studio, Ableton, and Logic Pro. The #1 destination for Indian music producers.',
-  keywords: ['indian samples', 'bollywood sample packs', 'royalty free loops india', 'wav samples', 'music production india', 'fl studio indian packs', 'sampleswala'],
+  description: 'The premium Indian alternative to Splice and LooperMan. Download 100% royalty-free Indian sample packs, Bollywood loops, and sounds. Optimized for FL Studio & Ableton.',
+  keywords: [
+    'indian samples', 'bollywood sample packs', 'royalty free loops india', 
+    'wav samples', 'music production india', 'fl studio indian packs', 
+    'sampleswala', 'splice alternative india', 'indian splice', 'looperman alternative'
+  ],
   alternates: {
     canonical: 'https://sampleswala.com'
   }
@@ -119,6 +123,25 @@ export default function Home() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(searchboxSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Why is SamplesWala a better Splice alternative for Indian music?",
+                "acceptedAnswer": { "@type": "Answer", "text": "SamplesWala focuses specifically on authentic Indian sounds and Bollywood style samples that global platforms like Splice often lack. All our sounds are 100% royalty-free and curated by veteran Indian producers." }
+              },
+              {
+                "@type": "Question",
+                "name": "Does SamplesWala offer free loops like LooperMan?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Yes, SamplesWala has a dedicated free sounds section. While sites like LooperMan are community-driven, SamplesWala offers studio-quality, professionally mastered samples that are ready for commercial hits." }
+              }
+            ]
+          }) }}
         />
         
         <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0 footer-grid hidden md:block" />
