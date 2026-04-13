@@ -259,27 +259,29 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                 const user = session?.user;
                 if (!user) return
 
-                // 🧬 EDGE CACHE: Check local signature first
+                // 🧬 LAYER_1: Local Edge Cache Check (Speed Priority)
                 const localBilling = localStorage.getItem(`billing_${user.id}`)
                 if (localBilling) {
+                    console.log("[STUDIO_CACHE_HIT] Billing loaded from local node.");
                     setBilling(JSON.parse(localBilling))
                     setStep('payment')
-                    return
+                    return 
                 }
 
-                // 🏛️ VAULT SYNC: Fallback to Supabase
+                // 🏛️ LAYER_2: Supabase Master Vault Call (Fallback Priority)
+                console.log("[STUDIO_SYNC] Local cache miss. Calling Supabase master vault...");
                 const { data, error } = await supabase
                     .from('user_accounts')
                     .select('full_name, phone_number, address_line1, city, state, postal_code')
                     .eq('user_id', user.id)
                     .maybeSingle()
                 
-                // 🛠️ Schema check: If columns are missing, don't crash
                 if (error) {
-                    console.warn('[STUDIO_SYNC_WARNING] Billing columns missing in vault. Run master_restore.sql.');
+                    console.warn('[STUDIO_SYNC_WARNING] Database unreachable or schema mismatch.');
                     return;
                 }
 
+                // 🛰️ LAYER_3: Cross-Sync (Store result locally for next time)
                 if (data && data.full_name) {
                     const cloudBilling = {
                         full_name: data.full_name || '',
@@ -292,13 +294,15 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                     setBilling(cloudBilling)
                     localStorage.setItem(`billing_${user.id}`, JSON.stringify(cloudBilling))
                     setStep('payment')
+                } else {
+                    console.log("[STUDIO_SYNC] No billing record found in vault. Manual entry required.");
                 }
             } catch (e) {
                 console.error('[STUDIO_TRANSCEIVER_ERROR]', e);
             }
         }
-        fetchBilling()
-    }, [supabase])
+        if (isOpen) fetchBilling()
+    }, [supabase, isOpen])
 
     const saveBilling = async () => {
         if (!billing.full_name || !billing.address || !billing.state || !billing.zip) {
