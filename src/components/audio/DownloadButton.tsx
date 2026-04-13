@@ -45,10 +45,16 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
                 // 💳 Flow 1: Unlock using credits
                 const result = await unlockSample(sampleId)
                 if (result.success) {
-                    mutate('user_vault')
+                    // Force immediate re-fetch of vault items
+                    await mutate('user_vault')
+                    
+                    // Update metadata locally in provider for instant UI swap
                     updateMetadataUnlocked(sampleId)
+                    
                     setNeedsConfirm(false)
                     showToast('Sound Unlocked!', 'success')
+                    
+                    // Trigger credit counter refresh
                     window.dispatchEvent(new Event('refresh-credits'))
                 }
             } else {
