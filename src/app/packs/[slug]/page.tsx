@@ -125,7 +125,7 @@ export default async function PackPage({
     packId: pack.id,
     limit: pageSize.toString(),
     page: page,
-    search: search,
+    query: search, // 🔎 USE 'query' AS PER INTERFACE
     sort: sort // 🎚️ PASS SORT TO GLOBAL DB QUERY
   })
   

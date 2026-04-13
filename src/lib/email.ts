@@ -94,7 +94,7 @@ export async function sendPurchaseEmail(
                 </p>
 
                 <div style="margin-bottom: 40px; text-align: center;">
-                    <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://sampleswala.com'}/profile" style="display: inline-block; background-color: #a6e22e; color: #000; text-decoration: none; padding: 16px 32px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px; font-size: 14px;">Access Library</a>
+                    <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://sampleswala.com'}/library" style="display: inline-block; background-color: #a6e22e; color: #000; text-decoration: none; padding: 16px 32px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px; font-size: 14px;">Access Library</a>
                 </div>
 
                 <hr style="border: 0; border-top: 1px solid #1a1a1a; margin: 40px 0 30px 0;">
