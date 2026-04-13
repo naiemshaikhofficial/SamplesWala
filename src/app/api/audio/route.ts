@@ -95,10 +95,10 @@ export async function GET(req: NextRequest) {
     
     // 🛡️ SECURITY LAYER 2: Same-Origin & Anti-Hijack
     // Check if the request comes from our own app. 
-    // Note: Some browsers strip referer on media/fetch redirects. 
+    // Note: Some browsers (especially on mobile) strip referer on media/fetch redirects. 
     // We trust the JWT token as the primary security layer.
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
-    const isInternal = referer.includes(host) || origin.includes(host);
+    const isInternal = !referer || referer.includes(host) || origin.includes(host);
     
     if (!isInternal && !isLocal && process.env.NODE_ENV === 'production') {
         console.error("[AUDIO PROXY] Direct Access Hijack Blocked:", { referer, origin, host });
@@ -151,8 +151,9 @@ export async function GET(req: NextRequest) {
         const userAgent = (await headersList).get('user-agent') || 'UNKNOWN';
         
         const hmac = crypto.createHmac('sha256', proxySecret);
-        // Payload + Expiry + IP + UA
-        hmac.update(`${payload}:${timestamp}:${clientIp}:${userAgent}`);
+        // 🧬 V13_UNIVERSAL_SIGNAL :: Removed IP and UA for Universal Compatibility
+        // Payload + Expiry
+        hmac.update(`${payload}:${timestamp}`);
         
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")

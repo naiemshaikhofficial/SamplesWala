@@ -36,7 +36,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     if (tokenRecord.client_ip && tokenRecord.client_ip !== clientIp && clientIp !== "unknown" && tokenRecord.client_ip !== "unknown") {
-       return new NextResponse("Unauthorized: IP Lock Conflict", { status: 403 })
+       console.warn(`[IP_LOCK_CONFLICT] Expected ${tokenRecord.client_ip}, got ${clientIp}. Allowing for mobile compatibility.`);
+       // return new NextResponse("Unauthorized: IP Lock Conflict", { status: 403 })
     }
 
     // 🧬 Update used_at AFTER validation to avoid race conditions with pre-fetchers
@@ -94,8 +95,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const userAgent = (await headersList).get('user-agent') || 'UNKNOWN';
         
         const hmac = crypto.createHmac('sha256', proxySecret);
-        // Payload + Expiry + IP + UA
-        hmac.update(`${payload}:${timestamp}:${clientIp}:${userAgent}`);
+        // 🧬 V13_UNIVERSAL_SIGNAL :: Removed IP and UA for Universal Compatibility
+        // Payload + Expiry
+        hmac.update(`${payload}:${timestamp}`);
         
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
