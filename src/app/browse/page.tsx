@@ -42,11 +42,20 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     description = `Premium ${formattedCategory} loops and sounds for modern music producers. Discover the best royalty-free ${category} packs.`
   }
 
+  // 📡 CANONICAL_GENERATOR: Consolidate permutations to avoid GSC "Currently Not Indexed"
+  const cParams = new URLSearchParams()
+  if (category) cParams.set('category', category)
+  if (params.genre) cParams.set('genre', params.genre as string)
+  if (params.tag) cParams.set('tag', params.tag as string)
+  
+  const canonicalQuery = cParams.toString()
+  const canonicalPath = canonicalQuery ? `/browse?${canonicalQuery}` : '/browse'
+
   return { 
     title, 
     description,
     alternates: {
-      canonical: category ? `/browse?category=${category}` : '/browse'
+      canonical: canonicalPath
     },
     openGraph: {
       title,

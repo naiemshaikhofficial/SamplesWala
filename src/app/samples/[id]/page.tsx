@@ -42,6 +42,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             description,
             type: 'music.song',
             url: `https://sampleswala.com/samples/${id}`,
+        },
+        alternates: {
+            canonical: `/samples/${id}`
         }
     }
 }

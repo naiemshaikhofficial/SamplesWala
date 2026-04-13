@@ -38,6 +38,9 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
       type: 'website',
       url: `https://sampleswala.com/genres/${genre}`,
       images: [{ url: '/og-genres.jpg' }]
+    },
+    alternates: {
+      canonical: `/genres/${genre}`
     }
   }
 }
