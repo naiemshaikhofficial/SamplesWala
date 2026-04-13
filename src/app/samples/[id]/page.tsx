@@ -64,6 +64,28 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
 
     return (
         <div className="min-h-screen bg-studio-charcoal text-white pt-24 pb-32 relative overflow-hidden font-mono">
+            {/* 📝 MUSIC_RECORDING_SCHEMA (JSON-LD) */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "MusicRecording",
+                        "name": sample.name,
+                        "duration": "PT0M10S", // Approximation
+                        "url": `https://sampleswala.com/samples/${id}`,
+                        "image": sample.sample_packs?.cover_url,
+                        "description": `${sample.name} - ${sample.bpm} BPM ${sample.key} ${sample.type} sample pack artifact.`,
+                        "genre": sample.ai_genre,
+                        "offers": {
+                            "@type": "Offer",
+                            "price": "0", // Preview is free
+                            "priceCurrency": "INR",
+                            "availability": "https://schema.org/InStock"
+                        }
+                    })
+                }}
+            />
             <MasterLight />
             <ScanlineOverlay />
 
@@ -163,7 +185,25 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                                 creditCost={sample.credit_cost}
                                 variant="neon"
                             />
-                            <button className="h-14 w-14 flex items-center justify-center bg-black border border-white/5 text-white/40 hover:text-studio-neon transition-all">
+                            <button 
+                                onClick={() => {
+                                    if (navigator.share) {
+                                        navigator.share({
+                                            title: `${sample.name} Sample`,
+                                            text: `Check out this ${sample.bpm} BPM ${sample.key} ${sample.type} on SamplesWala!`,
+                                            url: window.location.href
+                                        }).catch(() => {
+                                            navigator.clipboard.writeText(window.location.href);
+                                            alert("Link copied to clipboard!");
+                                        });
+                                    } else {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        alert("Link copied to clipboard!");
+                                    }
+                                }}
+                                className="h-14 w-14 flex items-center justify-center bg-black border border-white/5 text-white/40 hover:text-studio-neon transition-all"
+                                title="Share Artifact"
+                            >
                                 <Share2 size={20} />
                             </button>
                         </div>

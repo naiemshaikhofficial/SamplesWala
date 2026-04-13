@@ -114,6 +114,32 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // 🎹 GLOBAL_STUDIO_SHORTCUTS
+  useEffect(() => {
+     const handleKeyDown = (e: KeyboardEvent) => {
+         // Don't trigger if user is typing in search/input
+         const isInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable;
+         if (isInput) return;
+
+         switch (e.code) {
+             case 'Space':
+                 e.preventDefault(); // Prevent page scroll
+                 if (isPlaying) pause();
+                 else if (activeId) audioRef.current?.play();
+                 break;
+             case 'ArrowRight':
+                 next();
+                 break;
+             case 'ArrowLeft':
+                 prev();
+                 break;
+         }
+     }
+
+     window.addEventListener('keydown', handleKeyDown);
+     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying, activeId, next, prev, pause]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
