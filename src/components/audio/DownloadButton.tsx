@@ -14,9 +14,10 @@ type DownloadButtonProps = {
   sampleId: string
   creditCost?: number
   packId?: string
+  variant?: 'default' | 'neon'
 }
 
-export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadButtonProps) {
+export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'default' }: DownloadButtonProps) {
     const isUnlocked = useIsUnlocked(sampleId, packId)
     const { unlockedIds, mutate, unlockItem, removeItem } = useVault()
     const [isProcessing, setIsProcessing] = useState(false)
@@ -101,14 +102,19 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
             disabled={isProcessing}
             className={`
                 group relative flex items-center justify-center p-3 rounded-md transition-all duration-300 min-w-[70px]
+                ${variant === 'neon' ? 'h-14 px-8 text-sm' : 'h-10 px-4'}
                 ${isUnlocked 
-                    ? 'bg-white/5 hover:bg-studio-neon text-white hover:text-black border border-white/10' 
+                    ? variant === 'neon' 
+                        ? 'bg-white text-black font-black uppercase tracking-widest' 
+                        : 'bg-white/5 hover:bg-studio-neon text-white hover:text-black border border-white/10' 
                     : needsConfirm || isProcessing
                         ? 'bg-black text-studio-neon border-2 border-studio-neon shadow-[0_0_20px_#a6e22e33]'
-                        : 'bg-white/5 hover:bg-white text-white/40 hover:text-black border border-white/5 hover:border-white'
+                        : variant === 'neon'
+                            ? 'bg-studio-neon text-black border-none shadow-[0_0_30px_#a6e22e66]'
+                            : 'bg-white/5 hover:bg-white text-white/40 hover:text-black border border-white/5 hover:border-white'
                 }
                 active:scale-95
-                disabled:opacity-80 disabled:cursor-wait
+                disabled:opacity-80 disabled:cursor-wait font-black uppercase italic
             `}
             title={isUnlocked ? 'Download Sample' : `Unlock for ${creditCost} Credits`}
         >
@@ -121,7 +127,7 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
                         </span>
                     </div>
                 ) : (isUnlocked || creditCost === 0) ? (
-                    <Download className={`h-4 w-4 ${isPlaying ? 'animate-bounce' : ''} text-white group-hover:text-black transition-colors`} />
+                    <Download className={`${variant === 'neon' ? 'h-5 w-5' : 'h-4 w-4'} ${isPlaying ? 'animate-bounce' : ''} text-white group-hover:text-black transition-colors`} />
                 ) : needsConfirm ? (
                     <div className="flex items-center gap-2 px-2">
                          <span className="text-[9px] font-black uppercase tracking-widest">CONFIRM?</span>
@@ -129,8 +135,8 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 px-1">
-                        <Lock className="h-3 w-3 opacity-40 group-hover:opacity-100 transition-all" />
-                        <span className="text-[10px] font-black uppercase tracking-tight text-white/40 group-hover:text-black transition-colors">
+                        <Lock className={`${variant === 'neon' ? 'h-4 w-4' : 'h-3 w-3'} opacity-40 group-hover:opacity-100 transition-all`} />
+                        <span className={`${variant === 'neon' ? 'text-xs' : 'text-[10px]'} font-black uppercase tracking-tight text-white/40 group-hover:text-black transition-colors`}>
                             {creditCost}
                         </span>
                     </div>
