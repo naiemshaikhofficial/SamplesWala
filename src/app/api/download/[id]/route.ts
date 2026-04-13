@@ -95,9 +95,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const userAgent = (await headersList).get('user-agent') || 'UNKNOWN';
         
         const hmac = crypto.createHmac('sha256', proxySecret);
-        // 🧬 V13_UNIVERSAL_SIGNAL :: Removed IP and UA for Universal Compatibility
-        // Payload + Expiry
-        hmac.update(`${payload}:${timestamp}`);
+        // 🧬 V12_STABLE_SIGNAL :: Removed User-Agent from signature for mobile compatibility
+        // Payload + Expiry + IP
+        hmac.update(`${payload}:${timestamp}:${clientIp}`);
         
         const sig = hmac.digest('base64')
             .replace(/\+/g, "-")
