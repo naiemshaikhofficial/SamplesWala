@@ -7,11 +7,13 @@ import useSWR, { useSWRConfig } from 'swr'
 type VaultContextType = {
   unlockedIds: Set<string>
   isLoading: boolean
+  mutate: (data?: any, options?: any) => Promise<any>
 }
 
 const VaultContext = createContext<VaultContextType>({
   unlockedIds: new Set(),
-  isLoading: true
+  isLoading: true,
+  mutate: async () => {}
 })
 
 export function VaultProvider({ children }: { children: React.ReactNode }) {
@@ -72,7 +74,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   })
 
   return (
-    <VaultContext.Provider value={{ unlockedIds: unlockedIds || new Set(), isLoading }}>
+    <VaultContext.Provider value={{ unlockedIds: unlockedIds || new Set(), isLoading, mutate }}>
       {children}
     </VaultContext.Provider>
   )

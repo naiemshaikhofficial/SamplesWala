@@ -18,9 +18,9 @@ type DownloadButtonProps = {
 
 export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadButtonProps) {
     const isUnlocked = useIsUnlocked(sampleId, packId)
+    const { unlockedIds, mutate } = useVault()
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
-    const { mutate } = useSWRConfig()
     const { isPlaying, updateMetadataUnlocked, user } = useAudio()
     const { showToast, showConfirm, showAuthGate } = useNotify()
 
@@ -45,8 +45,13 @@ export function DownloadButton({ sampleId, creditCost = 1, packId }: DownloadBut
                 // 💳 Flow 1: Unlock using credits
                 const result = await unlockSample(sampleId)
                 if (result.success) {
-                    // Force immediate re-fetch of vault items
-                    await mutate('user_vault')
+                    // 🚀 OPTIMISTIC_UI_SWAP
+                    const currentVault = unlockedIds || new Set<string>()
+                    const newVault = new Set(currentVault)
+                    newVault.add(sampleId)
+                    
+                    // Update cache immediately without waiting for revalidation
+                    await mutate('user_vault', newVault, { revalidate: true })
                     
                     // Update metadata locally in provider for instant UI swap
                     updateMetadataUnlocked(sampleId)
