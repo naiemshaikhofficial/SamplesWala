@@ -132,7 +132,7 @@ export async function sendPurchaseEmail(
         );
 
         await resend.emails.send({
-            from: 'SamplesWala <contact@sampleswala.com>',
+            from: 'SamplesWala <info@sampleswala.com>',
             to: email,
             subject: `Invoice: ${itemName} | SamplesWala`,
             html: html,
