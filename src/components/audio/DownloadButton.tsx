@@ -54,21 +54,17 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
                 
                 if (result.success) {
                     // Success! 🧬 FORCE-SYNC PROTOCOL
-                    // 1. Manually update metadata (Internal Player State)
                     updateMetadataUnlocked(sampleId)
                     
-                    // 2. Force-inject into SWR Cache (Bypass network lag)
+                    // Force-inject into SWR Cache
                     mutate('user_vault', (current: Set<string> | undefined) => {
                         const next = new Set(current instanceof Set ? current : (current || []))
                         next.add(sampleId)
                         return next
                     }, false)
 
-                    // 3. Global Notification Signals
                     showToast('Sound Unlocked!', 'success')
                     window.dispatchEvent(new Event('refresh-credits'))
-                    
-                    // 4. Background background validation (Final Ground Truth)
                     mutate('user_vault')
                 } else {
                     throw new Error("Transaction failed")
