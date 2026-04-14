@@ -1,76 +1,110 @@
-
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// ============================================================================
+// NUCLEAR CONFIGURATION (Edge-Compatible)
+// ============================================================================
+
+const rateLimitStore = new Map<string, { count: number; reset: number }>();
+
+const SENSITIVE_PATHS = ['/api/auth', '/api/payment', '/admin'];
+
 /** 
- * NEXT_SAMPLESWALA_V5 RELIANCE PROXY
- * This version uses the modern 'proxy' convention for route gating.
+ * NEXT_SAMPLESWALA_V5 RELIANCE PROXY (NUCLEAR UPGRADE)
+ * Handles Gatekeeping, SEO Protection, and Security Headers.
  */
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+
+  // 🛡️ 1. RATE LIMITING (Basic Edge implementation)
+  const now = Date.now();
+  const limitKey = `${ip}:${pathname.startsWith('/api') ? 'api' : 'web'}`;
+  const entry = rateLimitStore.get(limitKey) || { count: 0, reset: now + 60000 };
+
+  if (now > entry.reset) {
+    entry.count = 1;
+    entry.reset = now + 60000;
+  } else {
+    entry.count++;
+  }
+  rateLimitStore.set(limitKey, entry);
+
+  if (entry.count > (SENSITIVE_PATHS.some(p => pathname.startsWith(p)) ? 20 : 100)) {
+    return new NextResponse(JSON.stringify({ error: "High traffic detected. Please slow down." }), {
+      status: 429,
+      headers: { 'Content-Type': 'application/json', 'Retry-After': '60' }
+    });
+  }
+
+  // 🤖 2. BOT SHIELD (Allow Google, Block Scrapers)
+  const ua = request.headers.get('user-agent') || '';
+  const isSuspicious = /bot|spider|crawl|scraper|curl|wget|python|libwww|headless/i.test(ua) && 
+                      !/googlebot|bingbot|yandexbot|duckduckbot/i.test(ua);
+
+  if (isSuspicious && pathname.startsWith('/api')) {
+    return new NextResponse("Automated access restricted.", { status: 403 });
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
-  })
+  });
 
+  // 🧪 Supabase Auth Client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
+        getAll() { return request.cookies.getAll() },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          response = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
         },
       },
     }
-  )
+  );
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser();
 
   // 🛡️ SECURITY_GATE: Private Route Protection
-  const path = request.nextUrl.pathname;
-  console.log('👀 MIDDLEWARE_PROBE :: PATH:', path);
-
-  const isProtectedRoute = path.startsWith('/library') || path.startsWith('/settings');
-  const isAdminRoute = path.startsWith('/admin');
+  const isProtectedRoute = pathname.startsWith('/library') || pathname.startsWith('/settings');
+  const isAdminRoute = pathname.startsWith('/admin');
 
   if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+    return NextResponse.redirect(new URL('/auth/login', request.url));
   }
 
-  // 🏛️ ADMIN_GATE: Verified Identity Check
   if (isAdminRoute) {
-     if (!user) {
-        console.warn('🛡️ MIDDLEWARE :: No user found for admin route. Redirecting to login.');
-        return NextResponse.redirect(new URL('/auth/login', request.url));
-     }
+     if (!user) return NextResponse.redirect(new URL('/auth/login', request.url));
      
      const userEmail = user.email?.toLowerCase() || '';
      const role = user.app_metadata?.role || user.user_metadata?.role;
-     
-     const isAuthorized = role === 'admin' || 
-                         userEmail.includes('naiem') || 
-                         userEmail.includes('sampleswala') || 
-                         userEmail === 'naiemshaikh@gmail.com';
+     const isAuthorized = role === 'admin' || userEmail === 'naiemshaikh@gmail.com' || userEmail.includes('naiem');
 
-     if (!isAuthorized) {
-        console.warn(`🛡️ MIDDLEWARE :: Unauthorized access attempt to ${path} by ${userEmail}`);
-        return NextResponse.redirect(new URL('/browse', request.url));
-     }
-     
-     console.log(`✅ MIDDLEWARE :: Authorized admin access to ${path} by ${userEmail}`);
+     if (!isAuthorized) return NextResponse.redirect(new URL('/browse', request.url));
   }
 
-  return response
+  // 🏛️ NUCLEAR SEO HEADERS
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+
+  // API No-Index Protection
+  if (pathname.startsWith("/api")) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+
+  // Content Security Policy (Basic)
+  const connectSrc = ["'self'", process.env.NEXT_PUBLIC_SUPABASE_URL, "https://*.supabase.co"].filter(Boolean);
+  const csp = `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src ${connectSrc.join(' ')}; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;`.replace(/\s+/g, ' ');
+  response.headers.set("Content-Security-Policy", csp);
+
+  return response;
 }
 
 export default proxy;

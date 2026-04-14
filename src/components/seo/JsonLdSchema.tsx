@@ -1,72 +1,250 @@
 import React from 'react';
 
-interface JsonLdSchemaProps {
-    type?: 'website' | 'organization' | 'product' | 'article' | 'music-group';
-    data?: any;
-}
+const SITE_URL = "https://sampleswala.com";
+const BRAND_NAME = "SamplesWala";
 
-const JsonLdSchema: React.FC<JsonLdSchemaProps> = ({ type = 'website', data }) => {
-    const siteUrl = "https://sampleswala.com";
-    const brandName = "SamplesWala";
-
-    const defaultSchemas: Record<string, any> = {
-        website: {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": brandName,
-            "alternateName": ["Samples Wala", "SamplesWala Music"],
-            "url": siteUrl,
-            "potentialAction": {
-                "@type": "SearchAction",
-                "target": {
-                    "@type": "EntryPoint",
-                    "urlTemplate": `${siteUrl}/browse?q={search_term_string}`
-                },
-                "query-input": "required name=search_term_string"
+// 👤 Person & MusicGroup combined (Nuclear SEO)
+export const PersonSchema = () => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': ['Person', 'MusicGroup'],
+        '@id': `${SITE_URL}/#brand`,
+        name: BRAND_NAME,
+        alternateName: ['Samples Wala', 'SamplesWala Official'],
+        description: 'India\'s leading marketplace for premium sample packs, musical loops, and VST software. Crafted for modern music producers.',
+        url: SITE_URL,
+        image: `${SITE_URL}/logo.png`,
+        sameAs: [
+            'https://instagram.com/sampleswala',
+            'https://youtube.com/@sampleswala',
+        ],
+        genre: ['Hip Hop', 'Indian Hip Hop', 'Desi Hip Hop', 'Rap', 'Independent Music'],
+        nationality: {
+            '@type': 'Country',
+            name: 'India',
+        },
+        knowsAbout: [
+            'Music Production',
+            'Beat Making',
+            'Audio Engineering',
+            'Mixing and Mastering',
+            'Sound Design',
+        ],
+        hasOccupation: [
+            {
+                '@type': 'Occupation',
+                name: 'Music Production House',
+            },
+            {
+                '@type': 'Occupation',
+                name: 'Sound Design Studio',
             }
-        },
-        organization: {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": brandName,
-            "url": siteUrl,
-            "logo": `${siteUrl}/logo.png`,
-            "founder": {
-                "@type": "Person",
-                "name": "Naiem Shaikh"
+        ],
+        makesOffer: [
+            {
+                '@type': 'Offer',
+                itemOffered: {
+                    '@type': 'Product',
+                    name: 'Sample Packs',
+                    description: 'Professional royalty-free sample packs',
+                },
             },
-            "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "+91-XXXXXXXXXX",
-                "contactType": "customer service",
-                "areaServed": "IN",
-                "availableLanguage": "en"
-            },
-            "sameAs": [
-                "https://instagram.com/sampleswala",
-                "https://youtube.com/sampleswala",
-                "https://twitter.com/sampleswala"
-            ]
-        },
-        'music-group': {
-            "@context": "https://schema.org",
-            "@type": "MusicGroup",
-            "name": brandName,
-            "url": siteUrl,
-            "genre": ["Hip Hop", "Trap", "EDM", "Indian Hip Hop"],
-            "description": "Premium music production assets and royalty-free samples."
-        }
+            {
+                '@type': 'Offer',
+                itemOffered: {
+                    '@type': 'Product',
+                    name: 'Software & VSTs',
+                    description: 'Industry-standard music software',
+                },
+            }
+        ],
     };
-
-    const schemaToRender = data || defaultSchemas[type];
-
-    if (!schemaToRender) return null;
 
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaToRender) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
+    );
+};
+
+// 🏛️ Organization Schema
+export const OrganizationSchema = () => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
+        name: BRAND_NAME,
+        url: SITE_URL,
+        logo: {
+            '@type': 'ImageObject',
+            url: `${SITE_URL}/logo.png`,
+            width: 512,
+            height: 512,
+        },
+        founder: {
+            '@type': 'Person',
+            name: "Naiem Shaikh"
+        },
+        contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'customer service',
+            url: `${SITE_URL}/contact`,
+            availableLanguage: ['English', 'Hindi'],
+        },
+        sameAs: [
+            'https://instagram.com/sampleswala',
+            'https://youtube.com/@sampleswala',
+        ],
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+};
+
+// 📦 Product Schema (For dynamic use in product pages)
+interface ProductSchemaProps {
+    name: string;
+    description: string;
+    image: string;
+    price: number;
+    url: string;
+    availability?: 'InStock' | 'OutOfStock';
+    rating?: number;
+    reviewCount?: number;
+}
+
+export const ProductSchema: React.FC<ProductSchemaProps> = ({
+    name,
+    description,
+    image,
+    price,
+    url,
+    availability = 'InStock',
+    rating = 4.9,
+    reviewCount = 120,
+}) => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name,
+        description,
+        image,
+        url: `${SITE_URL}${url}`,
+        brand: {
+            '@type': 'Brand',
+            name: BRAND_NAME,
+        },
+        offers: {
+            '@type': 'Offer',
+            price: price.toString(),
+            priceCurrency: 'INR',
+            availability: `https://schema.org/${availability}`,
+            url: `${SITE_URL}${url}`,
+            seller: {
+                '@id': `${SITE_URL}/#organization`,
+            },
+        },
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: rating.toString(),
+            reviewCount: reviewCount.toString(),
+        }
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+};
+
+// 🧭 Breadcrumb Schema (Google Nav Control)
+interface BreadcrumbItem {
+    name: string;
+    url: string;
+}
+
+export const BreadcrumbSchema: React.FC<{ items: BreadcrumbItem[] }> = ({ items }) => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: items.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: item.name,
+            item: item.url.startsWith('http') ? item.url : `${SITE_URL}${item.url}`,
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+};
+
+// ❓ FAQ Schema (Rich dropdowns in results)
+interface FAQItem {
+    question: string;
+    answer: string;
+}
+
+export const FAQSchema: React.FC<{ items: FAQItem[] }> = ({ items }) => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: items.map((item) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: item.answer,
+            },
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+};
+
+// 🧩 Default Export (Website Schema)
+const JsonLdSchema: React.FC = () => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        name: BRAND_NAME,
+        url: SITE_URL,
+        potentialAction: {
+            '@type': 'SearchAction',
+            'target': {
+                '@type': 'EntryPoint',
+                'urlTemplate': `${SITE_URL}/browse?q={search_term_string}`
+            },
+            'query-input': 'required name=search_term_string'
+        }
+    };
+
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            />
+            <PersonSchema />
+            <OrganizationSchema />
+        </>
     );
 };
 
