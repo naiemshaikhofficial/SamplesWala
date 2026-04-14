@@ -218,9 +218,29 @@ export const FAQSchema: React.FC<{ items: FAQItem[] }> = ({ items }) => {
     );
 };
 
-// 🧩 Default Export (Website Schema)
-const JsonLdSchema: React.FC = () => {
-    const schema = {
+// 🧩 Default Export (Multi-Purpose Schema Loader)
+interface JsonLdProps {
+    type?: 'website' | 'organization' | 'music-group' | 'person';
+    data?: any;
+}
+
+const JsonLdSchema: React.FC<JsonLdProps> = ({ type, data }) => {
+    // 1. If raw data is provided, render it directly
+    if (data) {
+        return (
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+            />
+        );
+    }
+
+    // 2. Map types to internal components
+    if (type === 'organization') return <OrganizationSchema />;
+    if (type === 'music-group' || type === 'person') return <PersonSchema />;
+    
+    // 3. Render WebSite Schema (Default)
+    const websiteSchema = {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         '@id': `${SITE_URL}/#website`,
@@ -236,15 +256,26 @@ const JsonLdSchema: React.FC = () => {
         }
     };
 
+    // 4. Default behavior: If no type, load entire brand authority stack
+    if (!type) {
+        return (
+            <>
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+                />
+                <PersonSchema />
+                <OrganizationSchema />
+            </>
+        );
+    }
+
+    // 5. If type is website, only render website
     return (
-        <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-            />
-            <PersonSchema />
-            <OrganizationSchema />
-        </>
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
     );
 };
 

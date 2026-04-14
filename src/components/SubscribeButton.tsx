@@ -25,7 +25,7 @@ declare global {
 export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled }: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
-  const { showAuthGate } = useNotify()
+  const { showAuthGate, showToast } = useNotify()
   const supabase = createClient()
 
   const handleSubscribe = async () => {
