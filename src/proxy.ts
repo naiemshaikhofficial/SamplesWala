@@ -99,9 +99,26 @@ export async function proxy(request: NextRequest) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
-  // Content Security Policy (Basic)
-  const connectSrc = ["'self'", process.env.NEXT_PUBLIC_SUPABASE_URL, "https://*.supabase.co"].filter(Boolean);
-  const csp = `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src ${connectSrc.join(' ')}; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;`.replace(/\s+/g, ' ');
+  // Content Security Policy (Nuclear Optimized)
+  const connectSrc = [
+    "'self'", 
+    process.env.NEXT_PUBLIC_SUPABASE_URL, 
+    "https://*.supabase.co",
+    "https://*.workers.dev", // Allow Cloudflare Workers
+    "https://drive.google.com"
+  ].filter(Boolean);
+
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    `connect-src ${connectSrc.join(' ')}`,
+    "img-src 'self' data: https:",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self' data:",
+    "media-src 'self' blob: data: https://*.supabase.co https://*.workers.dev",
+    "frame-ancestors 'none'"
+  ].join('; ');
+
   response.headers.set("Content-Security-Policy", csp);
 
   return response;

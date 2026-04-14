@@ -72,6 +72,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     ...[...new Set(keyList)].map(k => `${k} key`)
   ]
 
+  const ogImage = `https://sampleswala.com/api/og/pack/${slug}`
+
   return {
     title,
     description,
@@ -81,13 +83,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       type: 'article',
       url: `https://sampleswala.com/packs/${slug}`,
-      images: pack.cover_url ? [{ url: pack.cover_url, width: 800, height: 800, alt: pack.name }] : [],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: pack.cover_url ? [pack.cover_url] : [],
+      images: [ogImage],
     },
     alternates: {
       canonical: `https://sampleswala.com/packs/${slug}`

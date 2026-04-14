@@ -39,6 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // Default Fallback SEO
     const title = `${soft.name} | Professional Music Software & VST Plugin | SAMPLES WALA`
     const description = `Download ${soft.name} from SamplesWala. ${soft.description}. Premium production tool available for Windows and macOS. Lifetime updates included.`
+    const ogImage = `https://sampleswala.com/api/og/software/${slug}`
     
     return {
       title,
@@ -49,7 +50,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         description,
         type: 'website',
         url: `https://sampleswala.com/software/${slug}`,
-        ...(soft.cover_url && { images: [{ url: soft.cover_url }] })
+        images: [{ url: ogImage, width: 1200, height: 630, alt: title }]
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [ogImage]
       }
     }
 }

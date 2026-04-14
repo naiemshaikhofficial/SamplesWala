@@ -10,6 +10,7 @@ export type SEOMetadataParams = {
     path: string;
     type?: "website" | "article" | "profile";
     image?: string;
+    ogImage?: string; // For dynamic OG generation
     keywords?: string[];
 };
 
@@ -18,7 +19,7 @@ export type SEOMetadataParams = {
  */
 export function generateMetadata(params: SEOMetadataParams): Metadata {
     const url = `${SITE_URL}${params.path}`;
-    const ogImage = params.image || `${SITE_URL}/og-image.jpg`;
+    const ogImage = params.ogImage || params.image || `${SITE_URL}/og-image.jpg`;
 
     return {
         title: params.title,
