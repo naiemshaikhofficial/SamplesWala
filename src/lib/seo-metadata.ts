@@ -8,7 +8,7 @@ export type SEOMetadataParams = {
     title: string;
     description: string;
     path: string;
-    type?: "website" | "article" | "profile" | "product";
+    type?: "website" | "article" | "profile";
     image?: string;
     keywords?: string[];
 };
