@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { Layers, Zap, ArrowLeft, Disc } from 'lucide-react'
 import Image from 'next/image'
 import { SampleList } from '@/components/audio/SampleList'
-import { PriceDisplay } from '@/components/PriceDisplay'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { Pagination } from '@/components/layout/Pagination'
 
@@ -36,11 +35,11 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
       title,
       description,
       type: 'website',
-      url: `https://sampleswala.com/genres/${genre}`,
+      url: `https://sampleswala.com/sounds/genres/${genre}`,
       images: [{ url: '/og-genres.jpg' }]
     },
     alternates: {
-      canonical: `/genres/${genre}`
+      canonical: `/sounds/genres/${genre}`
     }
   }
 }
@@ -68,8 +67,7 @@ export default async function GenrePage({
   const category = categories?.[0]
   
   if (!category) {
-      // Fallback search in samples if category not found strictly
-      // But for SEO silos, we usually want these to match categories
+      // Allow the page to render with empty results or handle as search
   }
 
   // 🚀 PARALLEL_SIGNAL_INTAKE: Fetch packs and samples simultaneously
@@ -83,7 +81,6 @@ export default async function GenrePage({
   ])
 
   const { samples, count } = samplesResult
-
   const genreDisplay = category?.name || genre.toUpperCase()
 
   return (
@@ -97,7 +94,7 @@ export default async function GenrePage({
                   "@type": "CollectionPage",
                   "name": `${genreDisplay} Samples & Loops Library`,
                   "description": `Comprehensive collection of professional ${genreDisplay} sound packs and samples.`,
-                  "url": `https://sampleswala.com/genres/${genre}`,
+                  "url": `https://sampleswala.com/sounds/genres/${genre}`,
                   "mainEntity": {
                       "@type": "ItemList",
                       "itemListElement": (packs || []).map((p: any, i: number) => ({
@@ -110,27 +107,11 @@ export default async function GenrePage({
           }}
       />
 
-      {/* 🧭 BREADCRUMB_SCHEMA (JSON-LD) */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Catalog", "item": "https://sampleswala.com/browse" },
-              { "@type": "ListItem", "position": 2, "name": "Genres", "item": "https://sampleswala.com/browse" },
-              { "@type": "ListItem", "position": 3, "name": genreDisplay, "item": `https://sampleswala.com/genres/${genre}` }
-            ]
-          })
-        }}
-      />
-
       <Breadcrumbs 
         items={[
           { label: 'BROWSE', href: '/browse' },
           { label: 'GENRES', href: '/browse' },
-          { label: genreDisplay, href: `/genres/${genre}`, active: true }
+          { label: genreDisplay, href: `/sounds/genres/${genre}`, active: true }
         ]} 
       />
 
@@ -169,9 +150,14 @@ export default async function GenrePage({
 
       {packs && packs.length > 0 && (
           <div className="mb-32">
-              <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-12 flex items-center gap-4 text-white/40 border-b border-white/5 pb-4">
-                  <Layers className="h-6 w-6 text-studio-neon" /> {genreDisplay} Packs
-              </h2>
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-12">
+                <h2 className="text-2xl font-black uppercase italic tracking-tighter flex items-center gap-4 text-white/40">
+                    <Layers className="h-6 w-6 text-studio-neon" /> {genreDisplay} Packs
+                </h2>
+                <Link href={`/sounds/genres/${genre}/packs`} className="text-[10px] font-black uppercase tracking-widest text-studio-neon hover:text-white transition-colors">
+                    View All Packs <span className="ml-2">→</span>
+                </Link>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {packs.map((pack: any) => (
                       <Link key={pack.id} href={`/packs/${pack.slug}`} className="group relative">
@@ -203,6 +189,7 @@ export default async function GenrePage({
                   samples={samples} 
                   packName={`${genreDisplay} Collection`} 
                   coverUrl={null} 
+                  totalCount={count}
               />
 
               {samples && samples.length > 0 && (
@@ -211,7 +198,7 @@ export default async function GenrePage({
                           currentPage={pageVal} 
                           totalCount={count ?? 0} 
                           pageSize={pageSize} 
-                          baseUrl={`/genres/${genre}`}
+                          baseUrl={`/sounds/genres/${genre}`}
                           searchParams={sParams}
                       />
                   </div>

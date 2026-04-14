@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Sitemap: Error fetching packs', e)
   }
 
-  // 🧬 2. FETCH DYNAMIC GENRES
+  // 🧬 2. FETCH DYNAMIC GENRES (Splice-Style Silos)
   let genreUrls: MetadataRoute.Sitemap = []
   try {
     const { data: categories } = await adminClient
@@ -33,12 +33,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .select('name')
     
     if (categories) {
-      genreUrls = categories.map((cat: any) => ({
-        url: `${domain}/genres/${cat.name.toLowerCase().replace(/\s+/g, '-')}`,
-        lastModified: currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      }))
+      categories.forEach((cat: any) => {
+        const slug = cat.name.toLowerCase().replace(/\s+/g, '-')
+        // Overview Page
+        genreUrls.push({
+          url: `${domain}/sounds/genres/${slug}`,
+          lastModified: currentDate,
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        })
+        // Packs-Only Page
+        genreUrls.push({
+          url: `${domain}/sounds/genres/${slug}/packs`,
+          lastModified: currentDate,
+          changeFrequency: 'weekly',
+          priority: 0.8,
+        })
+      })
     }
   } catch (e) {
     console.error('Sitemap: Error fetching genres', e)

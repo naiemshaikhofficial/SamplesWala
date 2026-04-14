@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/genres/:genre',
+        destination: '/sounds/genres/:genre',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
