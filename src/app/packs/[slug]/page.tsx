@@ -50,24 +50,27 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const bpmStr = [...new Set(bpmList)].slice(0, 4).join(', ')
   const keyStr = [...new Set(keyList)].slice(0, 4).join(', ')
   
-  // 🎹 NUCLEAR_SEO: Enhanced Description Injection
-  const genreName = pack.categories?.name || 'Electronic'
-  const title = `${pack.name} - Elite ${genreName} Samples [International Standard] | SamplesWala`
-  const description = `The #1 world-class alternative to Splice. Download ${pack.name} by SamplesWala. Professional ${genreName} loops, Trap melody, and Drill drums. 100% Royalty-Free 24-bit WAV files.`
+  // 🎹 NUCLEAR_SEO: Localized Indian Search Supremacy (Cleaned Redundancy)
+  const genreBase = pack.categories?.name || 'Indian'
+  const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
+  
+  const title = `${pack.name} - ${displayGenre} Sample Pack | Bollywood Sounds | SamplesWala`
+  const description = `Download ${pack.name} by SamplesWala. The ultimate ${displayGenre} Sample Pack featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
   
   const keywords = [
     pack.name, 
-    `${genreName} samples`, 
-    'global sample pack', 
-    'royalty free loops', 
-    'pro wav samples', 
-    'trap loops',
-    'drill samples',
-    'afrobeat sounds',
-    'phonik loops',
-    'splice alternative',
-    'looperman style sounds',
-    'industry standard audio',
+    'Indian sample pack',
+    'Bollywood sample pack',
+    `${displayGenre} Indian samples`, 
+    'Indian percussion loops', 
+    'Bollywood melody loops', 
+    'Tabla loops download',
+    'Hip Hop Samples',  
+    'Dhol patches',
+    'Indian VST sounds',
+    'SamplesWala Indian sounds',
+    'Desi Hip Hop samples',
+    'Indian Trap loops',
     ...[...new Set(bpmList)].map(b => `${b} bpm`),
     ...[...new Set(keyList)].map(k => `${k} key`)
   ]
@@ -208,70 +211,79 @@ export default async function PackPage({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
         
         {/* ⬅️ SIDEBAR: PRODUCT_METADATA */}
-        <div className="lg:col-span-4 space-y-8 sticky top-24">
+        <div className="lg:col-span-4 space-y-6 sticky top-24">
             
-            {/* 1. COMPACT COVER & STATS */}
-            <div className="studio-panel bg-studio-grey border-2 border-white/10 shadow-2xl overflow-hidden group">
-                <div className="absolute top-0 inset-x-0 bg-[#000] px-3 py-1.5 flex items-center justify-between border-b border-white/5 z-20">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/30 truncate pr-10">CORE_MODULE</span>
-                    <div className="flex gap-1 opacity-40">
-                        <div className="w-1.5 h-1.5 rounded-full bg-studio-neon" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-studio-yellow" />
+            {/* 1. MAIN_CONTROL_MODULE */}
+            <div className="studio-panel bg-[#0a0a0a] border-2 border-white/10 shadow-2xl overflow-hidden group">
+                {/* Module Header */}
+                <div className="absolute top-0 inset-x-0 bg-studio-grey px-3 py-2 flex items-center justify-between border-b border-white/10 z-20">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-studio-neon animate-pulse" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/50">SIGNAL_HUD_V2</span>
                     </div>
+                    <span className="text-[9px] font-black text-studio-neon">PREMIUM</span>
                 </div>
-                <div className="aspect-square relative mt-6 grayscale group-hover:grayscale-0 transition-all duration-700">
+
+                {/* Poster / Cover */}
+                <div className="aspect-square relative mt-8 grayscale hover:grayscale-0 transition-all duration-700 cursor-zoom-in">
                     {pack.cover_url ? (
                         <Image 
                             src={pack.cover_url} 
                             alt={pack.name} 
                             fill 
+                            priority
                             sizes="(max-width: 1024px) 100vw, 33vw"
                             className="object-cover" 
                         />
                     ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center bg-studio-grey">
                             <Monitor className="h-16 w-16 text-white/5" />
                         </div>
                     )}
                 </div>
-                {/* Stats Overlay */}
-                <div className="bg-black/80 backdrop-blur-md p-4 grid grid-cols-2 gap-4 border-t border-white/5">
+
+                {/* 🛒 IMMEDIATE_ACTION_ZONE */}
+                <div className="p-6 space-y-6 bg-black/40 border-t border-white/10">
                     <div className="space-y-1">
-                        <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">FILES</span>
-                        <div className="text-[10px] font-black text-studio-neon uppercase">{melodies + loops + oneShots} SAMPLES</div>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white leading-none">
+                            {pack.name}
+                        </h1>
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-studio-yellow">
+                            Digital Download Protocol
+                        </p>
                     </div>
-                    <div className="space-y-1 text-right border-l border-white/10 pl-4">
-                        <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">FORMAT</span>
-                        <div className="text-[10px] font-black text-studio-yellow uppercase tracking-tighter">24-BIT WAV</div>
+
+                    <div className="py-2">
+                        <PackActionCenter 
+                            packId={pack.id} 
+                            bundleCost={pack.bundle_credit_cost || 50} 
+                            priceInr={pack.price_inr} 
+                        />
+                    </div>
+
+                    {/* Compact Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">FILES</span>
+                            <span className="text-[10px] font-black text-studio-neon">{melodies + loops + oneShots} WAVS</span>
+                        </div>
+                        <div className="flex flex-col text-right border-l border-white/5 pl-4">
+                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">TYPE</span>
+                            <span className="text-[10px] font-black text-white/60">{pack.categories?.name || 'STUDIO'}</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* 2. COMPACT PURCHASE HUD */}
-            <div className="bg-[#0a0a0a] border-2 border-studio-yellow/30 p-6 space-y-6 shadow-[0_0_50px_rgba(234,179,8,0.05)]">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-studio-yellow mb-1">
-                        <Zap size={12} className="animate-pulse" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em]">Purchase Protocol</span>
-                    </div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white leading-none truncate">
-                        {pack.name}
-                    </h1>
-                </div>
-
-                <div className="pt-2">
-                    <PackActionCenter 
-                        packId={pack.id} 
-                        bundleCost={pack.bundle_credit_cost || 50} 
-                        priceInr={pack.price_inr} 
-                    />
-                </div>
-
-                <div className="pt-4 border-t border-white/5">
-                    <p className="text-[11px] text-white/40 leading-relaxed font-bold italic">
-                        {pack.description?.substring(0, 150)}...
-                    </p>
-                </div>
+            {/* 2. DESCRIPTION_MODULE */}
+            <div className="p-5 bg-studio-grey/30 border border-white/5">
+                 <div className="flex items-center gap-2 mb-3">
+                    <Disc className="h-3 w-3 text-white/20 animate-spin-slow" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product_Brief</span>
+                 </div>
+                 <p className="text-[11px] text-white/40 leading-relaxed font-bold italic">
+                    {pack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
+                 </p>
             </div>
 
             {/* 3. ARTIFACT_BREAKDOWN */}
