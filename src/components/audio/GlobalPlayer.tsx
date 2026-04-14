@@ -63,7 +63,7 @@ export function GlobalPlayer() {
                             <div className="w-1.5 h-1.5 rounded-full bg-studio-yellow animate-pulse" />
                             <span className="text-studio-yellow font-black">PREVIEW ONLY</span>
                         </div>
-                        <span className="text-white/60 italic lowercase">low quality & watermarked :: unlock for full quality</span>
+                        <span className="text-white/60 italic lowercase">low quality preview  & watermarked :: unlock for full quality</span>
                     </div>
                 )}
              </div>
@@ -210,7 +210,7 @@ export function GlobalPlayer() {
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-4">
                                 <Sparkles className="w-4 h-4 text-studio-neon animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">SIMILAR_VIBES_INTAKE</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">SIMILAR SAMPLES</span>
                             </div>
                             <button onClick={() => setShowVibes(false)} className="text-white/20 hover:text-white"><X size={16} /></button>
                         </div>

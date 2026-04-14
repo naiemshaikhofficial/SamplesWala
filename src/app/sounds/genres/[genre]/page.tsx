@@ -109,8 +109,8 @@ export default async function GenrePage({
 
       <Breadcrumbs 
         items={[
-          { label: 'BROWSE', href: '/browse' },
-          { label: 'GENRES', href: '/browse' },
+          { label: 'Browse', href: '/browse' },
+          { label: 'Genres', href: '/browse' },
           { label: genreDisplay, href: `/sounds/genres/${genre}`, active: true }
         ]} 
       />
@@ -118,7 +118,7 @@ export default async function GenrePage({
       <header className="mb-24 mt-12">
         <div className="flex items-center gap-4 mb-8">
             <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon italic">
-                Silo_Authority_Node :: {genreDisplay}
+                Library :: {genreDisplay}
             </span>
         </div>
         <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none mb-12">
@@ -209,7 +209,7 @@ export default async function GenrePage({
 
       <footer className="py-24 border-t-4 border-black text-center">
             <Link href="/browse" className="inline-flex items-center gap-4 text-studio-neon hover:text-white transition-colors uppercase font-black tracking-[0.4em] italic">
-                <ArrowLeft size={20} /> Return to Global Signal Matrix
+                <ArrowLeft size={20} /> Return to Home
             </Link>
       </footer>
     </div>

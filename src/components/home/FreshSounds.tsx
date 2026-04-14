@@ -74,7 +74,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                         href="/browse?type=samples&sort=newest" 
                         className="group flex items-center gap-4 text-[11px] font-black uppercase tracking-widest hover:text-studio-neon transition-all"
                     >
-                        BROWSE_ALL
+                        Browse All
                         <div className="w-12 h-1 bg-white/10 group-hover:bg-studio-neon overflow-hidden hidden md:block">
                              <motion.div 
                                 className="w-full h-full bg-studio-neon"
@@ -86,7 +86,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                 </div>
             </div>
 
-            {/* 🎚️ SOUND LIST TERMINAL */}
+            {/* 🎚️ Latest Samples */}
             <div className="flex flex-col gap-2 md:gap-3 w-full max-w-5xl mx-auto">
                 {samples.slice(0, 20).map((sample, index) => {
                     const isUnlocked = unlockedIds.has(sample.id)
@@ -139,7 +139,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                                     {sample.name}
                                 </h3>
                                 <p className="text-[8px] md:text-[10px] text-white/30 truncate font-mono uppercase tracking-widest mt-1">
-                                    SRC: {sample.sample_packs?.name || 'STUDIO_ARCHIVE'}
+                                    From: {sample.sample_packs?.name || 'Samples Wala Archive'}
                                 </p>
                             </div>
 

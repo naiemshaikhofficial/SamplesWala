@@ -127,7 +127,9 @@ export function TopSounds({
                                 <h3 className={`font-black tracking-tight truncate uppercase text-xs md:text-base transition-colors leading-none italic mb-1 ${shouldSlideUp ? 'text-studio-yellow' : 'text-white md:group-hover:text-studio-yellow'}`}>
                                     {sound.name}
                                 </h3>
-                                    PACK: {sound.sample_packs?.name || 'TRENDING'}
+                                <p className="text-[8px] md:text-[10px] text-white/30 truncate font-mono uppercase tracking-widest mt-1">
+                                    Pack: {sound.sample_packs?.name || 'Trending'}
+                                </p>
                             </div>
 
                             <div className="hidden sm:flex items-center justify-center gap-6 w-48 text-center border-x border-white/5">

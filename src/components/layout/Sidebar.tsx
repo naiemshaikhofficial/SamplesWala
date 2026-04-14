@@ -293,13 +293,13 @@ export function Sidebar() {
                     className={`w-full flex items-center justify-center py-4 bg-red-950/20 border-2 border-red-900/30 hover:bg-red-600 hover:text-black hover:border-red-400 transition-all group rounded-sm shadow-[0_0_30px_rgba(153,27,27,0.1)]`}
                 >
                     <Power className={`w-5 h-5 transition-transform group-hover:scale-110`} />
-                    {isOpen && <span className="ml-3 text-[10px] font-black uppercase tracking-[0.2em]">LOGOUT</span>}
+                    {isOpen && <span className="ml-3 text-[10px] font-black uppercase tracking-[0.2em]">Sign Out</span>}
                 </button>
             ) : (
                 <div className="flex flex-col gap-2">
                     <Link 
                         href="/auth/login"
-                        title="LOGIN"
+                        title="Sign In"
                         className={`w-full flex items-center justify-center py-3 bg-studio-neon/10 border-2 border-studio-neon/20 hover:bg-studio-neon hover:text-black transition-all group rounded-sm`}
                     >
                         <Key className={`w-4 h-4 transition-transform group-hover:rotate-45`} />
@@ -307,7 +307,7 @@ export function Sidebar() {
                     </Link>
                     <Link 
                         href="/auth/signup"
-                        title="SIGNUP"
+                        title="Sign Up"
                         className={`w-full flex items-center justify-center py-3 bg-white/5 border border-white/10 hover:bg-white hover:text-black transition-all group rounded-sm`}
                     >
                         <UserCheck className={`w-4 h-4 transition-transform group-hover:scale-110`} />

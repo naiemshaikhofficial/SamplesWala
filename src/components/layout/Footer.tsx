@@ -68,7 +68,7 @@ export function Footer() {
                 />
             </Link>
             <div className="flex items-center gap-2 text-[7px] font-black uppercase text-white/10 italic tracking-widest pl-2 border-l border-white/5">
-                <div className="h-1 w-1 bg-studio-neon rounded-full animate-pulse" /> ENGINE_LOCKED
+                <div className="h-1 w-1 bg-studio-neon rounded-full animate-pulse" /> SYSTEMS READY
             </div>
         </div>
 
@@ -88,14 +88,14 @@ export function Footer() {
             ))}
         </div>
 
-        {/* TELEMETRY_RACK */}
+        {/* STUDIO STATS */}
         <div className="hidden lg:flex items-center px-10 gap-10 bg-white/[0.01] border-l border-white/5">
             <div className="flex flex-col gap-1">
-                <span className="text-[7px] font-black text-white/10 uppercase tracking-widest italic">SAMPLING_HQ</span>
+                <span className="text-[7px] font-black text-white/10 uppercase tracking-widest italic">SAMPLE QUALITY</span>
                 <span className="text-[9px] font-black text-studio-neon uppercase italic tracking-[0.2em]">48.0k - 24BIT</span>
             </div>
             <div className="flex flex-col gap-1">
-                <span className="text-[7px] font-black text-white/10 uppercase tracking-widest italic">CONSOLE</span>
+                <span className="text-[7px] font-black text-white/10 uppercase tracking-widest italic">VERSION</span>
                 <span className="text-[9px] font-black text-white/30 uppercase italic tracking-[0.2em]">V17.70.3</span>
             </div>
         </div>
@@ -113,7 +113,7 @@ export function Footer() {
         <div className="flex items-center gap-6">
             <div className="flex items-center gap-4 text-[8px] font-black uppercase text-white/10 italic tracking-widest">
                 <div className="flex items-center gap-2 px-3 py-1 bg-white/2 border border-white/5 rounded-xs">
-                    <Headphones size={10} className="text-studio-neon" /> STUDIO_SYNC
+                    <Headphones size={10} className="text-studio-neon" /> STUDIO SYNC
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1 bg-studio-neon/5 text-studio-neon rounded-xs border border-studio-neon/10 active_glow animate-pulse">
                     <Wifi size={10} /> ENGINE: SYNCHRONIZED

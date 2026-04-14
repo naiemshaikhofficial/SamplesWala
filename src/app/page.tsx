@@ -162,7 +162,7 @@ export default function Home() {
                         <div className="w-2.5 h-2.5 rounded-full bg-studio-neon animate-pulse" />
                         <div className="w-2.5 h-2.5 rounded-full bg-studio-neon/20" />
                     </div>
-                    <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">LATEST ARRIVALS</span>
+                    <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">NEW RELEASES</span>
                 </div>
                 
                 <Suspense fallback={null}>
@@ -175,8 +175,8 @@ export default function Home() {
         <section className="relative z-20 py-20 bg-black border-b-4 border-white/5">
             <div className="max-w-7xl mx-auto px-4 md:px-20">
                 <div className="flex items-center justify-between mb-16 px-4 border-l-4 border-studio-neon">
-                   <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Browse_By_Protocol</h2>
-                   <Link href="/browse" className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon transition-colors">See_All_Node</Link>
+                   <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Browse By Genre</h2>
+                   <Link href="/browse" className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon transition-colors">See All</Link>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4">

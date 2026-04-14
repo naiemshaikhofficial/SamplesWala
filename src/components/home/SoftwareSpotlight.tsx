@@ -30,7 +30,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 md:mb-24 gap-8">
                 <div className="space-y-6">
                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon bg-black/60 px-4 py-1.5 self-start border-l-4 border-studio-neon">
-                        PRO_TOOLS // PLUGINS
+                        SOFTWARE & TOOLS
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="h-10 md:h-16 w-1.5 bg-studio-neon shadow-[0_0_20px_#a6e22e]" />
@@ -41,7 +41,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
                 </div>
                 
                 <Link href="/software" className="group flex items-center gap-6 px-10 py-5 bg-black border border-white/10 hover:border-studio-neon transition-all relative overflow-hidden self-start">
-                    <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest relative z-10">EXPLORE_FULL_STACK</span>
+                    <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest relative z-10">EXPLORE ALL SOFTWARE</span>
                     <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-2 transition-transform" />
                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>

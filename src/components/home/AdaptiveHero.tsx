@@ -82,7 +82,7 @@ export function AdaptiveHero() {
             <div className="flex flex-col sm:flex-row items-center gap-6 md:gap-12 w-full justify-center px-4 max-w-2xl">
                 <Link href="/browse" className="relative group overflow-hidden flex items-center justify-center gap-6 px-10 py-6 bg-white text-black font-black uppercase tracking-widest text-[11px] md:text-[14px] transition-all shadow-2xl border-r-[8px] md:border-r-[16px] border-studio-yellow w-full xs:w-auto text-center hover:shadow-[0_0_30px_rgba(166,226,46,0.5)]">
                     <span className="relative z-10 flex items-center gap-4">
-                        BROWSE SAMPLES <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                        Browse Samples <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
                     </span>
                     <div className="absolute inset-0 bg-studio-neon translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 </Link>
