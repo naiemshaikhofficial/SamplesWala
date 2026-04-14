@@ -103,6 +103,7 @@ export function TopSounds({
                                     src={sound.sample_packs?.cover_url || '/placeholder.png'} 
                                     alt={`${sound.name} - ${sound.sample_packs?.name || 'Trending'} Sample | SamplesWala`} 
                                     fill 
+                                    sizes="64px"
                                     className={`object-cover transition-all duration-500 ${shouldSlideUp ? 'opacity-100 grayscale-0 scale-110' : 'opacity-50 grayscale md:group-hover:grayscale-0 md:group-hover:scale-110'}`} 
                                 />
                                 <div className={`absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-transform duration-500 z-10 ${shouldSlideUp ? 'translate-y-0' : 'translate-y-full md:group-hover:translate-y-0'}`}>

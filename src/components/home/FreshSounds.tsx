@@ -114,6 +114,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                                     src={sample.sample_packs?.cover_url || '/placeholder.png'}
                                     alt={`${sample.name} - ${sample.sample_packs?.name || 'Pro'} Sound | SamplesWala`}
                                     fill
+                                    sizes="64px"
                                     className={`object-cover transition-all duration-500 ${shouldSlideUp ? 'opacity-100 grayscale-0 scale-110' : 'opacity-50 grayscale md:group-hover:grayscale-0 md:group-hover:scale-110'}`}
                                 />
                                 

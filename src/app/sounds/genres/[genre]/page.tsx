@@ -167,6 +167,7 @@ export default async function GenrePage({
                                     src={pack.cover_url} 
                                     alt={pack.name} 
                                     fill 
+                                    sizes="(max-width: 1024px) 100vw, 33vw"
                                     className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                                   />
                               )}

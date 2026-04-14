@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { HeroSearch } from './HeroSearch'
 import { AnimatedHeroLogo } from './AnimatedHeroLogo'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 export function AdaptiveHero() {
   const [isMounted, setIsMounted] = useState(false)
@@ -41,7 +42,14 @@ export function AdaptiveHero() {
             
             {/* 🧬 LOGO WATERMARK */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center opacity-[0.02] select-none pointer-events-none">
-                <img src="/Logo.png" alt="" className="w-[110%] max-w-none grayscale invert" />
+                <Image 
+                    src="/Logo.png" 
+                    alt="" 
+                    fill
+                    priority
+                    loading="eager"
+                    className="object-contain grayscale invert scale-110" 
+                />
             </div>
 
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/60 to-black z-10" />

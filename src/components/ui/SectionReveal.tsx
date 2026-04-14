@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
+import { motion } from 'framer-motion'
 
 interface SectionRevealProps {
   children: React.ReactNode
@@ -31,13 +32,20 @@ export const SectionReveal = forwardRef<HTMLDivElement, SectionRevealProps>(
     }, [])
 
     return (
-      <div
+      <motion.div
         ref={internalRef}
-        className={`section-reveal ${isVisible ? 'active' : ''} reveal-delay-${delay} ${className}`}
-        style={style}
+        initial="hidden"
+        animate={isVisible ? 'visible' : 'hidden'}
+        variants={{
+          visible: { opacity: 1, y: 0 },
+          hidden: { opacity: 0, y: 30 }
+        }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: delay * 0.2 }}
+        className={`section-reveal ${className}`}
+        style={{ ...style, position: 'relative' }}
       >
         {children}
-      </div>
+      </motion.div>
     )
   }
 )

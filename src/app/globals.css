@@ -276,6 +276,7 @@
 
 /* ⚡ MASTER SECTION REVEAL - ANIMATIONS REMOVED AS PER USER REQUEST */
 .section-reveal {
+  position: relative;
   opacity: 1;
   transform: translateY(0);
 }

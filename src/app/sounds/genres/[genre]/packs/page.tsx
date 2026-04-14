@@ -4,7 +4,7 @@ export const revalidate = 3600;
 import { Metadata } from 'next'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { getFilteredPacks } from '@/app/browse/actions'
-import Link from 'next/image'
+import Link from 'next/link'
 import Image from 'next/image'
 import { Layers, ArrowLeft } from 'lucide-react'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
@@ -78,12 +78,13 @@ export default async function GenrePacksPage({
               <a key={pack.id} href={`/packs/${pack.slug}`} className="group">
                   <div className="aspect-square relative overflow-hidden border-2 border-white/5 group-hover:border-studio-neon transition-all bg-studio-grey">
                       {pack.cover_url && (
-                          <Image 
-                            src={pack.cover_url} 
-                            alt={pack.name} 
-                            fill 
-                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
-                          />
+                            <Image 
+                              src={pack.cover_url} 
+                              alt={pack.name} 
+                              fill 
+                              sizes="(max-width: 1024px) 100vw, 25vw"
+                              className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
+                            />
                       )}
                       <div className="absolute inset-0 bg-black/60 group-hover:bg-transparent transition-all flex flex-col justify-end p-6">
                           <h3 className="text-xl font-black uppercase italic tracking-tight leading-none mb-2">{pack.name}</h3>

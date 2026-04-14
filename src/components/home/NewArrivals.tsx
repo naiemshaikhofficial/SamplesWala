@@ -76,7 +76,8 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                                 alt={`${pack.name} - ${pack.categories?.name || 'Pro'} Sample Pack | SamplesWala`} 
                                                 fill 
                                                 sizes="(max-width: 768px) 50vw, 25vw"
-                                                priority={i < 4}
+                                                priority={i < 2}
+                                                loading={i < 2 ? "eager" : "lazy"}
                                                 className="object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000 opacity-60 group-hover:opacity-100" 
                                             />
                                         ) : (

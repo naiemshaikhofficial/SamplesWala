@@ -346,7 +346,7 @@ export default async function PackPage({
                 <Link key={rp.id} href={`/packs/${rp.slug}`} className="group studio-panel bg-studio-grey border-2 border-white/5 hover:border-studio-neon transition-all overflow-hidden">
                     <div className="aspect-square relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
                         {rp.cover_url && (
-                          <Image src={rp.cover_url} alt={rp.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                          <Image src={rp.cover_url} alt={rp.name} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover group-hover:scale-105 transition-transform" />
                         )}
                         <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors p-6 flex flex-col justify-end">
                             <h3 className="text-xl font-black uppercase tracking-tighter italic leading-none">{rp.name}</h3>
