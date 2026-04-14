@@ -56,7 +56,7 @@ function SignupForm() {
       <div className="absolute top-10 left-10 hidden xl:block opacity-20">
          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em]">
             <Cpu size={14} className="text-studio-neon" />
-            <span>SIGNAL_SCAN: ACTIVE</span>
+            <span>CONNECTION: READY</span>
             <span className="text-white/20">::</span>
             <span className="text-studio-neon animate-pulse">{systemTime}</span>
          </div>
@@ -73,7 +73,7 @@ function SignupForm() {
                     <div className="w-2.5 h-2.5 bg-studio-yellow/40 rounded-full" />
                     <div className="w-2.5 h-2.5 bg-studio-neon/40 rounded-full" />
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">SECURE_REGISTRATION_V5.10</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">SECURE SIGNUP V5.1</span>
             </div>
 
             <div className="p-8 md:p-12">
@@ -203,7 +203,7 @@ function SignupForm() {
             <div className="bg-black/40 p-4 border-t border-white/5 flex justify-between items-center px-8">
                 <div className="flex items-center gap-3">
                     <Disc className="w-3 h-3 text-studio-neon animate-spin-slow" />
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">SAMPLES_WALA_SECURE_GATEWAY</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">SAMPLES WALA SECURE SIGNUP</span>
                 </div>
                 <div className="flex gap-4">
                     <div className="h-1 w-8 bg-studio-neon/20 rounded-full overflow-hidden">
@@ -215,7 +215,7 @@ function SignupForm() {
 
           {/* Exterior Info */}
           <div className="mt-8 flex justify-between items-center px-4 opacity-30 text-[8px] font-black uppercase tracking-[0.5em] italic">
-             <span>PROTOCOL: DAW-SECURE-V5</span>
+             <span>SAFE & SECURED</span>
              <span>© 2026 SAMPLES WALA</span>
           </div>
         </div>

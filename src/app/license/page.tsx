@@ -9,7 +9,7 @@ export default function LicensePage() {
             <div className="max-w-4xl mb-24">
                 <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white mb-8 flex items-center gap-2 group transition-all">
                     <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-                    Protocol Home
+                    Return Home
                 </Link>
                 <div className="flex items-center gap-4 text-emerald-400 mb-6">
                     <ShieldCheck className="h-8 w-8" />
@@ -70,7 +70,7 @@ export default function LicensePage() {
                         <div className="flex items-center justify-between border-b border-white/5 pb-8">
                              <div>
                                 <h2 className="text-2xl font-black uppercase italic tracking-tighter">Gold Standard License</h2>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Version 1.2 — Security Protocol</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Version 1.2 — Security Policy</span>
                              </div>
                              <button className="h-12 w-12 flex items-center justify-center bg-white text-black hover:bg-emerald-400 transition-all">
                                 <Download className="h-4 w-4" />
@@ -98,7 +98,7 @@ export default function LicensePage() {
                          <Link href="/terms" className="p-10 border border-white/10 hover:bg-white hover:text-black transition-all flex flex-col justify-between h-48 group">
                             <FileText className="h-6 w-6 text-white/20 group-hover:text-black" />
                             <div>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-black/40 block mb-2">Detailed Protocol</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-black/40 block mb-2">Terms & Details</span>
                                 <h4 className="text-xl font-black italic uppercase italic">Terms of Ops</h4>
                             </div>
                          </Link>

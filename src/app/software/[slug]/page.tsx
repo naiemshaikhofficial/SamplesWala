@@ -207,7 +207,7 @@ export default async function SoftwareDetailPage({
                         <div className="w-full space-y-6">
                             <div className="flex items-center gap-3 text-studio-neon mb-4">
                                 <ShieldCheck size={18} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">You Own This Software</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Licensed Version</span>
                             </div>
                             <div className="flex flex-col gap-4 w-full">
                                 {soft.download_url_win && (
@@ -249,7 +249,7 @@ export default async function SoftwareDetailPage({
                 {/* 1. Title & Description */}
                 <div>
                      <div className="flex gap-3 mb-6 flex-wrap">
-                        <span className="px-4 py-1.5 bg-studio-neon text-black text-[9px] font-black uppercase tracking-[0.3em] shadow-[0_0_15px_rgba(166,226,46,0.2)] rounded-sm">Software Tool</span>
+                        <span className="px-4 py-1.5 bg-studio-neon text-black text-[9px] font-black uppercase tracking-[0.3em] shadow-[0_0_15px_rgba(166,226,46,0.2)] rounded-sm">Professional Tool</span>
                         <span className="px-4 py-1.5 bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-[0.3em] border border-white/10 rounded-sm">Lifetime Access</span>
                     </div>
                     <h2 className="text-5xl md:text-[5rem] lg:text-[5.5rem] font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/30 leading-[0.85] pb-4 drop-shadow-2xl">
@@ -342,7 +342,7 @@ export default async function SoftwareDetailPage({
                     <div>
                         <div className="flex items-center gap-4 mb-8 text-white/10">
                             <Disc className="h-6 w-6 text-studio-neon" />
-                            <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Software Screenshots</h2>
+                            <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Gallery</h2>
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
                         <div className="flex flex-col gap-12">
@@ -365,7 +365,7 @@ export default async function SoftwareDetailPage({
                     <div>
                         <div className="flex items-center gap-4 mb-8 text-white/10">
                             <Music className="h-6 w-6 text-studio-neon" />
-                            <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Watch Demo Video</h2>
+                            <h2 className="text-2xl font-black uppercase tracking-[0.3em] italic">Watch Demo</h2>
                             <div className="h-px flex-1 bg-white/5" />
                         </div>
                         <div className="w-full aspect-video border border-white/5 bg-[#0a0a0a] rounded-xl overflow-hidden relative shadow-[0_30px_60px_rgba(0,0,0,0.5)]">

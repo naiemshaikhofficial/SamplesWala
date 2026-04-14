@@ -68,7 +68,7 @@ export default function LibraryPage() {
                             <Cloud size={18} />
                         </div>
                         <div>
-                            <span className="text-[8px] font-black text-white/30 uppercase tracking-widest block italic mb-1">DATA_STATUS</span>
+                            <span className="text-[8px] font-black text-white/30 uppercase tracking-widest block italic mb-1">CONNECTION</span>
                             <p className="text-[10px] font-black text-studio-neon uppercase tracking-widest italic">
                                 CLOUD SYNC ACTIVE
                             </p>
@@ -88,7 +88,7 @@ export default function LibraryPage() {
                                 Your library is empty
                             </h2>
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 leading-relaxed max-w-xs mx-auto italic">
-                                START EXPLORING THE MASTERMIND SOUND REPOSITORY TO LOAD YOUR PRIVATE VAULT.
+                                START EXPLORING OUR SOUND CATALOG TO LOAD YOUR LIBRARY.
                             </p>
                         </div>
 
@@ -101,9 +101,9 @@ export default function LibraryPage() {
                 {/* 🔗 QUICK_ACTIONS */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 pt-12 border-t border-white/5">
                     {[
-                        { title: 'My Sounds', desc: 'Individual artifacts access', icon: <Headphones /> },
-                        { title: 'Bundles', desc: 'Loaded sound collections', icon: <Package /> },
-                        { title: 'Wishlist', desc: 'Saved for later access', icon: <Bookmark /> }
+                        { title: 'My Sounds', desc: 'All your single sound downloads', icon: <Headphones /> },
+                        { title: 'Bundles', desc: 'Complete pack collections', icon: <Package /> },
+                        { title: 'Wishlist', desc: 'Your saved sounds', icon: <Bookmark /> }
                     ].map((item, i) => (
                         <div key={i} className="p-6 bg-white/2 border border-white/5 rounded-sm hover:border-studio-neon/30 transition-all cursor-pointer group">
                             <div className="text-white/20 group-hover:text-studio-neon transition-colors mb-4 scale-75 origin-left">{item.icon}</div>

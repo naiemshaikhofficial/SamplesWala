@@ -54,8 +54,9 @@ export default async function FreeSamplesPage({
         <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
                 <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-yellow italic flex items-center gap-2">
-                    <Zap size={14} className="fill-studio-yellow" /> NO_COST_PROTOCOL :: FREE_ASSETS
+                    <Zap size={14} className="fill-studio-yellow" /> Free Sounds
                 </span>
+                <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-white/50 italic">Secure System</span>
             </div>
             <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter italic leading-none mb-8">
                 FREE <span className="text-studio-yellow">SAMPLES</span>

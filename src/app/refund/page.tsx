@@ -10,9 +10,9 @@ export default function RefundPage() {
                 <div className="max-w-4xl">
                     <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white mb-8 flex items-center gap-2 group transition-all">
                         <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-                        Protocol Home
+                        Return Home
                     </Link>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 block">Refund Protocol — धनवापसी</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 block">Refund Policy — धनवापसी</span>
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] italic italic mb-12 text-red-500">Refund Policy</h1>
                     <p className="text-xl text-white/40 leading-relaxed font-medium uppercase tracking-tight">
                         A prioritized registry of the Samples Wala policy on digital audio artifacts. Transparency is our core signal.

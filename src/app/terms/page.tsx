@@ -25,12 +25,12 @@ export default function TermsPage() {
                 <div className="max-w-4xl">
                     <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white mb-8 flex items-center gap-2 group transition-all">
                         <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-                        Protocol Home
+                        Return Home
                     </Link>
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 block">Terms of Ops — नियम</span>
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] italic italic mb-12">Registry Rules</h1>
                     <p className="text-xl text-white/40 leading-relaxed font-medium uppercase tracking-tight">
-                        The Master Protocol defining the relationship between the Samples Wala Signal Provider and the Production Agent.
+                        The Terms of Service defining the relationship between Samples Wala and its members.
                     </p>
                 </div>
             </header>
@@ -68,7 +68,7 @@ export default function TermsPage() {
 
                     <div className="flex flex-col md:flex-row justify-between pt-12 items-end">
                          <div className="space-y-4">
-                             <span className="text-[9px] font-black uppercase tracking-widest text-white/20 block">Protocol Updated 05.04.2026 — MUMBAI TRANSMISSION</span>
+                             <span className="text-[9px] font-black uppercase tracking-widest text-white/20 block">Updated April 2026</span>
                              <p className="text-xl font-black uppercase italic tracking-tighter">SAMPLES WALA REGISTRY</p>
                          </div>
                          <Link href="/contact" className="h-20 w-20 bg-white text-black flex items-center justify-center hover:bg-emerald-400 transition-all active:scale-[0.9]">

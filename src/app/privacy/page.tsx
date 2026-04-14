@@ -10,7 +10,7 @@ export default function PrivacyPage() {
                 <div className="max-w-4xl">
                     <Link href="/" className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-white mb-8 flex items-center gap-2 group transition-all">
                         <ArrowLeft className="h-3 w-3 group-hover:-translate-x-1 transition-transform" />
-                        Protocol Home
+                        Return Home
                     </Link>
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-4 block">Privacy Pipeline — गोपनीयता</span>
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] italic italic mb-12 text-emerald-400">Data Security</h1>
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
                                 { t: 'Agent Identity', d: 'WE COLLECT YOUR EMAIL AND NAME TO SECURE YOUR ARTIFACT VAULT ACCESS.', icon: <Database /> },
                                 { t: 'Transaction Data', d: 'RAZORPAY AND STRIPE HANDLE YOUR PAYMENT SECRETS; WE ONLY RECEIVE THE STATUS SIGNAL.', icon: <Lock /> },
                                 { t: 'Usage Metrics', d: 'WE TRACK WHICH ARTIFACTS YOU VIEW TO OPTIMIZE THE DISCOVERY ENGINE.', icon: <Eye /> },
-                                { t: 'Protocol Access', d: 'WE LOG YOUR IP TO ENSURE THE SECURITY OF YOUR UNLOCKED WAV TRANSFERS.', icon: <ShieldCheck /> }
+                                { t: 'Access Logs', d: 'WE LOG YOUR IP TO ENSURE THE SECURITY OF YOUR UNLOCKED WAV TRANSFERS.', icon: <ShieldCheck /> }
                              ].map((item, i) => (
                                 <div key={i} className="p-10 border border-white/10 bg-white/[0.02] space-y-6 group hover:bg-white transition-all duration-700">
                                      <div className="h-10 w-10 border border-white/10 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
                         <div className="space-y-4">
                             <h3 className="text-3xl font-black uppercase tracking-tighter italic italic underline underline-offset-8">End-to-End Encryption</h3>
                             <p className="text-[10px] font-black uppercase tracking-widest leading-relaxed text-white/40 max-w-2xl">
-                                IN ACCORDANCE WITH GLOBAL PRIVACY PROTOCOLS, ALL PRODUCTION ARTIFACTS AND TRANSACTION DEPLOYMENTS ARE SECURED VIA SSL ENCRYPTION. WE DO NOT STORE PHYSICAL CARD DATA ON OUR TERMINALS.
+                                IN ACCORDANCE WITH GLOBAL PRIVACY STANDARDS, ALL PRODUCTION ASSETS AND TRANSACTIONS ARE SECURED VIA SSL ENCRYPTION. WE DO NOT STORE CARD DATA ON OUR SERVERS.
                             </p>
                         </div>
                         <div className="flex items-center gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">

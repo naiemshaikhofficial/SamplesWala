@@ -44,7 +44,7 @@ export default async function PricingPage() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 px-4">
           <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
-            <Activity size={10} /> {activeSub ? `CURRENT PLAN : ${currentPlanName.toUpperCase()}` : 'CHOOSE YOUR PLAN'}
+            <Activity size={10} /> {activeSub ? `SUBSCRIPTION : ${currentPlanName.toUpperCase()}` : 'CHOOSE YOUR PLAN'}
           </div>
           <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
             SIMPLE <span className="text-studio-neon">PRICING</span>
@@ -67,7 +67,7 @@ export default async function PricingPage() {
         <div className="mb-32 md:mb-48">
             <div className="flex items-center gap-4 mb-12 md:mb-16 text-white/10 group px-2">
                 <BarChart3 className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-neon transition-colors" />
-                <h2 className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] italic">Memberships</h2>
+                <h2 className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] italic">Subscription Plans</h2>
                 <div className="h-px flex-1 bg-white/5" />
             </div>
 
@@ -95,7 +95,7 @@ export default async function PricingPage() {
                     
                     {plan.name === 'Professional' && !isActive && !isLower && (
                         <div className="absolute -top-3 right-6 bg-studio-yellow text-black text-[8px] md:text-[10px] font-black uppercase tracking-widest px-4 md:px-6 py-2 rounded-sm shadow-[0_0_20px_rgba(234,179,8,0.3)] z-20 italic">
-                            BEST VALUE
+                            MOST POPULAR
                         </div>
                     )}
 
@@ -205,7 +205,7 @@ export default async function PricingPage() {
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex flex-col">
                             <span className="text-3xl font-black tracking-tighter text-white">₹{pack.price_inr}</span>
-                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">ONE TIME PAYMENT</span>
+                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">ONE-TIME PAYMENT</span>
                         </div>
                         <div className="flex-1 max-w-[180px]">
                             <SubscribeButton 
