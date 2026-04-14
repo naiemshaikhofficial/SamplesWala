@@ -30,20 +30,20 @@ export function HeroSearch({ onSearchChange }: { onSearchChange?: (val: string) 
             <div className="w-1 h-3 bg-studio-neon/20" />
         </div>
 
-        <Search className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 h-4 w-4 md:h-6 md:w-6 text-white/20 group-focus-within:text-studio-neon transition-colors z-20" />
+        <Search className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 h-4 w-4 md:h-6 md:w-6 text-white/20 group-focus-within:text-studio-neon transition-all z-20 drop-shadow-[0_0_8px_rgba(166,226,46,0.3)]" />
         
         <input 
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
             placeholder="SEARCH SAMPLES..."
-            className="w-full bg-black/80 backdrop-blur-3xl border-2 border-white/10 h-16 md:h-24 pl-12 md:pl-24 pr-16 md:pr-24 text-[10px] md:text-xl font-black uppercase tracking-widest outline-none focus:border-studio-neon transition-all placeholder:text-white/10 text-white text-center italic"
+            className="w-full bg-black/40 backdrop-blur-3xl border-2 border-white/5 h-16 md:h-24 pl-12 md:pl-24 pr-16 md:pr-24 text-[10px] md:text-xl font-black uppercase tracking-widest outline-none focus:border-studio-neon/50 focus:bg-black/60 transition-all placeholder:text-white/10 text-white text-center italic rounded-sm shadow-[inset_0_0_20px_rgba(255,255,255,0.02)]"
         />
 
         <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 flex items-center">
             <button 
                 type="submit" 
-                className="h-12 w-12 md:h-16 md:w-16 bg-studio-neon text-black flex items-center justify-center hover:bg-white transition-all shadow-xl"
+                className="h-12 w-12 md:h-16 md:w-16 bg-studio-neon text-black flex items-center justify-center hover:bg-white transition-all shadow-[0_0_20px_rgba(166,226,46,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)]"
             >
                 <ArrowRight className="h-5 w-5 md:h-8 md:w-8" />
             </button>
