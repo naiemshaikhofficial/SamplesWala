@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     pack.name, 
     'Indian sample pack',
     'Bollywood sample pack',
-    `${displayGenre} Indian samples`, 
+    `${displayGenre} samples`, 
     'Indian percussion loops', 
     'Bollywood melody loops', 
     'Tabla loops download',
