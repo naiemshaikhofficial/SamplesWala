@@ -136,7 +136,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               <div className="aspect-square w-12 border border-white/20 flex items-center justify-center mb-8 bg-white/5">
                 <Info className="h-6 w-6 text-white" />
               </div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30 mb-8 italic">[ ACTION_REQUIRED ]</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30 mb-8 italic">[ Action Required ]</div>
               <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white mb-10 leading-none underline decoration-white/20 decoration-4 underline-offset-8">
                 {confirmState.message}
               </h3>
@@ -182,7 +182,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     </div>
                     
                     <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-8 italic">
-                        [ LOGIN_REQUIRED ]
+                        [ Login Required ]
                     </div>
                     
                     <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-[0.8] mb-8 italic">
@@ -460,7 +460,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
             >
                 <div className="flex justify-between items-start mb-8">
                    <div>
-                        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-studio-yellow mb-2 italic">[ {step === 'billing' ? 'BILLING_INFO' : 'STORE_CREDITS'} ]</div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-studio-yellow mb-2 italic">[ {step === 'billing' ? 'Billing Info' : 'Credits'} ]</div>
                         <h2 className="text-4xl font-black uppercase tracking-tighter leading-none italic">{step === 'billing' ? 'BILLING\nINFO' : 'ADD\nCREDITS.'}</h2>
                    </div>
                    <button onClick={onClose} className="p-4 hover:bg-white/5 transition-all">
@@ -629,7 +629,7 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         onClick={() => setStep('billing')}
                         className="text-[8px] font-black uppercase tracking-widest text-white/10 hover:text-white transition-colors"
                     >
-                        [ EDIT_BILLING_INFO ]
+                        [ Update Billing ]
                     </button>
                 </div>
                     </>

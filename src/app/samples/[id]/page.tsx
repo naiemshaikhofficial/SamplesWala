@@ -28,11 +28,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         .eq('id', id)
         .single()
     
-    if (!sample) return { title: 'Sound Artifact Not Found | SAMPLES WALA' }
+    if (!sample) return { title: 'Sound Not Found | SAMPLES WALA' }
 
     const packName = sample.sample_packs?.name || 'Studio Pack'
-    const title = `${sample.name} - ${sample.bpm || ''} ${sample.key || ''} ${sample.type} Sample | SAMPLES WALA`
-    const description = `Get the high-quality "${sample.name}" sound artifact from ${packName}. 24-bit WAV, royalty-free ${sample.ai_genre} ${sample.type}. Preview and download at SamplesWala.`
+    const title = `${sample.name} - ${sample.bpm || ''} ${sample.key || ''} ${sample.type} Sound | SAMPLES WALA`
+    const description = `Download the high-quality "${sample.name}" sound from ${packName}. 24-bit WAV, royalty-free ${sample.ai_genre} ${sample.type}. Preview and download at SamplesWala.`
 
     return {
         title,
@@ -78,7 +78,7 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                         "duration": "PT0M10S", // Approximation
                         "url": `https://sampleswala.com/samples/${id}`,
                         "image": sample.sample_packs?.cover_url,
-                        "description": `${sample.name} - ${sample.bpm} BPM ${sample.key} ${sample.type} sample pack artifact.`,
+                        "description": `${sample.name} - ${sample.bpm} BPM ${sample.key} ${sample.type} sound.`,
                         "genre": sample.ai_genre,
                         "offers": {
                             "@type": "Offer",
@@ -98,7 +98,7 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                 <div className="mb-12">
                     <Breadcrumbs 
                         items={[
-                            { label: 'LIBRARY', href: '/browse' },
+                            { label: 'BROWSE', href: '/browse' },
                             { label: (sample.sample_packs?.name || 'PACK').toUpperCase(), href: `/packs/${sample.sample_packs?.slug}` },
                             { label: sample.name.toUpperCase(), href: `/samples/${id}`, active: true }
                         ]} 
@@ -136,7 +136,7 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
 
                             <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon">Artifact_Signal</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon">Studio Sound</p>
                                     <h2 className="text-3xl font-black uppercase italic tracking-tighter leading-none">{sample.name}</h2>
                                 </div>
                                 <div className="p-3 bg-black border border-white/10 text-studio-neon">
@@ -158,7 +158,7 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                                 {sample.name}
                             </h1>
                             <p className="text-lg text-white/40 font-medium leading-relaxed max-w-xl italic">
-                                Professional grade {sample.ai_genre || 'music'} {sample.type} artifact. Hardened for high-output studio environments. Compatible with all major DAWs.
+                                Professional grade {sample.ai_genre || 'music'} {sample.type} sound. optimized for high-performance studio environments. Compatible with all major DAWs.
                             </p>
                         </div>
 
@@ -218,13 +218,13 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                 <div className="mt-40">
                     <div className="flex items-center gap-6 mb-12">
                         <div className="h-px flex-1 bg-white/5" />
-                        <h2 className="text-2xl font-black uppercase italic tracking-[0.3em] text-white/20">Related_Artifacts</h2>
+                        <h2 className="text-2xl font-black uppercase italic tracking-[0.3em] text-white/20">More Like This</h2>
                         <div className="h-px flex-1 bg-white/5" />
                     </div>
 
                     <SampleList 
                         samples={relatedSounds} 
-                        packName="Studio_Related"
+                        packName="Related Sounds"
                     />
                 </div>
 

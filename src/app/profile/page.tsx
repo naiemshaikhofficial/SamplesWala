@@ -69,7 +69,7 @@ export default async function ProfilePage() {
                                     <Activity className="h-3 w-3 animate-pulse" /> SAMPLESWALA // MY ACCOUNT // {planName}
                                 </span>
                                 <h1 className="text-5xl md:text-[7rem] font-black uppercase tracking-tighter leading-none italic transform -skew-x-12 origin-left scale-y-110 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
-                                    {account?.full_name || user.user_metadata?.full_name || 'STUDIO_USER'}
+                                    {account?.full_name || user.user_metadata?.full_name || 'MEMBER'}
                                 </h1>
                             </div>
                         </div>
@@ -84,13 +84,13 @@ export default async function ProfilePage() {
                                 </div>
                             )}
                             <div className="flex items-center gap-3 text-white/30 text-[10px] font-bold uppercase tracking-widest bg-black/40 px-4 py-2 border border-white/5">
-                                <Calendar className="h-3 w-3 text-studio-neon" /> JOINED_{new Date(user.created_at).toLocaleDateString()}
+                                <Calendar className="h-3 w-3 text-studio-neon" /> JOINED: {new Date(user.created_at).toLocaleDateString()}
                             </div>
                         </div>
                     </div>
 
                     <div className="hidden lg:block bg-black/40 p-6 border-l-4 border-studio-neon/20">
-                         <span className="text-[8px] font-black uppercase tracking-[0.5em] text-white/10 block mb-4">LIVE_STATUS_VU</span>
+                         <span className="text-[8px] font-black uppercase tracking-[0.5em] text-white/10 block mb-4">LIVE STATUS</span>
                          <DAWVisualizer color="#a6e22e" bars={24} height={40} />
                     </div>
                 </div>
@@ -130,20 +130,20 @@ export default async function ProfilePage() {
                                 <div className="absolute top-2 right-2 opacity-10"><ShieldCheck size={40} /></div>
                                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-studio-yellow italic">MEMBERSHIP</span>
-                                    <span className="text-[8px] font-black text-white/10">ACTIVE_PATH</span>
+                                    <span className="text-[8px] font-black text-white/10">ACTIVE STATUS</span>
                                 </div>
                                 
                                 <div className="space-y-6">
                                     <div className="space-y-4">
                                         <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter italic text-white underline decoration-studio-neon decoration-2 underline-offset-4 truncate">
-                                            {planName}_PLAN
+                                            {planName} PLAN
                                         </h2>
                                         <div className="flex flex-col gap-3 pt-4 border-t border-white/5 group-hover:border-studio-neon/20 transition-colors">
                                             <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest text-white/40">
-                                                <div className={`h-1.5 w-1.5 rounded-full ${hasActiveSub ? 'bg-studio-neon' : 'bg-white/10'}`} /> {hasActiveSub ? 'UNIVERSAL LICENSE :: ACTIVE' : 'STANDARD LICENSE :: ACTIVE'}
+                                                <div className={`h-1.5 w-1.5 rounded-full ${hasActiveSub ? 'bg-studio-neon' : 'bg-white/10'}`} /> {hasActiveSub ? 'UNLIMITED LICENSE :: ACTIVE' : 'STANDARD LICENSE :: ACTIVE'}
                                             </div>
                                             <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-widest text-white/40">
-                                                <div className={`h-1.5 w-1.5 rounded-full ${hasActiveSub ? 'bg-studio-neon' : 'bg-white/10'}`} /> {hasActiveSub ? 'WAV ENCODING :: ENABLED' : 'MP3_PREVIEW_LIMIT'}
+                                                <div className={`h-1.5 w-1.5 rounded-full ${hasActiveSub ? 'bg-studio-neon' : 'bg-white/10'}`} /> {hasActiveSub ? 'HIGH QUALITY (WAV) :: ENABLED' : 'STANDARD QUALITY (MP3)'}
                                             </div>
                                         </div>
                                     </div>
@@ -154,7 +154,7 @@ export default async function ProfilePage() {
                                                 {!isCancelled && activeSub?.id && <CancelSubscriptionButton />}
                                                 {isCancelled && (
                                                     <div className="flex items-center gap-3 text-spider-red text-[9px] font-black uppercase tracking-widest bg-spider-red/5 p-4 border border-spider-red/20 shadow-inner">
-                                                        <AlertTriangle size={16} /> SIGNAL_TERMINATION_PENDING
+                                                        <AlertTriangle size={16} /> MEMBERSHIP IS ENDING SOON
                                                     </div>
                                                 )}
                                             </div>
@@ -193,22 +193,22 @@ export default async function ProfilePage() {
                                                 </div>
                                                 <div>
                                                     <h4 className="text-[12px] font-black uppercase tracking-widest text-white/60 group-hover:text-white transition-colors flex items-center gap-2">
-                                                        {purchase.item_name} <span className="text-[8px] bg-studio-neon/10 px-2 text-studio-neon rounded-full">CAPTURED</span>
+                                                        {purchase.item_name} <span className="text-[8px] bg-studio-neon/10 px-2 text-studio-neon rounded-full">SUCCESS</span>
                                                     </h4>
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/10 italic">{new Date(purchase.created_at).toLocaleDateString()} // SEQ_{purchase.id.slice(0,6).toUpperCase()}</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/10 italic">{new Date(purchase.created_at).toLocaleDateString()} // ID: {purchase.id.slice(0,6).toUpperCase()}</span>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-[14px] font-black text-white italic tracking-tighter shadow-studio-neon">₹{purchase.amount}</div>
                                                 <span className="text-[9px] font-black uppercase tracking-widest text-studio-neon brightness-150 flex items-center gap-2 justify-end">
-                                                   <div className="h-1 w-1 bg-studio-neon rounded-full animate-ping" /> SECURE_SIG
+                                                   <div className="h-1 w-1 bg-studio-neon rounded-full animate-ping" /> SAFE PAYMENT
                                                 </span>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="p-32 text-center text-white/10 text-[11px] font-black uppercase tracking-[0.4em] italic bg-[#080808]">
-                                        EMPTY_HISTORY_MEMORY.
+                                        No purchases yet.
                                     </div>
                                 )}
                             </div>
@@ -230,7 +230,7 @@ export default async function ProfilePage() {
                                      </div>
                                      <div>
                                         <h2 className="text-6xl md:text-7xl font-black italic tracking-tighter text-white">{unlockedCount || 0}</h2>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/20">TOTAL_KEYS</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white/20">TOTAL SOUNDS</span>
                                      </div>
                                 </div>
                              </div>
@@ -252,20 +252,20 @@ export default async function ProfilePage() {
                             <div className="grid grid-cols-1 gap-4">
                                 <Link href="/browse" className="p-6 bg-black border border-white/5 hover:border-studio-neon transition-all group flex items-center justify-between shadow-lg">
                                     <span className="text-[12px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-colors flex items-center gap-4">
-                                        <Zap size={16} className="text-studio-neon" /> EXPLORE_CATALOG
+                                        <Zap size={16} className="text-studio-neon" /> BROWSE CATALOG
                                     </span>
                                     <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all text-studio-neon" />
                                 </Link>
                                 <Link href="/license" className="p-6 bg-black border border-white/5 hover:border-studio-neon transition-all group flex items-center justify-between shadow-lg">
                                     <span className="text-[12px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-colors flex items-center gap-4">
-                                        <CheckCircle size={16} /> LEGAL_REGISTRY
+                                        <CheckCircle size={16} /> LICENSE AGREEMENT
                                     </span>
                                     <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all text-studio-neon" />
                                 </Link>
                                 
                                 <form action="/api/auth/logout" method="POST" className="block pt-12 mt-4 border-t border-white/10">
                                     <button type="submit" className="w-full p-6 bg-[#1a0000] border-2 border-spider-red/20 text-spider-red hover:bg-spider-red hover:text-white transition-all text-[12px] font-black uppercase tracking-[0.4em] flex items-center justify-between group shadow-2xl rounded-sm active:scale-95">
-                                         <span>LOGOUT</span>
+                                         <span>SIGN OUT</span>
                                          <LogOut size={20} className="group-hover:translate-x-3 transition-transform" />
                                     </button>
                                 </form>

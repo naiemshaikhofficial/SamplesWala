@@ -50,7 +50,7 @@ export default async function SoftwareHub() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 px-4">
           <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
-            <Cpu size={10} /> SOFTWARE :: STACK_READY
+            <Cpu size={10} /> SOFTWARE :: STACK READY
           </div>
           <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference text-white/90">
             PRODUCTION <span className="text-studio-neon">PLUGINS</span>
@@ -119,7 +119,7 @@ export default async function SoftwareHub() {
                                             <Cpu className="absolute inset-0 m-auto w-12 h-12 text-studio-neon" />
                                         </div>
                                         <div className="text-center space-y-2">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">System_Initialing</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">READY</p>
                                             <div className="h-1 w-48 bg-white/5 rounded-full overflow-hidden">
                                                 <div className="h-full bg-studio-neon w-1/3 animate-shimmer" />
                                             </div>
@@ -176,7 +176,7 @@ export default async function SoftwareHub() {
                                     {!isOwned && (
                                         <div className="flex flex-col">
                                             <span className="text-5xl font-black italic tracking-tighter text-white">₹{soft.price_inr}</span>
-                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">ONE_TIME_LICENSE</span>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">ONE-TIME LICENSE</span>
                                         </div>
                                     )}
                                     
@@ -221,7 +221,7 @@ export default async function SoftwareHub() {
 
                         {/* Background Identity Code */}
                         <div className="absolute -bottom-10 -right-10 text-[10rem] font-black uppercase text-white/[0.02] tracking-tighter pointer-events-none italic select-none">
-                            ENGINE_X
+                            STUDIO ENGINE
                         </div>
                     </div>
                 )
@@ -233,7 +233,7 @@ export default async function SoftwareHub() {
             <div className="inline-flex items-center gap-8 grayscale opacity-20 hover:grayscale-0 hover:opacity-100 transition-all">
                 <ShieldCheck size={40} />
                 <div className="h-px w-24 bg-white/5" />
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/60">RAZORPAY_SECURED // 256-BIT_ENCRYPTED_LICENSING</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/60">SECURED BY RAZORPAY // SAFE & ENCRYPTED</p>
                 <div className="h-px w-24 bg-white/5" />
             </div>
             

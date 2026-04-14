@@ -322,7 +322,7 @@ export default function Home() {
                 },
                 { 
                     q: "How do I download my purchases?", 
-                    a: "Once you unlock a sample or pack, it appears instantly in your STUDIO_VAULT (Library). You can download them directly as ZIP files or individual WAVs." 
+                    a: "Once you unlock a sample or pack, it appears instantly in your Library. You can download them directly as ZIP files or individual WAVs." 
                 },
                 {
                     q: "Can I use these for Type Beats on YouTube?",

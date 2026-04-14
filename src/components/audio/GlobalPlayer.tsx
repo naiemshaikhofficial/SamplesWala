@@ -49,13 +49,13 @@ export function GlobalPlayer() {
           {/* Header Strip - HIDDEN ON MOBILE TO SAVE HEIGHT */}
           <div className="hidden md:flex bg-white/5 border-b border-white/5 px-4 md:px-6 py-2 justify-between items-center text-[8px] md:text-[9px] font-black tracking-widest uppercase relative z-20">
              <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
-                <span className="hidden xs:inline shrink-0 text-white/20">System Active</span>
+                <span className="hidden xs:inline shrink-0 text-white/20">Ready</span>
                 {isLoading ? (
                     <span className="text-studio-neon animate-pulse">Loading Audio...</span>
                 ) : activeMetadata?.isUnlocked ? (
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-studio-neon animate-pulse shadow-[0_0_8px_#a6e22e]" />
-                        <span className="text-studio-neon font-black">Original Quality (Lossless)</span>
+                        <span className="text-studio-neon font-black">Full Quality (WAV)</span>
                     </div>
                 ) : (
                     <div className="flex items-center gap-3 overflow-hidden bg-studio-yellow/10 px-3 py-1 rounded-sm border border-studio-yellow/20">
@@ -63,7 +63,7 @@ export function GlobalPlayer() {
                             <div className="w-1.5 h-1.5 rounded-full bg-studio-yellow animate-pulse" />
                             <span className="text-studio-yellow font-black">PREVIEW ONLY</span>
                         </div>
-                        <span className="text-white/60 italic lowercase">low quality preview  & watermarked :: unlock for full quality</span>
+                        <span className="text-white/60 italic lowercase">preview only :: unlock for full quality</span>
                     </div>
                 )}
              </div>
@@ -93,7 +93,7 @@ export function GlobalPlayer() {
                             </span>
                         </div>
                         <h4 className="text-[11px] md:text-lg font-black tracking-tight truncate leading-none text-white uppercase max-w-[80px] xs:max-w-[120px] md:max-w-none">
-                            {activeMetadata?.name || "UNNAMED"}
+                            {activeMetadata?.name || "SOUND"}
                         </h4>
                     </div>
                 </div>
@@ -210,7 +210,7 @@ export function GlobalPlayer() {
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-4">
                                 <Sparkles className="w-4 h-4 text-studio-neon animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">SIMILAR SAMPLES</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">SIMILAR SOUNDS</span>
                             </div>
                             <button onClick={() => setShowVibes(false)} className="text-white/20 hover:text-white"><X size={16} /></button>
                         </div>

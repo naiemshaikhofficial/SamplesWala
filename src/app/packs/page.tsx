@@ -22,7 +22,7 @@ export default async function SamplePacksPage({
       <header className="mb-16 md:mb-24 shrink-0">
         <div className="flex items-center gap-4 mb-8">
             <span className="px-4 py-1 bg-black border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon italic">
-                ARCHIVE_TERMINAL
+                SOUND LIBRARY
             </span>
         </div>
         <div className="w-full flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10">
@@ -43,10 +43,10 @@ export default async function SamplePacksPage({
       <main className="space-y-16">
           <div className="flex items-center justify-between border-b-4 border-black pb-8 mb-12">
               <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter flex items-center gap-4 text-white/40">
-                  <Layers className="h-6 w-6 text-studio-neon" /> Catalog_Archive
+                  <Layers className="h-6 w-6 text-studio-neon" /> Full Catalog
               </h2>
               <div className="text-[10px] font-black uppercase tracking-widest text-white/20 italic">
-                  TOTAL_PACKS: {packs?.length || 0}
+                  TOTAL PACKS: {packs?.length || 0}
               </div>
           </div>
 
@@ -87,7 +87,7 @@ export default async function SamplePacksPage({
                     <div className="flex items-center justify-between border-t border-white/5 pt-6">
                         <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} className="text-[11px] font-black tracking-widest" />
                         <div className="text-[8px] font-black uppercase tracking-widest text-white/20 italic group-hover:text-studio-yellow transition-colors">
-                            OPEN_SOURCE <ArrowRight size={14} className="inline ml-1" />
+                            VIEW PACK <ArrowRight size={14} className="inline ml-1" />
                         </div>
                     </div>
                 </Link>
@@ -98,8 +98,8 @@ export default async function SamplePacksPage({
           {(!packs || packs.length === 0) && (
             <div className="flex flex-col items-center justify-center py-40 border-4 border-dashed border-white/5 bg-black/20 rounded-sm opacity-30 shadow-inner">
                 <Cpu size={64} className="mb-12 text-studio-neon animate-reverse-spin" />
-                <h2 className="text-3xl font-black uppercase tracking-[0.6em] italic text-white">No Archive Found</h2>
-                <p className="text-[10px] uppercase tracking-[0.4em] mt-8 italic text-white/40 leading-relaxed">System scan could not detect active data packets</p>
+                <h2 className="text-3xl font-black uppercase tracking-[0.6em] italic text-white">No Results Found</h2>
+                <p className="text-[10px] uppercase tracking-[0.4em] mt-8 italic text-white/40 leading-relaxed">We couldn't find any packs matching your search.</p>
             </div>
           )}
       </main>

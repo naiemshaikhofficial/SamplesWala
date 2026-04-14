@@ -126,7 +126,7 @@ export default function SettingsPage() {
                                     <div className="p-8 bg-black/40 border border-white/5 rounded-sm">
                                         <span className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2 block italic">Display Name</span>
                                         <div className="text-sm font-black tracking-tight text-white/60 uppercase">
-                                            {account?.full_name || user.user_metadata?.full_name || 'STUDIO_USER'}
+                                            {account?.full_name || user.user_metadata?.full_name || 'MEMBER'}
                                         </div>
                                     </div>
                                 </div>
@@ -180,7 +180,7 @@ export default function SettingsPage() {
                                                     <div className="p-4 bg-white/2 border border-white/5 rounded-sm">
                                                         <span className="text-[8px] font-black text-studio-neon uppercase tracking-widest block mb-2 italic">Next Billing</span>
                                                         <p className="text-[10px] font-black uppercase text-white/60 tracking-tighter">
-                                                            {account?.next_billing ? new Date(account.next_billing).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }) : 'NO_PENDING_ACTION'}
+                                                            {account?.next_billing ? new Date(account.next_billing).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }) : 'NO PENDING ACTION'}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -216,8 +216,7 @@ export default function SettingsPage() {
                                                     <CancelSubscriptionButton />
                                                 </div>
                                             ) : (
-                                                <div className="py-6 px-6 bg-white/2 border border-white/5 rounded-sm text-center italic text-white/10 uppercase text-[9px] font-black tracking-widest border-dashed">
-                                                    NO_ACTIVE_MEMBERSHIP_SIGNAL
+                                                    NO ACTIVE MEMBERSHIP
                                                 </div>
                                             )}
                                         </div>

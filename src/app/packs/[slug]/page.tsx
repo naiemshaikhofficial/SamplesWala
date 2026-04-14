@@ -204,7 +204,7 @@ export default async function PackPage({
 
       <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-8 md:mb-12 group transition-all">
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
-        RELOAD_BROWSER
+        Back to Store
       </Link>
       
       {/* 🎹 DAW_STYLE_DETAIL_RACK */}
@@ -219,7 +219,7 @@ export default async function PackPage({
                 <div className="absolute top-0 inset-x-0 bg-studio-grey px-3 py-2 flex items-center justify-between border-b border-white/10 z-20">
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-studio-neon animate-pulse" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-white/50">SIGNAL_HUD_V2</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-white/50">PACK HUB</span>
                     </div>
                     <span className="text-[9px] font-black text-studio-neon">PREMIUM</span>
                 </div>
@@ -249,7 +249,7 @@ export default async function PackPage({
                             {pack.name}
                         </h1>
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-studio-yellow">
-                            Digital Download Protocol
+                            Professional Sample Pack
                         </p>
                     </div>
 
@@ -279,7 +279,7 @@ export default async function PackPage({
             <div className="p-5 bg-studio-grey/30 border border-white/5">
                  <div className="flex items-center gap-2 mb-3">
                     <Disc className="h-3 w-3 text-white/20 animate-spin-slow" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product_Brief</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product Details</span>
                  </div>
                  <p className="text-[11px] text-white/40 leading-relaxed font-bold italic">
                     {pack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
@@ -288,7 +288,7 @@ export default async function PackPage({
 
             {/* 3. ARTIFACT_BREAKDOWN */}
             <div className="p-4 bg-white/2 border border-white/5 space-y-3">
-                <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-2">SIGNAL_CONTENT</span>
+                <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-2">SOUND CONTENTS</span>
                 {melodies > 0 && <div className="flex items-center justify-between text-[10px] font-black text-studio-neon"><span>MELODIES</span><span className="text-white/40">[{melodies}]</span></div>}
                 {loops > 0 && <div className="flex items-center justify-between text-[10px] font-black text-white/80"><span>LOOPS</span><span className="text-white/40">[{loops}]</span></div>}
                 {oneShots > 0 && <div className="flex items-center justify-between text-[10px] font-black text-white/60"><span>ONE SHOTS</span><span className="text-white/40">[{oneShots}]</span></div>}
@@ -301,7 +301,7 @@ export default async function PackPage({
                 <div className="flex items-center gap-4">
                     <Layers className="h-5 w-5 text-studio-neon" />
                     <h2 className="text-xl font-black uppercase italic tracking-tighter text-white/60">
-                        Signal_Array :: {slug}
+                         {pack.name} Collection
                     </h2>
                 </div>
                 <div className="hidden sm:flex gap-1 h-4">
@@ -339,7 +339,7 @@ export default async function PackPage({
       <div className="border-t-4 border-black pt-24">
         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-16 flex items-center gap-6 text-white/20">
            <Disc className="h-10 w-10 animate-reverse-spin" /> 
-           Cross-Breediing_Artifacts
+           More Related Packs
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             {relatedPacks?.map((rp: any) => (

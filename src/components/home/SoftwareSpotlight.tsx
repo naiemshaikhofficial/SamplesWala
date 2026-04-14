@@ -137,9 +137,9 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
             
             <div className="mt-20 flex justify-center">
                 <div className="flex items-center gap-6 opacity-20 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-                    <span className="text-[8px] font-black uppercase tracking-[0.5em]">VST_AU_COMPATIBLE</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.5em]">VST / AU COMPATIBLE</span>
                     <div className="h-px w-20 bg-white/20" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.5em]">MAC_WIN_READY</span>
+                    <span className="text-[8px] font-black uppercase tracking-[0.5em]">MAC & WINDOWS</span>
                 </div>
             </div>
         </div>

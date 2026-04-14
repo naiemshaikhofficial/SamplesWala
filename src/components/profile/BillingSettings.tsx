@@ -26,7 +26,7 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
             // 🧬 EDGE SYNC: Update local storage for checkout speed
             localStorage.setItem(`billing_${userId}`, JSON.stringify(billing))
             
-            showToast('BILLING ARTIFACTS SECURED', 'success')
+            showToast('BILLING INFO UPDATED', 'success')
         } catch (e: any) {
             showToast(e.message, 'error')
         } finally {
@@ -43,7 +43,7 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
 
             <div className="flex items-center justify-between border-b border-white/5 pb-6 relative z-10">
                 <div>
-                   <h3 className="text-[12px] font-black uppercase tracking-[0.4em] text-studio-neon mb-1">Billing_Information</h3>
+                   <h3 className="text-[12px] font-black uppercase tracking-[0.4em] text-studio-neon mb-1">Billing Details</h3>
                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/20 italic">For Secure Checkout & Universal Receipts</p>
                 </div>
                 <div className="h-10 w-10 flex items-center justify-center bg-black border border-white/10 text-white/20">
@@ -113,7 +113,7 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">GSTIN / TAX_ID (Optional)</label>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-white/40 block ml-1">GSTIN / TAX ID (Optional)</label>
                     <input 
                         type="text" 
                         value={billing.gstin}
@@ -131,7 +131,7 @@ export function BillingSettings({ initialData, userId }: { initialData: any, use
                     className="w-full h-16 bg-white text-black text-[11px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 hover:bg-studio-neon transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-r-[12px] border-studio-yellow group/btn"
                 >
                     {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 group-hover/btn:scale-125 transition-transform" />}
-                    {loading ? 'SYNCHRONIZING...' : 'SAVE BILLING INFO'}
+                    {loading ? 'SAVING...' : 'SAVE BILLING INFO'}
                 </button>
             </div>
         </div>

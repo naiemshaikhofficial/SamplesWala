@@ -38,7 +38,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-studio-neon transition-colors shrink-0"
       >
         <Home size={10} />
-        ROOT
+        Home
       </Link>
 
       {items.map((item, index) => (

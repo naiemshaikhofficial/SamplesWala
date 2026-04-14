@@ -107,7 +107,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="SEARCH_SOUNDS_GLOBALLY..."
+                        placeholder="SEARCH SOUNDS..."
                         className="w-full h-12 bg-black/40 border border-white/5 focus:border-studio-neon/40 focus:bg-black/60 outline-none px-12 text-[10px] font-black uppercase tracking-widest text-white placeholder:text-white/10 transition-all rounded-sm"
                     />
                     {searchQuery && (
@@ -220,9 +220,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                                                 <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter italic">One-Shot</span>
                                             )}
 
-                                            <span className="hidden md:inline-block text-[8px] font-bold uppercase text-white/10 tracking-[0.2em] italic">
-                                                ID: {sample.id.slice(0, 4)}
-                                            </span>
+
                                         </div>
                                     </div>
 
