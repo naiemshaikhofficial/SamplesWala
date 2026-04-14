@@ -17,29 +17,25 @@ export function AdaptiveHero() {
   }, [])
 
   return (
-    <section className="relative min-h-[600px] md:min-h-screen flex flex-col items-center justify-center pt-24 pb-16 md:pb-24 overflow-hidden bg-black w-full">
+    <section className="relative min-h-[500px] md:min-h-[85vh] flex flex-col items-center justify-center pt-16 pb-12 md:pb-16 overflow-hidden bg-black w-full">
         
         <div className="absolute inset-0 pointer-events-none z-0">
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] md:w-[800px] h-[300px] md:h-[800px] bg-studio-neon opacity-[0.1] blur-[80px] md:blur-[180px] rounded-full" />
-            <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[200px] md:w-[600px] h-[200px] md:h-[600px] bg-spider-red opacity-[0.05] blur-[60px] md:blur-[150px] rounded-full" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-studio-neon opacity-[0.1] blur-[80px] md:blur-[180px] rounded-full" />
+            <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-spider-red opacity-[0.05] blur-[60px] md:blur-[150px] rounded-full" />
             
             {/* 🧬 LOGO WATERMARK */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center opacity-[0.03] select-none pointer-events-none">
-                <img src="/Logo.png" alt="" className="w-[120%] max-w-none grayscale invert" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center opacity-[0.02] select-none pointer-events-none">
+                <img src="/Logo.png" alt="" className="w-[110%] max-w-none grayscale invert" />
             </div>
 
             <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/40 to-black z-10" />
         </div>
 
-        <div className="relative z-30 flex flex-col items-center text-center px-4 md:px-6 w-full max-w-full overflow-hidden">
+        <div className="relative z-30 flex flex-col items-center text-center px-4 md:px-6 w-full max-w-full overflow-hidden mt-[-100px] md:mt-[-160px]">
             
-            {/* TECHNICAL HEADER - REMOVED AS PER USER REQUEST */}
-            <div className="mb-8 md:mb-12 flex flex-wrap items-center justify-center gap-4 md:gap-10 opacity-0 h-4">
-            </div>
-
             {/* LOGO CONTAINER */}
-            <div className="mb-10 md:mb-16 relative w-full flex flex-col items-center justify-center">
-                <div className="scale-75 sm:scale-90 md:scale-100 max-w-full">
+            <div className="mb-2 md:mb-4 relative w-full flex flex-col items-center justify-center">
+                <div className="scale-[0.35] sm:scale-50 md:scale-[0.55] max-w-full">
                     <AnimatedHeroLogo />
                 </div>
                 {/* 🧬 BRAND_IDENTITY_CORE */}
@@ -47,28 +43,14 @@ export function AdaptiveHero() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.8 }}
-                    className="mt-6 md:mt-8 text-[8px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-studio-neon italic px-4 text-center max-w-3xl"
+                    className="mt-[-30px] sm:mt-[-40px] md:mt-[-60px] text-[8px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-white/60 italic px-4 text-center max-w-2xl"
                 >
                     Indias Biggest Website For Samples, Plugins And Music Production Tools
                 </motion.p>
             </div>
 
-            <div className="space-y-4 mb-12 md:mb-20 w-full flex flex-col items-center">
-                <div className="flex items-center justify-center gap-4 md:gap-10 text-studio-neon w-full">
-                    <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
-                    <span className="text-[8px] md:text-sm font-black uppercase tracking-[0.3em] md:tracking-[0.8em] flex items-center gap-2 bg-black/60 px-4 py-1.5 border border-studio-neon/20 italic">
-                         PREMIUM SOUNDS
-                    </span>
-                    <div className="h-[1px] flex-1 max-w-[40px] md:max-w-[100px] bg-studio-neon/40 shadow-[0_0_10px_#a6e22e]" />
-                </div>
-
-                <h1 className="max-w-lg mx-auto text-[10px] md:text-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] leading-relaxed text-white/40 px-4 text-center">
-                    PRO-GRADE SAMPLES :: UNLIMITED ACCESS
-                </h1>
-            </div>
-
             {/* 🔎 MASTER SEARCH - ENSURE CENTERED */}
-            <div className="w-full max-w-3xl flex justify-center mb-12 md:mb-24 px-2">
+            <div className="w-full max-w-3xl flex justify-center mb-6 md:mb-10 px-2">
                 <HeroSearch />
             </div>
 
@@ -76,12 +58,12 @@ export function AdaptiveHero() {
             <div className="flex flex-col sm:flex-row items-center gap-6 md:gap-12 w-full justify-center px-4 max-w-2xl">
                 <Link href="/browse" className="relative group overflow-hidden flex items-center justify-center gap-6 px-10 py-6 bg-white text-black font-black uppercase tracking-widest text-[11px] md:text-[14px] transition-all shadow-2xl border-r-[8px] md:border-r-[16px] border-studio-yellow w-full xs:w-auto text-center">
                     <span className="relative z-10 flex items-center gap-4">
-                        OPEN ARCHIVE <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
+                        BROWSE SAMPLES <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
                     </span>
                     <div className="absolute inset-0 bg-studio-neon translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 </Link>
 
-                <div className="flex items-center gap-4 group cursor-pointer sm:border-l border-white/10 sm:pl-10 w-full sm:w-auto justify-center">
+                <div className="hidden sm:flex items-center gap-4 group cursor-pointer sm:border-l border-white/10 sm:pl-10 w-full sm:w-auto justify-center">
                     <div className="h-12 w-12 md:h-16 md:w-16 flex items-center justify-center border-2 border-white/10 group-hover:border-studio-neon transition-all bg-black/80 rounded-sm">
                          <Play size={20} fill="currentColor" className="text-white group-hover:text-studio-neon transition-colors" />
                     </div>

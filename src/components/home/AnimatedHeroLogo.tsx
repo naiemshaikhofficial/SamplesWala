@@ -32,7 +32,7 @@ export function AnimatedHeroLogo() {
           width={800} 
           height={200} 
           style={{ height: 'auto' }}
-          className="w-full max-w-3xl h-auto object-contain brightness-150 mx-auto drop-shadow-[0_0_50px_rgba(255,255,255,0.4)] group-hover:drop-shadow-[0_0_80px_rgba(166,226,46,0.4)] transition-all duration-1000 select-none pointer-events-none"
+          className="w-full max-w-xl h-auto object-contain brightness-150 mx-auto drop-shadow-[0_0_50px_rgba(255,255,255,0.4)] group-hover:drop-shadow-[0_0_80px_rgba(166,226,46,0.4)] transition-all duration-1000 select-none pointer-events-none"
           priority
         />
         

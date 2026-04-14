@@ -168,8 +168,8 @@ export function Sidebar() {
                     ref={inputRef}
                     value={searchVal}
                     onChange={(e) => setSearchVal(e.target.value)}
-                    placeholder="Search sounds... (Cmd+K)" 
-                    className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none"
+                    placeholder="SEARCH SAMPLES... (Cmd+K)" 
+                    className="bg-transparent border-none text-[9px] w-full focus:ring-0 placeholder:text-white/10 uppercase font-black focus:outline-none text-white"
                     />
                 ) : (
                    <div className="w-full h-4" />

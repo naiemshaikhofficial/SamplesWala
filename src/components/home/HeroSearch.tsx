@@ -36,8 +36,8 @@ export function HeroSearch({ onSearchChange }: { onSearchChange?: (val: string) 
             type="text"
             value={query}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="SCAN_ARCHIVE..."
-            className="w-full bg-black/80 backdrop-blur-3xl border-2 border-white/10 h-16 md:h-24 pl-12 md:pl-24 pr-16 md:pr-24 text-[10px] md:text-xl font-black uppercase tracking-widest outline-none focus:border-studio-neon transition-all placeholder:text-white/10 text-center italic"
+            placeholder="SEARCH SAMPLES..."
+            className="w-full bg-black/80 backdrop-blur-3xl border-2 border-white/10 h-16 md:h-24 pl-12 md:pl-24 pr-16 md:pr-24 text-[10px] md:text-xl font-black uppercase tracking-widest outline-none focus:border-studio-neon transition-all placeholder:text-white/10 text-white text-center italic"
         />
 
         <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 flex items-center">
