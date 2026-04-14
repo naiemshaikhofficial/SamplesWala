@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 const SITE_URL = "https://sampleswala.com";
-const DEFAULT_TITLE = "SAMPLES WALA | Premium Musical Samples, Loops & VSTs";
-const DEFAULT_DESC = "Pro-grade royalty-free audio samples, loops, and sample packs for modern music producers. High-performance sounds for Trap, EDM, Lo-Fi, and industry-standard VST software.";
+const DEFAULT_TITLE = "SAMPLES WALA | India's #1 Premium samples, Loops & VSTs";
+const DEFAULT_DESC = "India's leading marketplace for pro-grade royalty-free audio samples, loops, and sample packs. Premium sounds for Desi Hip Hop, South Indian Percussion, Trap, and EDM from Bollywood to the streets.";
 
 export type SEOMetadataParams = {
     title: string;
@@ -24,9 +24,11 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
         title: params.title,
         description: params.description,
         keywords: params.keywords || [
-            "music samples", "sample packs", "royalty free loops", 
-            "trap samples", "edm loops", "music production", 
-            "drum kits", "sampleswala", "vst plugins", "audio samples"
+            "Indian sample packs", "South Indian percussion", "Desi Hip Hop loops", 
+            "Bollywood samples", "Tabla loops", "Indian Trap samples", "Tamil loops",
+            "Telugu samples", "music samples India", "sample packs", "royalty free loops", 
+            "trap samples", "edm loops", "music production India", 
+            "drum kits", "sampleswala", "vst plugins India", "audio samples"
         ],
         metadataBase: new URL(SITE_URL),
         alternates: {
@@ -38,7 +40,7 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
             url,
             siteName: "SAMPLES WALA",
             type: params.type || "website",
-            locale: "en_US",
+            locale: "en_IN",
             images: [
                 {
                     url: ogImage,
@@ -83,38 +85,38 @@ export const pagesMeta: Record<string, SEOMetadataParams> = {
         path: "/",
     },
     browse: {
-        title: "Browse All Samples | SAMPLES WALA",
-        description: "Explore our massive library of individual hits, loops, and samples. Filter by genre, mood, and BPM to find your next hit sound.",
+        title: "Browse Indian Samples & Loops | SAMPLES WALA",
+        description: "Explore India's largest library of individual hits, loops, and samples. From South Indian percussion to Desi Hip Hop, find your next hit sound.",
         path: "/browse",
     },
     packs: {
-        title: "Sample Packs & Drum Kits | SAMPLES WALA",
-        description: "Premium curated sample packs and drum kits. Get high-quality sounds used by top industry producers.",
+        title: "Indian Sample Packs & Drum Kits | SAMPLES WALA",
+        description: "Premium curated Indian sample packs and drum kits. Get high-quality sounds used by top Bollywood and Independent producers.",
         path: "/packs",
     },
     software: {
-        title: "Music Software & VST Plugins | SAMPLES WALA",
-        description: "Powerful VSTs and audio software to enhance your production workflow. High-performance tools for digital music creation.",
+        title: "Music Software & VST Plugins for India | SAMPLES WALA",
+        description: "Powerful VSTs and audio software optimized for Indian producers. High-performance tools for digital music creation.",
         path: "/software",
     },
     pricing: {
-        title: "Pricing & Plans | SAMPLES WALA",
-        description: "Choose the perfect plan for your production needs. High-value subscriptions and one-time packs.",
+        title: "Affordable Pricing for Indian Producers | SAMPLES WALA",
+        description: "Choose the perfect plan for your production needs with high-value subscriptions and one-time packs tailored for India.",
         path: "/pricing",
     },
     faq: {
-        title: "FAQ | Frequently Asked Questions",
-        description: "Everything you need to know about using SAMPLES WALA, licensing, and technical support.",
+        title: "FAQ | SAMPLES WALA India Support",
+        description: "Everything you need to know about using SAMPLES WALA in India, licensing, and technical support.",
         path: "/faq",
     },
     contact: {
-        title: "Contact Us | SAMPLES WALA",
-        description: "Get in touch for support, collaborations, or business inquiries.",
+        title: "Contact Us | SAMPLES WALA India",
+        description: "Get in touch with the SamplesWala Team for support, collaborations, or business inquiries in India.",
         path: "/contact",
     },
     about: {
-        title: "About SAMPLES WALA | Our Story",
-        description: "The mission behind SAMPLES WALA and our commitment to empowering independent music producers worldwide.",
+        title: "About SAMPLES WALA | India's Sound Revolution",
+        description: "The mission behind India's #1 sample marketplace and our commitment to empowering independent Indian music producers.",
         path: "/about",
     },
 };
