@@ -11,9 +11,12 @@ export default function robots(): MetadataRoute.Robots {
         '/profile/',
         '/settings/',
         '/auth/',
-        '/library/', // Usually private user library
+        '/library/',
+        '/checkout/',
+        '/cart/',
       ],
     },
     sitemap: 'https://sampleswala.com/sitemap.xml',
+    host: 'https://sampleswala.com',
   }
 }
