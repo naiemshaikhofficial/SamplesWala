@@ -114,7 +114,6 @@ export async function GET(
                             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                                 <div style={{ 
                                     fontSize: 48, 
-                                    color: 'white', 
                                     fontWeight: 900,
                                     backgroundColor: '#a6e22e',
                                     padding: '5px 20px',
