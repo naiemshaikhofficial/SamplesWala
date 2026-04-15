@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/pricing/actions'
+import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/subscription/actions'
 import { Loader2, Sparkles } from 'lucide-react'
 import Script from 'next/script'
 import { useNotify } from '@/components/ui/NotificationProvider'

@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         destination: '/sounds/genres/:genre',
         permanent: true,
       },
+      {
+        source: '/pricing',
+        destination: '/subscription',
+        permanent: true,
+      },
     ]
   },
   images: {

@@ -20,7 +20,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     }
 
     if (!itemDetails) {
-        redirect('/pricing')
+        redirect('/subscription')
     }
 
     // Fetch user profile for initial address values if user exists
@@ -32,7 +32,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
 
     // ⛔ ENFORCE: No Credits without Active Subscription
     if (mode === 'pack' && (!profile || profile.subscription_status !== 'ACTIVE')) {
-        redirect('/pricing?error=subscription_required')
+        redirect('/subscription?error=subscription_required')
     }
 
     return (

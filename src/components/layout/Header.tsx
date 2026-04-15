@@ -50,7 +50,7 @@ export function Header() {
               { label: 'Sounds', href: '/browse' },
               { label: 'Packs', href: '/browse' },
               { label: 'Software', href: '/software' },
-              { label: 'Pricing', href: '/pricing' },
+              { label: 'Subscription', href: '/subscription' },
               { label: 'Library', href: '/library' },
               { label: 'Account', href: '/profile' }
             ].map((item: any) => (

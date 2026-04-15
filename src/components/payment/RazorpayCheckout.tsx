@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Script from 'next/script'
-import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/pricing/actions'
+import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/subscription/actions'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
 import { Loader2, Zap } from 'lucide-react'

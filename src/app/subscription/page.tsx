@@ -33,8 +33,8 @@ export default async function PricingPage() {
           <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
             <Activity size={10} /> {activeSub ? `SUBSCRIPTION : ${currentPlanName.toUpperCase()}` : 'CHOOSE YOUR PLAN'}
           </div>
-          <h1 className="text-5xl md:text-[9rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
-            SIMPLE <span className="text-studio-neon">PRICING</span>
+          <h1 className="text-5xl md:text-[8rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
+            SIMPLE <span className="text-studio-neon">SUBSCRIPTION</span>
           </h1>
           <p className="text-xs md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
             Choose a monthly subscription or buy credit packs to fit your needs. <br className="hidden md:block"/>

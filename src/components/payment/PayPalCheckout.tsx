@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
-import { createPayPalOrder, capturePayPalOrder } from '@/app/pricing/actions'
+import { createPayPalOrder, capturePayPalOrder } from '@/app/subscription/actions'
 import { useRouter } from 'next/navigation'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
