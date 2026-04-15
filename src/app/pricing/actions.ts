@@ -8,6 +8,29 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { generateInvoicePDF } from '@/lib/pdfGenerator'
 import { sendPurchaseEmail } from '@/lib/email'
+import { v4 as uuidv4 } from 'uuid'
+
+// 💳 INITIALIZE PAYPAL (Build-safe)
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+const PAYPAL_API_BASE = process.env.NODE_ENV === 'production' 
+  ? 'https://api-m.paypal.com' 
+  : 'https://api-m.sandbox.paypal.com';
+
+async function getPayPalAccessToken() {
+  const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
+  const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
+    method: 'POST',
+    body: 'grant_type=client_credentials',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+
+  const data = await response.json();
+  return data.access_token;
+}
 
 // 💳 INITIALIZE RAZORPAY (Build-safe)
 const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
@@ -388,7 +411,130 @@ export async function cancelSubscription() {
         throw new Error('Failed to cancel membership node.')
     }
 
-    revalidatePath('/pricing')
     revalidatePath('/')
+    revalidatePath('/pricing')
     return { success: true }
+}
+
+/**
+ * 🌐 PayPal Order Action (International Checkout)
+ */
+export async function createPayPalOrder(itemId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software') {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) redirect('/auth/login')
+
+    // 1. Fetch Item Details & Price in USD
+    let priceUsd = 0;
+    let itemName = '';
+
+    if (itemType === 'subscription') {
+        const { data } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single();
+        priceUsd = data?.price_usd || 0;
+        itemName = `Subscription: ${data?.name}`;
+    } else if (itemType === 'pack') {
+        const { data } = await supabase.from('credit_packs').select('*').eq('id', itemId).single();
+        priceUsd = data?.price_usd || 0;
+        itemName = `Credit Pack: ${data?.name}`;
+    } else if (itemType === 'sample_pack') {
+        const { data } = await supabase.from('sample_packs').select('*').eq('id', itemId).single();
+        priceUsd = data?.price_usd || 0;
+        itemName = `Sample Pack: ${data?.name}`;
+    } else {
+        const { data } = await supabase.from('software_products').select('*').eq('id', itemId).single();
+        priceUsd = data?.price_usd || 0;
+        itemName = `Software: ${data?.name}`;
+    }
+
+    if (!priceUsd) throw new Error('Invalid product or price matching failed.');
+
+    // 2. Initialize PayPal Session
+    const accessToken = await getPayPalAccessToken();
+    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+            intent: 'CAPTURE',
+            purchase_units: [{
+                reference_id: itemId,
+                amount: {
+                    currency_code: 'USD',
+                    value: priceUsd.toString(),
+                },
+                description: itemName,
+            }],
+        }),
+    });
+
+    const order = await response.json();
+    return { success: true, orderId: order.id };
+}
+
+/**
+ * 🎯 PayPal Capture Action (Fulfillment)
+ */
+export async function capturePayPalOrder(orderId: string, itemId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software') {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized');
+
+    // 1. Capture the Payment
+    const accessToken = await getPayPalAccessToken();
+    const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderId}/capture`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    const captureData = await response.json();
+
+    if (captureData.status !== 'COMPLETED') {
+        throw new Error(`PayPal Capture Failed: ${captureData.status}`);
+    }
+
+    // 2. Reuse Fulfillment Logic
+    // We mock a paymentRes object to feed into the existing verification ecosystem
+    const paymentRes = {
+        paypal_order_id: orderId,
+        paypal_capture_id: captureData.purchase_units[0].payments.captures[0].id,
+        status: 'paid',
+        source: 'paypal'
+    };
+
+    // Since verifyPayment currently expects Razorpay signatures, we'll call a bypass or shared fulfillment
+    // For now, we'll manually fulfill to ensure credits are added immediately
+    const adminSupabase = getAdminClient();
+
+    if (itemType === 'subscription') {
+        const { data: plan } = await adminSupabase.from('subscription_plans').select('*').eq('id', itemId).single();
+        await adminSupabase.from('user_accounts').upsert({
+            user_id: user.id,
+            plan_id: plan.id,
+            next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            is_trial_used: true
+        }, { onConflict: 'user_id' });
+        await adminSupabase.rpc('add_credits', { u_id: user.id, amount: plan.credits_per_month });
+    } else if (itemType === 'pack') {
+        const { data: pack } = await adminSupabase.from('credit_packs').select('*').eq('id', itemId).single();
+        await adminSupabase.rpc('add_credits', { u_id: user.id, amount: pack.credits });
+    }
+
+    // Log the order
+    await adminSupabase.from('credit_orders').insert({
+        user_id: user.id,
+        order_id: orderId,
+        payment_id: paymentRes.paypal_capture_id,
+        amount_inr: 0, // Should probably log amount_usd if we add that column
+        credits_awarded: 0, 
+        status: 'paid',
+        raw_response: captureData
+    });
+
+    revalidatePath('/');
+    return { success: true };
 }

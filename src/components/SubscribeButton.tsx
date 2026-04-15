@@ -3,10 +3,11 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/pricing/actions'
-import { Loader2, Sparkles, CreditCard } from 'lucide-react'
+import { Loader2, Sparkles } from 'lucide-react'
 import Script from 'next/script'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import { createClient } from '@/lib/supabase/client'
+import PayPalCheckout from './payment/PayPalCheckout'
 
 type SubscribeButtonProps = {
   planId: string
@@ -14,6 +15,7 @@ type SubscribeButtonProps = {
   isFeatured?: boolean
   mode?: 'subscription' | 'pack' | 'sample_pack' | 'software'
   disabled?: boolean
+  currency?: 'INR' | 'USD'
 }
 
 declare global {
@@ -22,7 +24,7 @@ declare global {
   }
 }
 
-export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled }: SubscribeButtonProps) {
+export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled, currency = 'INR' }: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const { showAuthGate, showToast } = useNotify()
@@ -36,63 +38,68 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
         return
     }
 
-    setIsPending(true)
-    try {
-      // 1. Create Server-Side Order
-      let action;
-      if (mode === 'subscription') action = createSubscription;
-      else if (mode === 'pack') action = purchaseCreditPack;
-      else if (mode === 'sample_pack') action = purchaseSamplePack;
-      else action = purchaseSoftware;
+    // Razorpay Flow (INR Only)
+    if (currency === 'INR') {
+        setIsPending(true)
+        try {
+          let action;
+          if (mode === 'subscription') action = createSubscription;
+          else if (mode === 'pack') action = purchaseCreditPack;
+          else if (mode === 'sample_pack') action = purchaseSamplePack;
+          else action = purchaseSoftware;
 
-      const orderData: any = await action(planId)
-      
-      if (!orderData.success) throw new Error('Order creation failed')
+          const orderData: any = await action(planId)
+          if (!orderData.success) throw new Error('Order creation failed')
 
-      // 2. Open Razorpay Modal (Orchestrating the Mandate)
-      const isMandate = orderData.amount === 200 || orderData.isSubscription; // ₹2 is usually mandate auth
-      const options: any = {
-        key: orderData.key,
-        name: 'Samples Wala',
-        description: orderData.isTrialLink 
-            ? `Free Trial · ₹5 refundable auth by Razorpay · Renews at ₹${orderData.planPrice}/mo` 
-            : `Membership Activation: ${planName}`,
-        handler: async function (response: any) {
-            // 3. Verify Payment on Success (Signature handshake)
-            const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, planId)
-            if (verified.success) {
-                alert(`SUCCESS: ${planName} LINKED TO YOUR NODE.`)
-                router.push('/browse')
-            }
-        },
-        prefill: {
-            name: orderData.user.name,
-            email: orderData.user.email,
-        },
-        theme: { color: '#a6e22e' }, // Studio Neon
-      }
+          const options: any = {
+            key: orderData.key,
+            name: 'Samples Wala',
+            description: orderData.isTrialLink 
+                ? `Free Trial · ₹5 refundable auth by Razorpay · Renews at ₹${orderData.planPrice}/mo` 
+                : `Membership Activation: ${planName}`,
+            handler: async function (response: any) {
+                const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, planId)
+                if (verified.success) {
+                    showToast(`SUCCESS: ${planName} LINKED TO YOUR NODE.`, 'success')
+                    router.push('/browse')
+                }
+            },
+            prefill: {
+                name: orderData.user.name,
+                email: orderData.user.email,
+            },
+            theme: { color: '#a6e22e' },
+          }
 
-      // 🛰️ SIGNAL ROUTING: subscription vs one-time order
-      if (orderData.isSubscription) {
-          options.subscription_id = orderData.subscriptionId;
-          if (orderData.amount) {
+          if (orderData.isSubscription) {
+              options.subscription_id = orderData.subscriptionId;
+          } else {
+              options.order_id = orderData.orderId;
               options.amount = orderData.amount;
               options.currency = 'INR';
           }
-      } else {
-          options.order_id = orderData.orderId;
-          options.amount = orderData.amount;
-          options.currency = 'INR';
-      }
 
-      const rzp = new window.Razorpay(options)
-      rzp.open()
-      
-    } catch (err: any) {
-      showToast(err.message || 'Checkout failed. Please try again.', 'error')
-    } finally {
-      setIsPending(false)
+          const rzp = new window.Razorpay(options)
+          rzp.open()
+          
+        } catch (err: any) {
+          showToast(err.message || 'Checkout failed. Please try again.', 'error')
+        } finally {
+          setIsPending(false)
+        }
     }
+  }
+
+  // 🌐 International PayPal Context
+  if (currency === 'USD') {
+      return (
+          <PayPalCheckout 
+            itemId={planId} 
+            itemType={mode} 
+            planName={planName} 
+            onSuccess={() => router.push('/browse')}
+          />
+      )
   }
 
   return (
