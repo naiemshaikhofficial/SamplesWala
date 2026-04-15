@@ -19,32 +19,44 @@ const planVisuals: any = {
 }
 
 export default function PricingClientView({ plans, packs, activeSub, user }: PricingClientViewProps) {
-    const [currency, setCurrency] = useState<'INR' | 'USD'>('INR')
+    const [currency, setCurrency] = React.useState<'INR' | 'USD'>('INR')
+    const [isAutoDetected, setIsAutoDetected] = React.useState(false)
+
+    React.useEffect(() => {
+        try {
+            const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
+            const isIndia = zone === 'Asia/Kolkata'
+            setCurrency(isIndia ? 'INR' : 'USD')
+            setIsAutoDetected(true)
+        } catch (e) {
+            setCurrency('INR')
+        }
+    }, [])
 
     const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
 
     return (
         <div className="container mx-auto px-4 relative z-10">
-            {/* Currency Toggle Artifact */}
-            <div className="flex justify-center mb-12">
-                <div className="bg-black/40 border border-white/5 p-1 rounded-sm inline-flex items-center gap-1">
-                    <button 
-                        onClick={() => setCurrency('INR')}
-                        className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${currency === 'INR' ? 'bg-studio-neon text-black' : 'text-white/40 hover:text-white'}`}
-                    >
-                        Domestic (INR)
-                    </button>
-                    <button 
-                        onClick={() => setCurrency('USD')}
-                        className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${currency === 'USD' ? 'bg-studio-neon text-black' : 'text-white/40 hover:text-white'}`}
-                    >
-                        International (USD)
-                    </button>
+            {/* 🧿 SMART_REGION_INDICATOR */}
+            <div className="flex flex-col items-center mb-16 md:mb-24">
+                <div className="px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center gap-3">
+                    <div className="relative">
+                        <Activity className="h-3 w-3 text-studio-neon" />
+                        <div className="absolute inset-0 bg-studio-neon blur-sm animate-pulse rounded-full opacity-50" />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">
+                        {isAutoDetected ? 'SIGNAL DETECTED:' : 'SYNCING SIGNAL...'} 
+                        <span className="text-white ml-2">
+                            {currency === 'INR' ? '🇮🇳 Indian Node' : '🌎 Global Signal'}
+                        </span>
+                    </span>
                 </div>
             </div>
 
+            {/* ... rest of the section logic ... */}
             {/* 💎 1. SUBSCRIPTION PLANS SECTION */}
             <div className="mb-32 md:mb-48">
+                {/* ... existing header ... */}
                 <div className="flex items-center gap-4 mb-12 md:mb-16 text-white/10 group px-2">
                     <BarChart3 className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-neon transition-colors" />
                     <h2 className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] italic">Subscription Plans</h2>
@@ -88,14 +100,21 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
                                     </p>
                                 </div>
 
-                                <div className="mb-10 md:mb-12 p-5 md:p-6 bg-black/40 border border-white/5 relative overflow-hidden group/price">
+                                <div className="mb-10 md:mb-12 p-5 md:p-6 bg-black/40 border border-white/5 relative overflow-hidden group/price flex flex-col gap-2">
                                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover/price:opacity-100 transition-opacity" />
-                                    <div className="flex items-baseline gap-2 relative z-10">
-                                        <span className="text-4xl md:text-6xl font-black tracking-tighter text-white mr-1 md:mr-2">
-                                            {currency === 'INR' ? `₹${plan.price_inr}` : `$${plan.price_usd}`}
-                                        </span>
-                                        <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">/ MON</span>
+                                    <div className="flex flex-col gap-1 relative z-10">
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-4xl md:text-6xl font-black tracking-tighter text-white mr-1 md:mr-2">
+                                                {currency === 'INR' ? `₹${plan.price_inr}` : `$${plan.price_usd}`}
+                                            </span>
+                                            <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">/ MON</span>
+                                        </div>
                                     </div>
+                                    {currency === 'USD' && (
+                                        <span className="text-[7px] font-black uppercase tracking-[0.2em] text-studio-neon bg-studio-neon/10 px-2 py-1 self-start rounded-full animate-pulse">
+                                            Includes Int. Signal Fees
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="space-y-4 md:space-y-5 mb-10 md:mb-14 flex-1">
@@ -159,10 +178,17 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
                             </div>
 
                             <div className="flex items-center justify-between gap-4">
-                                <div className="flex flex-col">
-                                    <span className="text-3xl font-black tracking-tighter text-white">
-                                        {currency === 'INR' ? `₹${pack.price_inr}` : `$${pack.price_usd}`}
-                                    </span>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-3xl font-black tracking-tighter text-white">
+                                            {currency === 'INR' ? `₹${pack.price_inr}` : `$${pack.price_usd}`}
+                                        </span>
+                                    </div>
+                                    {currency === 'USD' && (
+                                        <span className="text-[6px] font-black uppercase tracking-widest text-studio-yellow animate-pulse">
+                                            + Gateway Artifact
+                                        </span>
+                                    )}
                                     <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">ONE-TIME</span>
                                 </div>
                                 <div className="flex-1 max-w-[180px]">

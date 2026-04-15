@@ -40,7 +40,7 @@ export default function PayPalCheckout({ itemId, itemType, planName, onSuccess }
                         try {
                             const res = await createPayPalOrder(itemId, itemType)
                             if (res.success) return res.orderId
-                            throw new Error('Order creation failed on server')
+                            throw new Error(res.error || 'Identity Synchronization Failed')
                         } catch (err: any) {
                             showToast(err.message, 'error')
                             return ''

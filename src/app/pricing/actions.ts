@@ -478,8 +478,17 @@ export async function createPayPalOrder(itemId: string, itemType: 'subscription'
         }),
     });
 
-    const order = await response.json();
-    return { success: true, orderId: order.id };
+    try {
+        const order = await response.json();
+        if (!order.id) {
+            console.error("[PAYPAL_API_FAILURE]", order);
+            return { success: false, error: order.message || "PayPal Session failed to initialize" };
+        }
+        return { success: true, orderId: order.id };
+    } catch (err: any) {
+        console.error("[PAYPAL_PARSE_ERROR]", err);
+        return { success: false, error: "Failed to parse PayPal response" };
+    }
 }
 
 /**
