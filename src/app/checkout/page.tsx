@@ -23,8 +23,12 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         redirect('/pricing')
     }
 
-    // Fetch user profile for initial address values
-    const { data: profile } = await supabase.from('user_accounts').select('*').eq('id', user.id).single()
+    // Fetch user profile for initial address values if user exists
+    let profile = null
+    if (user) {
+        const { data } = await supabase.from('user_accounts').select('*').eq('id', user.id).single()
+        profile = data
+    }
 
     return (
         <main className="min-h-screen pt-32 pb-20 bg-black">
