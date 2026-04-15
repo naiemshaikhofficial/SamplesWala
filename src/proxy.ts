@@ -104,18 +104,37 @@ export async function proxy(request: NextRequest) {
     "'self'", 
     process.env.NEXT_PUBLIC_SUPABASE_URL, 
     "https://*.supabase.co",
-    "https://*.workers.dev", // Allow Cloudflare Workers
-    "https://drive.google.com"
+    "wss://*.supabase.co", // Allow Supabase Realtime (WebSockets)
+    "https://*.workers.dev", 
+    "https://drive.google.com",
+    "https://*.trustpilot.com" // Trustpilot API & Analytics
   ].filter(Boolean);
+
+  const scriptSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
+    "https://checkout.razorpay.com", // Razorpay Checkout
+    "https://*.trustpilot.com",      // Trustpilot Scripts
+    "https://widget.trustpilot.com"
+  ];
+
+  const frameSrc = [
+    "'self'",
+    "https://*.trustpilot.com",      // Trustpilot Widgets
+    "https://api-m.sandbox.paypal.com",
+    "https://www.paypal.com"
+  ];
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    `script-src ${scriptSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
-    "img-src 'self' data: https:",
-    "style-src 'self' 'unsafe-inline'",
-    "font-src 'self' data:",
+    "img-src 'self' data: https: https://*.trustpilot.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "media-src 'self' blob: data: https://*.supabase.co https://*.workers.dev",
+    `frame-src ${frameSrc.join(' ')}`,
     "frame-ancestors 'none'"
   ].join('; ');
 
