@@ -83,7 +83,7 @@ export function CreditCounter() {
     }
   }, [supabase, syncState])
 
-  if (!data) return null
+  if (!data || data.plan === 'FREE') return null
 
   return (
     <button 

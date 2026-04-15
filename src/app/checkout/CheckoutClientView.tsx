@@ -308,12 +308,12 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                         <div className="p-8 border-b border-white/10 relative">
                             {isTrialEligible && (
                                 <div className="absolute top-4 right-4 bg-studio-neon/10 border border-studio-neon/30 px-3 py-1 text-studio-neon text-[9px] font-bold uppercase rounded-full">
-                                    Trial Active
+                                    30-Day Free Trial
                                 </div>
                             )}
-                            <h2 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-6 flex items-center gap-2"><Activity size={14} className="text-studio-neon" /> Order Summary</h2>
+                            <h2 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-6 flex items-center gap-2"><Activity size={14} className="text-studio-neon" /> Review Order</h2>
                             <h3 className="text-3xl font-black uppercase tracking-tight mb-2">{item.name}</h3>
-                            <p className="text-xs text-white/30">{billingCycle === 'MONTHLY' ? 'Monthly Plan' : 'Annual Plan (Best Value)'}</p>
+                            <p className="text-xs text-white/30">{billingCycle === 'MONTHLY' ? 'Monthly Access' : 'Full Year Access'}</p>
                         </div>
                         <div className="p-8 bg-black/20 space-y-5">
                             <div className="flex justify-between text-xs font-bold text-white/40"><span>Pack Credits</span><span className="text-white">{item.credits}</span></div>
