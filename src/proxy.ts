@@ -107,30 +107,37 @@ export async function proxy(request: NextRequest) {
     "wss://*.supabase.co", // Allow Supabase Realtime (WebSockets)
     "https://*.workers.dev", 
     "https://drive.google.com",
-    "https://*.trustpilot.com" // Trustpilot API & Analytics
+    "https://*.trustpilot.com", // Trustpilot API & Analytics
+    "https://*.razorpay.com",    // Razorpay Metrics & API
+    "https://www.paypal.com",    // PayPal API
+    "https://*.paypal.com"
   ].filter(Boolean);
 
   const scriptSrc = [
     "'self'",
     "'unsafe-inline'",
     "'unsafe-eval'",
-    "https://checkout.razorpay.com", // Razorpay Checkout
+    "https://*.razorpay.com",       // Razorpay Scripts (cdn, checkout)
     "https://*.trustpilot.com",      // Trustpilot Scripts
-    "https://widget.trustpilot.com"
+    "https://widget.trustpilot.com",
+    "https://www.paypal.com",       // PayPal Scripts
+    "https://*.paypalobjects.com"   // PayPal Static Assets
   ];
 
   const frameSrc = [
     "'self'",
+    "https://*.razorpay.com",       // Razorpay Checkout Frame
     "https://*.trustpilot.com",      // Trustpilot Widgets
     "https://api-m.sandbox.paypal.com",
-    "https://www.paypal.com"
+    "https://www.paypal.com",
+    "https://*.paypal.com"          // PayPal Checkout Frames
   ];
 
   const csp = [
     "default-src 'self'",
     `script-src ${scriptSrc.join(' ')}`,
     `connect-src ${connectSrc.join(' ')}`,
-    "img-src 'self' data: https: https://*.trustpilot.com",
+    "img-src 'self' data: https: https://*.trustpilot.com https://*.razorpay.com https://*.paypalobjects.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "media-src 'self' blob: data: https://*.supabase.co https://*.workers.dev",
