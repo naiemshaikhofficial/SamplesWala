@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, Phone, User, Package, CreditCard, ShieldCheck, ArrowLeft, Loader2, Globe, IndianRupee } from 'lucide-react'
+import { MapPin, Phone, User, Package, CreditCard, ShieldCheck, ArrowLeft, ArrowRight, Loader2, Globe, IndianRupee, Activity } from 'lucide-react'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import RazorpayCheckout from '@/components/payment/RazorpayCheckout'
 import PayPalCheckout from '@/components/payment/PayPalCheckout'

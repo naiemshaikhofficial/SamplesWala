@@ -2,14 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import CheckoutClientView from './CheckoutClientView'
 
-export default async function CheckoutPage({ searchParams }: { searchParams: { planId?: string, packId?: string, mode: string } }) {
+export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ planId?: string, packId?: string, mode: string }> }) {
+    const params = await searchParams
+    const { planId, packId, mode } = params
+    
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
-    // No longer redirecting to login. CheckoutClientView will handle guest state.
 
     let itemDetails = null
-    const { planId, packId, mode } = searchParams
 
     if (mode === 'subscription' && planId) {
         const { data } = await supabase.from('subscription_plans').select('*').eq('id', planId).single()
