@@ -13,6 +13,7 @@ import { Suspense } from 'react'
 import { MainLayoutWrapper } from '@/components/layout/MainLayoutWrapper'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 import JsonLdSchema from '@/components/seo/JsonLdSchema'
+import Script from 'next/script'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -83,6 +84,23 @@ export default function RootLayout({
             "reviewCount": "2450"
           }
         }} />
+        {/* ⭐ Trustpilot Integration */}
+        <Script
+          id="trustpilot-integration"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(w,d,s,r,n){w.TrustpilotObject=n;w[n]=w[n]||function(){(w[n].q=w[n].q||[]).push(arguments)};
+              a=d.createElement(s);a.async=1;a.src=r;a.type='text/java'+s;f=d.getElementsByTagName(s)[0];
+              f.parentNode.insertBefore(a,f)})(window,document,'script', 'https://invitejs.trustpilot.com/tp.min.js', 'tp');
+              tp('register', 'eYCb1xHgnp07RuDx');
+            `
+          }}
+        />
+        <Script
+          src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
+          strategy="afterInteractive"
+        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
         <ClientProviders>

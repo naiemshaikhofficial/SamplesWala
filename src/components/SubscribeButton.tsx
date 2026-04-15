@@ -8,6 +8,7 @@ import Script from 'next/script'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import { createClient } from '@/lib/supabase/client'
 import PayPalCheckout from './payment/PayPalCheckout'
+11: import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
 
 type SubscribeButtonProps = {
   planId: string
@@ -61,6 +62,16 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
                 const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, planId)
                 if (verified.success) {
                     showToast(`SUCCESS: ${planName} LINKED TO YOUR NODE.`, 'success')
+                    
+                    // 🌠 Trigger Trustpilot Invitation Signal
+                    if (orderData.user) {
+                        triggerTrustpilotInvitation(
+                            orderData.user.email,
+                            orderData.user.name,
+                            orderData.subscriptionId || orderData.orderId
+                        )
+                    }
+
                     router.push('/browse')
                 }
             },

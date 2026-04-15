@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { TrustpilotWidget } from '../trustpilot/TrustpilotWidget'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -52,6 +53,9 @@ export function Footer() {
               </p>
           </div>
       </div>
+
+      {/* ⭐ Trustpilot Review Collector */}
+      <TrustpilotWidget />
 
       {/* 🧬 PRIMARY_DAW_CONSOLE_BAR */}
       <div className="flex flex-col md:flex-row items-stretch border-b border-white/5 bg-black/40">
