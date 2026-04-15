@@ -25,7 +25,7 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
     React.useEffect(() => {
         try {
             const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
-            const isIndia = zone === 'Asia/Kolkata'
+            const isIndia = zone.includes('Kolkata') || zone.includes('Calcutta')
             setCurrency(isIndia ? 'INR' : 'USD')
             setIsAutoDetected(true)
         } catch (e) {
