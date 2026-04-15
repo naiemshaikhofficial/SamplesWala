@@ -216,6 +216,7 @@ export default function SettingsPage() {
                                                     <CancelSubscriptionButton />
                                                 </div>
                                             ) : (
+                                                <div className="pt-6 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 text-center italic">
                                                     NO ACTIVE MEMBERSHIP
                                                 </div>
                                             )}
