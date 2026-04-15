@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import CheckoutClientView from './CheckoutClientView'
+import CheckoutClientView from '@/app/checkout/CheckoutClientView'
 
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ planId?: string, packId?: string, mode: string }> }) {
     const params = await searchParams
