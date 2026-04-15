@@ -5,8 +5,8 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { createPayPalOrder, capturePayPalOrder } from '@/app/pricing/actions'
 import { useRouter } from 'next/navigation'
 import { useNotify } from '@/components/ui/NotificationProvider'
-7: import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
-8: import { createClient } from '@/lib/supabase/client'
+import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
+import { createClient } from '@/lib/supabase/client'
 
 interface PayPalCheckoutProps {
     itemId: string

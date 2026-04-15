@@ -8,7 +8,7 @@ import Script from 'next/script'
 import { useNotify } from '@/components/ui/NotificationProvider'
 import { createClient } from '@/lib/supabase/client'
 import PayPalCheckout from './payment/PayPalCheckout'
-11: import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
+import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
 
 type SubscribeButtonProps = {
   planId: string
