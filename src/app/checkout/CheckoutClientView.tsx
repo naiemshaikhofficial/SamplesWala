@@ -7,6 +7,8 @@ import { useNotify } from '@/components/ui/NotificationProvider'
 import RazorpayCheckout from '../../components/payment/RazorpayCheckout'
 import PayPalCheckout from '../../components/payment/PayPalCheckout'
 import { createClient } from '@/lib/supabase/client'
+import { validateDiscountCoupon } from '@/app/actions/coupons'
+import { Tag, Ticket } from 'lucide-react'
 
 interface CheckoutClientViewProps {
     item: any
@@ -44,6 +46,43 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
     const annualSavings = Math.round(((item.price_inr * 12) - item.price_inr_annual) / (item.price_inr * 12) * 100)
     const currentPriceInr = billingCycle === 'MONTHLY' ? item.price_inr : item.price_inr_annual
     const currentPriceUsd = billingCycle === 'MONTHLY' ? item.price_usd : item.price_usd_annual
+
+    const [couponCode, setCouponCode] = useState('')
+    const [appliedDiscount, setAppliedDiscount] = useState<any>(null)
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode) return
+        setLoading(true)
+        try {
+            const result = await validateDiscountCoupon(couponCode)
+            setAppliedDiscount(result)
+            showToast(`Coupon '${result.code}' applied effectively.`, 'success')
+        } catch (err: any) {
+            showToast(err.message, 'error')
+            setAppliedDiscount(null)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const calculateTotal = () => {
+        const basePrice = currency === 'INR' ? currentPriceInr : currentPriceUsd
+        if (isTrialEligible) return currency === 'INR' ? 5 : 0
+        
+        let total = basePrice
+        if (appliedDiscount) {
+            if (appliedDiscount.discountPercent) {
+                total = total * (1 - appliedDiscount.discountPercent / 100)
+            } else if (currency === 'INR' && appliedDiscount.discountAmountInr) {
+                total = Math.max(0, total - appliedDiscount.discountAmountInr)
+            } else if (currency === 'USD' && appliedDiscount.discountAmountUsd) {
+                total = Math.max(0, total - appliedDiscount.discountAmountUsd)
+            }
+        }
+        return Number(total.toFixed(2))
+    }
+
+    const finalPrice = calculateTotal()
 
     const [formData, setFormData] = useState({
         full_name: profile?.full_name || '',
@@ -242,7 +281,7 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                                                     itemId={item.id} 
                                                     mode={mode as any} 
                                                     planName={`${item.name} (${billingCycle})`} 
-                                                    priceInr={isTrialEligible ? 5 : currentPriceInr} 
+                                                    priceInr={finalPrice} 
                                                     onSuccess={async () => { await saveAddress(); router.push('/browse') }} 
                                                 />
                                             ) : (
@@ -279,9 +318,40 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                         <div className="p-8 bg-black/20 space-y-5">
                             <div className="flex justify-between text-xs font-bold text-white/40"><span>Pack Credits</span><span className="text-white">{item.credits}</span></div>
                             <div className="flex justify-between text-xs font-bold text-white/40"><span>Plan Duration</span><span className="text-white">{billingCycle}</span></div>
+                            
+                            {/* 🎟️ COUPON_SECTION */}
+                            <div className="pt-4 space-y-3">
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1 group">
+                                        <Ticket className="absolute left-3 top-3 text-white/20 group-focus-within:text-studio-neon transition-colors" size={14} />
+                                        <input 
+                                            placeholder="Coupon Code"
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                            className="w-full bg-white/[0.03] border border-white/10 p-2.5 pl-9 rounded-lg text-[10px] font-bold uppercase tracking-widest focus:border-studio-neon outline-none text-white transition-colors"
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={handleApplyCoupon}
+                                        disabled={loading || !couponCode}
+                                        className="bg-white/5 hover:bg-white/10 border border-white/10 px-4 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all text-white disabled:opacity-30"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
+                                {appliedDiscount && (
+                                    <div className="flex justify-between items-center bg-studio-neon/10 border border-studio-neon/20 px-3 py-2 rounded-lg">
+                                        <span className="text-[9px] font-black text-studio-neon uppercase tracking-widest flex items-center gap-2"><Tag size={10} /> '{appliedDiscount.code}' Applied</span>
+                                        <span className="text-[10px] font-black text-studio-neon">
+                                            {appliedDiscount.discountPercent ? `-${appliedDiscount.discountPercent}%` : `-${currency === 'INR' ? '₹' : '$'}${currency === 'INR' ? appliedDiscount.discountAmountInr : appliedDiscount.discountAmountUsd}`}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+
                             {isTrialEligible && (
                                 <div className="flex justify-between text-xs font-bold text-studio-neon">
-                                    <span>Trial Auth Fee</span>
+                                    <span>Trial Auth Fee (Refundable)</span>
                                     <span>{currency === 'INR' ? '₹5' : '$0'}</span>
                                 </div>
                             )}
@@ -289,10 +359,7 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                             <div className="flex justify-between items-end">
                                 <span className="text-xs font-bold text-studio-neon uppercase tracking-widest">Total Price</span>
                                 <span className="text-4xl font-black text-white tracking-tighter">
-                                    {isTrialEligible 
-                                        ? (currency === 'INR' ? '₹5' : '$0') 
-                                        : (currency === 'INR' ? `₹${currentPriceInr}` : `$${currentPriceUsd}`)
-                                    }
+                                    {currency === 'INR' ? `₹${finalPrice}` : `$${finalPrice}`}
                                 </span>
                             </div>
                             {isTrialEligible && (

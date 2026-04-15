@@ -26,8 +26,13 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     // Fetch user profile for initial address values if user exists
     let profile = null
     if (user) {
-        const { data } = await supabase.from('user_accounts').select('*').eq('id', user.id).single()
+        const { data } = await supabase.from('user_accounts').select('*').eq('user_id', user.id).single()
         profile = data
+    }
+
+    // ⛔ ENFORCE: No Credits without Active Subscription
+    if (mode === 'pack' && (!profile || profile.subscription_status !== 'ACTIVE')) {
+        redirect('/pricing?error=subscription_required')
     }
 
     return (

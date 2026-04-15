@@ -17,6 +17,7 @@ type SubscribeButtonProps = {
   mode?: 'subscription' | 'pack' | 'sample_pack' | 'software'
   disabled?: boolean
   currency?: 'INR' | 'USD'
+  hasActiveSubscription?: boolean
 }
 
 declare global {
@@ -25,7 +26,7 @@ declare global {
   }
 }
 
-export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled, currency = 'INR' }: SubscribeButtonProps) {
+export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled, currency = 'INR', hasActiveSubscription }: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const { showAuthGate, showToast } = useNotify()
@@ -36,6 +37,15 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
         showAuthGate()
+        return
+    }
+
+    // ⛔ ENFORCE: No Credits without Active Subscription
+    if (mode === 'pack' && !hasActiveSubscription) {
+        showToast('Active Subscription Required for Credit Packs.', 'error')
+        // Option: Smooth scroll to subscription section
+        const subSection = document.getElementById('subscription-plans')
+        if (subSection) subSection.scrollIntoView({ behavior: 'smooth' })
         return
     }
 

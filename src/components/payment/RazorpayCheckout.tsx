@@ -90,7 +90,7 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, onS
                 className="w-full bg-studio-neon text-black py-4 font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:shadow-[0_0_30px_#a6e22e66] transition-all rounded-sm"
             >
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap size={18} />}
-                <span>Pay via Razorpay (INR)</span>
+                <span>Pay</span>
             </button>
         </>
     )

@@ -55,7 +55,7 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
 
             {/* ... rest of the section logic ... */}
             {/* 💎 1. SUBSCRIPTION PLANS SECTION */}
-            <div className="mb-32 md:mb-48">
+            <div id="subscription-plans" className="mb-32 md:mb-48">
                 {/* ... existing header ... */}
                 <div className="flex items-center gap-4 mb-12 md:mb-16 text-white/10 group px-2">
                     <BarChart3 className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-neon transition-colors" />
@@ -157,7 +157,10 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-[1600px] mx-auto">
-                    {packs?.map((pack) => (
+                    {packs?.filter(p => {
+                        if (currency === 'INR') return p.credits >= 50
+                        return p.credits >= 100
+                    }).map((pack) => (
                         <div 
                             key={pack.id} 
                             className={`group relative bg-[#111] border-2 ${pack.is_featured ? 'border-studio-yellow/20' : 'border-white/5'} p-8 hover:border-studio-yellow transition-all flex flex-col gap-8 rounded-sm shadow-xl`}
@@ -198,6 +201,7 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
                                         mode="pack"
                                         isFeatured={pack.is_featured}
                                         currency={currency}
+                                        hasActiveSubscription={!!activeSub}
                                     />
                                 </div>
                             </div>
