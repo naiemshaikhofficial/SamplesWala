@@ -110,9 +110,15 @@ export async function createSubscription(planId: string) {
     }
   } catch (err: any) {
     console.error("[SUBSCRIPTION_SIGNAL_ERROR]", err)
-    // 🔍 ENHANCED_DIAGNOSTICS: Razorpay sometimes uses 'description'
-    const errorMsg = err.message || err.description || "Check_Razorpay_Plan_ID";
-    throw new Error(`Failed to initiate ${plan.razorpay_plan_id ? 'mandate' : 'order'}: ${errorMsg}`)
+    
+    // 🔍 EXTRACT_RAZORPAY_FAILURE_REASON
+    const errorMsg = err.error?.description || err.message || err.description || "Check_Razorpay_Plan_ID";
+    
+    // Return structured error to UI instead of throwing (Prevents 500 Internal Server Error)
+    return { 
+        success: false, 
+        error: `SIGNAL_FORGE_ERROR: ${errorMsg}` 
+    }
   }
 }
 
@@ -148,7 +154,8 @@ export async function purchaseCreditPack(packId: string) {
     }
   } catch (err: any) {
     console.error("Razorpay Pack Error:", err)
-    throw new Error('Failed to start checkout. Check your API keys.')
+    const errorMsg = err.error?.description || err.message || "Checkout failed";
+    return { success: false, error: `PACK_TRANSFER_FAILED: ${errorMsg}` }
   }
 }
 
@@ -183,8 +190,9 @@ export async function purchaseSamplePack(packId: string) {
           user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' }
       }
     } catch (err: any) {
-      console.error("Razorpay Pack Error:", err)
-      throw new Error('Failed to start checkout. Check your API keys.')
+      console.error("Razorpay Sample Pack Error:", err)
+      const errorMsg = err.error?.description || err.message || "Checkout failed";
+      return { success: false, error: `MASTER_VAULT_FAILURE: ${errorMsg}` }
     }
 }
 
@@ -220,7 +228,8 @@ export async function purchaseSoftware(softwareId: string) {
       }
     } catch (err: any) {
       console.error("Razorpay Software Error:", err)
-      throw new Error('Failed to start checkout. Check your API keys.')
+      const errorMsg = err.error?.description || err.message || "Checkout failed";
+      return { success: false, error: `SOFTWARE_SIGNAL_LOST: ${errorMsg}` }
     }
 }
 

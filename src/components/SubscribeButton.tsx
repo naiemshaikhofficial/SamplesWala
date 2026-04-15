@@ -50,7 +50,10 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
           else action = purchaseSoftware;
 
           const orderData: any = await action(planId)
-          if (!orderData.success) throw new Error('Order creation failed')
+          if (!orderData.success) {
+              showToast(orderData.error || 'Identity Synchronization Failed', 'error')
+              return
+          }
 
           const options: any = {
             key: orderData.key,
