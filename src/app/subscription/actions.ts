@@ -398,30 +398,53 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
 }
 
 /**
- * ⛔ Cancel Subscription
+ * ⛔ Cancel Subscription (Secure High-Fidelity Termination)
  */
 export async function cancelSubscription() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('UNAUTHENTICATED')
 
-    // 🛡️ Master Registry Sync: Update accounts directly (v5.1 Architecture)
-    const { error } = await supabase
+    // 🛡️ 1. Fetch the active subscription signal
+    const { data: account } = await supabase
+        .from('user_accounts')
+        .select('razorpay_subscription_id')
+        .eq('user_id', user.id)
+        .single()
+
+    // ⚡ 2. Terminal Intercept: Cancel in Razorpay if active
+    if (account?.razorpay_subscription_id && razorpay) {
+        try {
+            // Cancel at cycle end = true (1)
+            // This ensures user keeps access until their current paid period ends.
+            // Note: Razorpay Node SDK signature is (subscriptionId, cancelAtCycleEnd)
+            await razorpay.subscriptions.cancel(account.razorpay_subscription_id, true)
+            console.log(`[RAZORPAY_TERMINATED] Signal ${account.razorpay_subscription_id} scheduled for termination.`)
+        } catch (err: any) {
+            console.error("[RAZORPAY_CANCEL_ERR] External signal termination failed:", err.message)
+            // We continue even if Razorpay fails because local state must reflect the intent
+        }
+    }
+
+    // 🛡️ 3. Master Registry Sync: Mark as CANCELED but keep plan_id for period access
+    // Use Admin Client to ensure fulfillment regardless of RLS state
+    const adminSupabase = getAdminClient()
+    const { error } = await adminSupabase
         .from('user_accounts')
         .update({ 
-            plan_id: null, 
-            razorpay_subscription_id: null,
+            subscription_status: 'CANCELED',
             updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
 
     if (error) {
         console.error("[STUDIO_VAULT_ERROR] CANCEL_FAILED:", error.message)
-        throw new Error('Failed to cancel membership node.')
+        throw new Error('Failed to synchronize membership state.')
     }
 
     revalidatePath('/')
     revalidatePath('/pricing')
+    revalidatePath('/profile')
     return { success: true }
 }
 

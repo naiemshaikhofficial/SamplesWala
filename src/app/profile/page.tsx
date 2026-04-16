@@ -19,22 +19,20 @@ export default async function ProfilePage() {
     // 💿 DAW CONSOLE ARCHIVE (Multi-Node Sync)
     const [
         { data: account }, 
-        { data: activeSub }, 
         { data: purchases }, 
         { count: unlockedCount }
     ] = await Promise.all([
-        supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle(),
         supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle(),
         supabase.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('unlocked_samples').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
     ])
 
     const totalCredits = account?.credits ?? 0
-    const activePlan = account?.subscription_plans || activeSub?.subscription_plans
+    const activePlan = account?.subscription_plans
     const planName = (activePlan as any)?.name || 'FREE'
-    const expiryDate = activeSub?.current_period_end ? new Date(activeSub.current_period_end).toLocaleDateString() : 'PERPETUAL'
-    const isCancelled = activeSub?.status === 'cancelled' || activeSub?.status === 'inactive' || activeSub?.cancel_at_period_end === true
-    const hasActiveSub = !!(account?.plan_id || (activeSub?.plan_id && activeSub?.status !== 'inactive'))
+    const expiryDate = account?.next_billing ? new Date(account.next_billing).toLocaleDateString() : 'PERPETUAL'
+    const isCancelled = account?.subscription_status === 'CANCELED'
+    const hasActiveSub = !!account?.plan_id && account?.subscription_status !== 'INACTIVE'
 
     return (
         <div className="min-h-screen bg-studio-charcoal text-white selection:bg-studio-neon selection:text-black lg:pl-20 font-mono pb-40 relative overflow-hidden">
@@ -151,7 +149,7 @@ export default async function ProfilePage() {
                                     <div className="pt-4">
                                         {hasActiveSub ? (
                                             <div className="flex flex-col gap-4">
-                                                {!isCancelled && activeSub?.id && <CancelSubscriptionButton />}
+                                                {!isCancelled && account?.id && <CancelSubscriptionButton />}
                                                 {isCancelled && (
                                                     <div className="flex items-center gap-3 text-spider-red text-[9px] font-black uppercase tracking-widest bg-spider-red/5 p-4 border border-spider-red/20 shadow-inner">
                                                         <AlertTriangle size={16} /> MEMBERSHIP IS ENDING SOON
@@ -174,7 +172,7 @@ export default async function ProfilePage() {
                                 <MapPin className="h-4 w-4 text-studio-neon animate-pulse" />
                                 <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-white/40 italic">BILLING ADDRESS</h3>
                              </div>
-                             <BillingSettings initialData={activeSub} userId={user.id} />
+                             <BillingSettings initialData={account} userId={user.id} />
                         </div>
 
                         {/* ⚡ PURCHASE HISTORY */}

@@ -1,36 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Trash2, AlertTriangle, X, ShieldAlert } from 'lucide-react'
+import { cancelSubscription } from '@/app/subscription/actions'
 
 export function CancelSubscriptionButton() {
     const [isLoading, setIsLoading] = useState(false)
     const [showModal, setShowModal] = useState(false)
-    const supabase = createClient()
     const router = useRouter()
 
     const handleCancel = async () => {
         setIsLoading(true)
         try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const user = session?.user;
-            if (!user) throw new Error('AUTH_SIGNAL_MISSING')
-
-            const { error } = await supabase
-                .from('user_accounts')
-                .update({ 
-                    subscription_status: 'CANCELED',
-                    updated_at: new Date().toISOString()
-                })
-                .eq('user_id', user.id)
-
-            if (error) throw error
+            const res = await cancelSubscription()
             
-            setShowModal(false)
-            router.refresh()
-            window.location.reload()
+            if (res.success) {
+                setShowModal(false)
+                router.refresh()
+            }
         } catch (error) {
             console.error('CANCELLATION_ERROR:', error)
         } finally {
