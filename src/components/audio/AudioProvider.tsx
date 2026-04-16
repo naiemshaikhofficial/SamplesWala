@@ -41,6 +41,7 @@ type AudioContextType = {
   next: () => void
   prev: () => void
   user: any | null
+  registerSignals: (signals: Record<string, string>) => void
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined)
@@ -61,6 +62,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   
   // 🎵 PLAYLIST_STATE :: Managed via ref-sync for instant navigation access
   const [playlist, setPlaylistState] = useState<AudioMetadata[]>([])
+  const [signalRegistry, setSignalRegistry] = useState<Record<string, string>>({})
+  const signalRegistryRef = useRef<Record<string, string>>({})
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const analyzerRef = useRef<AnalyserNode | null>(null)
@@ -87,22 +90,56 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setPlaylistState(prev => {
           const next = typeof list === 'function' ? list(prev) : list;
           playlistRef.current = next;
+          
+          // 🛰️ AUTO_SIGNAL_DISCOVERY: Merge any newly received signals into global registry
+          const newSignals: Record<string, string> = {};
+          next.forEach(item => {
+              if (item.signal) newSignals[item.id] = item.signal;
+          });
+          if (Object.keys(newSignals).length > 0) {
+              registerSignals(newSignals);
+          }
+          
+          return next;
+      });
+  }, []);
+
+  const registerSignals = useCallback((newSignals: Record<string, string>) => {
+      setSignalRegistry(prev => {
+          const next = { ...prev, ...newSignals };
+          signalRegistryRef.current = next;
           return next;
       });
   }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    
+    // 🛡️ AUTH_SINGLETON_CHECK :: Ensure we only attach one listener
     const { createClient } = require('@/lib/supabase/client');
     const supabase = createClient();
     
-    supabase.auth.getSession().then(({ data }: { data: any }) => {
-        setUser(data.session?.user || null);
-        userRef.current = data.session?.user || null;
-    });
+    let isMounted = true;
+
+    async function initSession() {
+        const { data } = await supabase.auth.getSession();
+        if (isMounted) {
+            const currentUser = data.session?.user || null;
+            setUser(currentUser);
+            userRef.current = currentUser;
+        }
+    }
+
+    initSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
+        if (!isMounted) return;
+        
         const currentUser = session?.user ?? null;
+        
+        // 🛑 PREVENT_REDUNDANT_STATE_UPDATES
+        if (userRef.current?.id === currentUser?.id && event !== 'SIGNED_OUT') return;
+
         setUser(currentUser);
         userRef.current = currentUser;
 
@@ -114,6 +151,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+        isMounted = false;
         authListener.subscription.unsubscribe();
     }
   }, []);
@@ -297,8 +335,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             const cleanId = id.replace('_lq', '').replace('_hq', '');
             const token = await generatePreviewToken(cleanId);
             
-            // 🛰️ SIGNAL_OPTIMIZATION_GATE :: Pass encrypted signal to bypass proxy DB lookups
-            const signalParam = metadata?.signal ? `&signal=${encodeURIComponent(metadata.signal)}` : '';
+            // 🛰️ SIGNAL_OPTIMIZATION_GATE :: Use registry fallback if metadata signal is missing
+            const activeSignal = metadata?.signal || signalRegistryRef.current[id] || signalRegistryRef.current[id.replace('_lq', '').replace('_hq', '')];
+            const signalParam = activeSignal ? `&signal=${encodeURIComponent(activeSignal)}` : '';
             const finalUrl = `/api/audio?id=${id}&token=${token}${signalParam}`;
             
             const response = await fetch(finalUrl);
@@ -376,7 +415,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     <AudioContext.Provider value={{ 
         activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
         isLooping, volume, playlist, vibeSuggestions, play, pause, seek, setVolume, toggleLoop, 
-        setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev, user
+        setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev, user, registerSignals
     }}>
         {children}
     </AudioContext.Provider>

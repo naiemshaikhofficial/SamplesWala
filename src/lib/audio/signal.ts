@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { cache } from 'react';
 
 /**
  * 🛰️ SIGNAL_ENCRYPTION_ENGINE :: SAMPLES_WALA V11
@@ -21,21 +22,38 @@ export function getDriveFileId(url: string | undefined | null): string | null {
 }
 /**
  * Encrypts a Drive File ID into a time-limited Secure Signal.
+ * 🧬 V11_STABLE_SIGNAL: Uses deterministic mapping to support cross-page reuse.
  * @param driveId The Google Drive File ID
  * @param name The Sample Name for branding
  * @returns An encrypted string payload (iv:encrypted:tag)
  */
-export function generateAudioSignal(driveId: string | null | undefined, name: string = 'Preview'): string | null {
+export const generateAudioSignal = cache((driveId: string | null | undefined, name: string = 'Preview'): string | null => {
     if (!driveId || typeof window !== 'undefined') return null; // Server-only protocol
     
+    // 🧬 INPUT_SANITIZATION :: Ensure consistency across different page fetches
+    const cleanId = driveId.trim();
+    const cleanName = name.trim();
+
     try {
         const secretHash = crypto.createHash('sha256').update(PROXY_SECRET).digest();
-        const iv = crypto.randomBytes(12);
+        
+        // 🧬 DETERMINISTIC_IV_NODE: Strictly DriveID + Secret + Daily Salt (UTC)
+        // Removing 'name' from IV generation ensures that even if metadata name varies slightly, 
+        // the encryption remains stable for the same file.
+        const dateStr = new Date().toISOString().split('T')[0];
+        const salt = crypto.createHash('sha256')
+            .update(`${cleanId}:${PROXY_SECRET}:${dateStr}`)
+            .digest();
+        const iv = salt.slice(0, 12); 
+        
         const cipher = crypto.createCipheriv('aes-256-gcm', secretHash, iv);
         
-        // 🔒 Expiry: 24 Hours
-        const exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
-        const payload = JSON.stringify({ id: driveId, name, exp });
+        // 🔒 Expiry: Round up to next UTC midnight (24 Hour Stability)
+        const now = new Date();
+        const nextMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+        const exp = Math.floor(nextMidnight.getTime() / 1000);
+        
+        const payload = JSON.stringify({ id: cleanId, name: cleanName, exp });
         
         let encrypted = cipher.update(payload, 'utf8', 'hex');
         encrypted += cipher.final('hex');
@@ -46,7 +64,7 @@ export function generateAudioSignal(driveId: string | null | undefined, name: st
         console.error("[SIGNAL_GEN_ERROR]", e);
         return null;
     }
-}
+});
 
 /**
  * Decrypts a Secure Signal and verifies its integrity and timestamp.
