@@ -29,7 +29,10 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, int
             else if (mode === 'sample_pack') action = purchaseSamplePack;
             else action = purchaseSoftware;
 
-            const orderData: any = await action(itemId, interval)
+            const { getDeviceFingerprint } = await import('@/lib/fingerprint')
+            const deviceFingerprint = await getDeviceFingerprint()
+
+            const orderData: any = await action(itemId, interval, deviceFingerprint)
             if (!orderData.success) {
                 showToast(orderData.error || 'Identity Synchronization Failed', 'error')
                 return
@@ -50,6 +53,8 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, int
                         if (orderData.isTrialLink) {
                             localStorage.setItem('sw_trial_consumed_identity', 'true');
                         }
+
+                        if (orderData.user) {
                             triggerTrustpilotInvitation(
                                 orderData.user.email,
                                 orderData.user.name,

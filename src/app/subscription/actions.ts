@@ -43,7 +43,7 @@ const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
 /**
  * 🛒 Razorpay Subscription Action (Monthly UPI Mandate Flow)
  */
-export async function createSubscription(planId: string, interval: 'MONTHLY' | 'ANNUAL' = 'MONTHLY') {
+export async function createSubscription(planId: string, interval: 'MONTHLY' | 'ANNUAL' = 'MONTHLY', deviceFingerprint?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -60,18 +60,19 @@ export async function createSubscription(planId: string, interval: 'MONTHLY' | '
         // 🧬 TRIAL_LOGIC: Apply 30-day trial for 'Starter' identities only on MONTHLY cycle
         const { data: account } = await supabase.from('user_accounts').select('is_trial_used, subscription_status, phone_number').eq('user_id', user.id).single()
         
-        // 🛡️ ANTI-FRAUD: Check if this phone number has already used a trial on any other account
-        const { data: duplicatePhoneTrial } = account?.phone_number ? await supabase
+        // 🛡️ ANTI-FRAUD: Check if this phone number or hardware device has already used a trial
+        const { data: duplicateTrial } = await supabase
             .from('user_accounts')
             .select('id')
-            .eq('phone_number', account.phone_number)
+            .or(`phone_number.eq.${account?.phone_number},device_fingerprint.eq.${deviceFingerprint}`)
             .eq('is_trial_used', true)
-            .limit(1) : { data: null };
+            .limit(1)
+            .maybeSingle();
 
         const isTrialEligible = plan.name === 'Starter' && 
                                 interval === 'MONTHLY' && 
                                 !account?.is_trial_used && 
-                                !duplicatePhoneTrial?.length && // Block if phone used before
+                                !duplicateTrial && // 🔥 DEVICE + PHONE LOCK
                                 account?.subscription_status !== 'ACTIVE'
         
         const trialDays = 30;
@@ -85,14 +86,15 @@ export async function createSubscription(planId: string, interval: 'MONTHLY' | '
           quantity: 1,
           start_at: startAt, // 🔥 Charges start after 30 days if eligible
           customer_notify: 1,
-          notes: {
-            user_id: user.id,
-            plan_id: planId,
-            type: 'subscription_mandate',
-            is_trial: isTrialEligible ? 'true' : 'false',
-            interval: interval
-          }
-        })
+            notes: {
+              user_id: user.id,
+              plan_id: planId,
+              type: 'subscription_mandate',
+              is_trial: isTrialEligible ? 'true' : 'false',
+              interval: interval,
+              device_fingerprint: deviceFingerprint || null
+            }
+        }) as any
 
         return { 
             success: true, 

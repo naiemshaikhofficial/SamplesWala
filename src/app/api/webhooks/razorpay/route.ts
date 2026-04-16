@@ -172,6 +172,7 @@ export async function POST(req: Request) {
                         is_trial_active: isTrial, // 🔥 Trigger restricted access mode
                         trial_downloads_count: isTrial ? 0 : undefined, // Reset counters for new trial
                         payment_fingerprint: fingerprint, // 🛡️ Permanent Payment Link
+                        device_fingerprint: subNotes.device_fingerprint, // 🧬 Physical Device Link
                         updated_at: new Date().toISOString()
                     }).eq('user_id', subNotes.user_id)
                 }
