@@ -175,9 +175,21 @@ export async function GET(req: NextRequest) {
         
         const isDownload = decoded.purpose === 'download';
 
-        // Redirect using V11 Parameters
+        // Redirect using V11 Parameters with 🧬 EDGE_CACHING_LOGIC
         const redirectUrl = `${workerUrl}?payload=${payload}&sig=${sig}&exp=${timestamp}&name=${encodedName}${isDownload ? '&download=1' : ''}`;
-        return NextResponse.redirect(redirectUrl);
+        
+        const response = NextResponse.redirect(redirectUrl);
+        
+        // 🧬 CACHE_STRATEGY: 5 Minute Edge Cache, 1 Hour stale-while-revalidate
+        // This stops high-traffic loops from hitting the Next.js server for the same signal.
+        if (!isDownload) {
+            response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+        } else {
+            // Downloads should not be cached at the edge for security
+            response.headers.set('Cache-Control', 'no-store, max-age=0');
+        }
+        
+        return response;
     }
 
     // Fallback: Direct Drive (Only if Cloudflare is down)

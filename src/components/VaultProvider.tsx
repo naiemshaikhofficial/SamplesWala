@@ -126,41 +126,32 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
 
   // 🧬 SWR_VAULT_FETCH: Use an array key including userId for stability and separation
   const { data: vaultData, isLoading } = useSWR(sessionUser ? ['user_vault', sessionUser] : null, async ([_, userId]) => {
-    console.log(`[VAULT_SYNC] Synchronizing Artifacts for: ${userId}`);
-    
-    // 1. Fetch Vault Items
-    const { data: vaultItems, error: vError } = await supabase
-      .from('user_vault')
-      .select('item_id')
-      .eq('user_id', userId)
+    // 🛡️ BATCH_LOGIC: Fetching both vault items and account status in parallel
+    const [vaultRes, accountRes] = await Promise.all([
+        supabase.from('user_vault').select('item_id').eq('user_id', userId),
+        supabase.from('user_accounts').select('plan_id, subscription_status, subscription_plans(name)').eq('user_id', userId).single()
+    ]);
 
-    if (vError) throw vError;
-
-    // 2. Fetch Subscription Status
-    const { data: account, error: aError } = await supabase
-      .from('user_accounts')
-      .select('plan_id, subscription_status, subscription_plans(name)')
-      .eq('user_id', userId)
-      .single()
+    if (vaultRes.error) throw vaultRes.error;
 
     // 🛡️ A user is considered subscribed if they have a plan AND status is not 'INACTIVE'
-    // Note: 'CANCELED' users still have access until the end of their period.
-    const isSubscribed = account?.plan_id ? (account.subscription_status !== 'INACTIVE') : false;
+    const isSubscribed = accountRes.data?.plan_id ? (accountRes.data.subscription_status !== 'INACTIVE') : false;
 
     const ids = new Set<string>()
-    if (vaultItems) {
-        vaultItems.forEach((v: any) => ids.add(v.item_id))
+    if (vaultRes.data) {
+        vaultRes.data.forEach((v: any) => ids.add(v.item_id))
     }
 
     return { 
         ids, 
         isSubscribed, 
-        subscriptionPlan: (account?.subscription_plans as any)?.name || null 
+        subscriptionPlan: (accountRes.data?.subscription_plans as any)?.name || null 
     }
   }, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000, // 5 minute dedupe window
+    revalidateOnFocus: false, // 🛑 Disable re-fetch on window focus to save DB requests
+    revalidateOnReconnect: true,
+    refreshInterval: 0, // 🛑 No polling
+    dedupingInterval: 600000, // 10 minute dedupe window for identical requests
     onSuccess: (newData: any) => {
         // 💾 SAVE_PERSISTENCE
         if (sessionUser && newData.ids instanceof Set) {
