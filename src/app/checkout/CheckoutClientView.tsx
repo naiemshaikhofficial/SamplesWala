@@ -39,8 +39,10 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     
-    // 🧬 TRIAL_LOGIC: Match with actions.ts Starter plan logic
-    const isTrialEligible = item.name === 'Starter' && (!profile?.is_trial_used && profile?.subscription_status !== 'ACTIVE')
+    // 🧬 TRIAL_LOGIC: Match with actions.ts Starter plan logic + Filter by Interval
+    const isTrialEligible = item.name === 'Starter' && 
+                           billingCycle === 'MONTHLY' && 
+                           (!profile?.is_trial_used && profile?.subscription_status !== 'ACTIVE')
     
     // Calculate Pricing Constants
     const annualSavings = Math.round(((item.price_inr * 12) - item.price_inr_annual) / (item.price_inr * 12) * 100)

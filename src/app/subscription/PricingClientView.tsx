@@ -79,7 +79,7 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
 
             {/* 💎 2. SUBSCRIPTION PLANS SECTION */}
             <div id="subscription-plans" className="mb-32 md:mb-48">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 max-w-[1400px] mx-auto items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-[1600px] mx-auto items-stretch">
                     {plans?.map((plan) => {
                         const visuals = planVisuals[plan.name] || planVisuals['Starter']
                         const isActive = (activeSub?.plan_id && activeSub.plan_id === plan.id)

@@ -57,9 +57,9 @@ export async function createSubscription(planId: string, interval: 'MONTHLY' | '
   // 2. DETECT COMMERCE SIGNAL: Use Subscription API if Plan ID is mapped
   try {
     if (plan.razorpay_plan_id) {
-        // 🧬 TRIAL_LOGIC: Apply 30-day trial for 'Starter' identities only
+        // 🧬 TRIAL_LOGIC: Apply 30-day trial for 'Starter' identities only on MONTHLY cycle
         const { data: account } = await supabase.from('user_accounts').select('is_trial_used, subscription_status').eq('user_id', user.id).single()
-        const isTrialEligible = plan.name === 'Starter' && !account?.is_trial_used && account?.subscription_status !== 'ACTIVE'
+        const isTrialEligible = plan.name === 'Starter' && interval === 'MONTHLY' && !account?.is_trial_used && account?.subscription_status !== 'ACTIVE'
         
         const trialDays = 30;
         const startAt = isTrialEligible 
