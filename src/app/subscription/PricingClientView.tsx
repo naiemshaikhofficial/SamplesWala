@@ -154,7 +154,13 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
                                 <div className="mb-10">
                                     <SubscribeButton 
                                         planId={plan.id} 
-                                        planName={isActive ? 'Active Identity' : 'Subscribe'}
+                                        planName={
+                                            isActive ? 'Active Identity' : 
+                                            isUpgrade && currentPlanName !== 'Free' ? 'UPGRADE SIGNAL' : 
+                                            isLower ? 'AVAILABLE' : 
+                                            (plan.name === 'Starter' && !activeSub?.is_trial_used && billingCycle === 'MONTHLY') ? 'START FREE TRIAL' : 
+                                            `ACTIVATE ${billingCycle}`
+                                        }
                                         isFeatured={isProfessional || isActive} 
                                         mode="subscription"
                                         disabled={isActive || isLower}
