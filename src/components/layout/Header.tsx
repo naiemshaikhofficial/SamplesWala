@@ -74,7 +74,7 @@ export function Header() {
             <Link href="/settings" className="hover:text-studio-neon transition-colors" title="Settings">
                 <SettingsIcon size={14} />
             </Link>
-            <span className="flex items-center gap-2 text-studio-neon"><Activity size={10} /> Online</span>
+            <span className="flex items-center gap-2 text-white/40"><Activity size={10} /> Online</span>
             <span className="flex items-center gap-2"><Disc size={10} className="animate-spin-slow" /> 48K</span>
         </div>
       </div>
@@ -105,9 +105,9 @@ export function Header() {
             <div className="flex gap-1 border-r border-white/10 pr-3 md:pr-5 shrink-0">
                 <button 
                     onClick={() => isPlaying ? pause() : activeId ? null : null} 
-                    className={`h-7 w-7 md:h-9 md:w-9 flex items-center justify-center bg-black hover:bg-studio-neon hover:text-black transition-all border border-white/5 rounded-sm group ${isPlaying ? 'bg-studio-neon text-black' : ''}`}
+                    className={`h-7 w-7 md:h-9 md:w-9 flex items-center justify-center bg-black hover:bg-white hover:text-black transition-all border border-white/5 rounded-sm group ${isPlaying ? 'bg-white text-black' : ''}`}
                 >
-                    {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="text-studio-neon ml-0.5" />}
+                    {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" className="text-white ml-0.5" />}
                 </button>
             </div>
 
@@ -150,7 +150,7 @@ export function Header() {
                     </Link>
                 </div>
             ) : (
-                <Link href="/auth/login" className="h-8 px-3 md:h-11 md:px-6 flex items-center justify-center bg-white text-black text-[8px] md:text-[9px] font-black uppercase tracking-widest hover:bg-studio-neon transition-all border-r-2 md:border-r-4 border-studio-yellow">
+                <Link href="/auth/login" className="h-8 px-3 md:h-11 md:px-6 flex items-center justify-center bg-white text-black text-[8px] md:text-[9px] font-black uppercase tracking-widest hover:bg-white/90 transition-all border-r-2 md:border-r-4 border-white/20">
                     Login
                 </Link>
             )}

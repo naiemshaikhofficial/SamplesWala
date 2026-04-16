@@ -105,11 +105,11 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
                         return (
                             <div 
                                 key={plan.id} 
-                                className={`group relative bg-black/40 border border-white/5 p-8 md:p-10 transition-all hover:bg-black/60 flex flex-col min-h-[550px] shadow-2xl rounded-3xl ${isActive ? 'border-studio-neon/50 bg-studio-neon/[0.02]' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''} ${isProfessional ? 'border-[#df2d81]/30 ring-1 ring-[#df2d81]/10' : ''}`}
+                                className={`group relative bg-studio-grey border border-white/5 p-8 md:p-10 transition-all hover:bg-[#252525] flex flex-col min-h-[550px] shadow-2xl rounded-3xl ${isActive ? 'border-white/50 bg-white/[0.02]' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''} ${isProfessional ? 'border-white/10 ring-1 ring-white/10' : ''}`}
                             >
                                 {/* Offer Badges */}
                                 {billingCycle === 'ANNUAL' && plan.name !== 'Starter' && (
-                                    <div className="absolute top-4 right-6 bg-studio-neon text-black px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(166,226,46,0.3)] animate-pulse">
+                                    <div className="absolute top-4 right-6 bg-white text-black px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,255,255,0.3)] animate-pulse">
                                         LIMITED TIME OFFER
                                     </div>
                                 )}
