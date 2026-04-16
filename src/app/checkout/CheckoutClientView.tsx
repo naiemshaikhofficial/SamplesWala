@@ -39,9 +39,18 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     
-    // 🧬 TRIAL_LOGIC: Match with actions.ts Starter plan logic + Filter by Interval
+    // 🧬 TRIAL_LOGIC: Match with actions.ts Starter plan logic + Filter by Interval + Browser Lock
+    const [browserTrialUsed, setBrowserTrialUsed] = useState(false)
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const used = localStorage.getItem('sw_trial_consumed_identity')
+            if (used) setBrowserTrialUsed(true)
+        }
+    }, [])
+
     const isTrialEligible = item.name === 'Starter' && 
                            billingCycle === 'MONTHLY' && 
+                           !browserTrialUsed && // 🔥 BROWSER_LOCK_SIG
                            (!profile?.is_trial_used && profile?.subscription_status !== 'ACTIVE')
     
     // Calculate Pricing Constants

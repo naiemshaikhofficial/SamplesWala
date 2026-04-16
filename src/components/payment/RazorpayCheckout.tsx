@@ -46,7 +46,10 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, int
                     if (verified.success) {
                         showToast(`SUCCESS: ${planName} LINKED TO YOUR NODE.`, 'success')
                         
-                        if (orderData.user) {
+                        // 🛡️ BROWSER_DEVICE_LOCK
+                        if (orderData.isTrialLink) {
+                            localStorage.setItem('sw_trial_consumed_identity', 'true');
+                        }
                             triggerTrustpilotInvitation(
                                 orderData.user.email,
                                 orderData.user.name,
