@@ -58,8 +58,21 @@ export async function createSubscription(planId: string, interval: 'MONTHLY' | '
   try {
     if (plan.razorpay_plan_id) {
         // 🧬 TRIAL_LOGIC: Apply 30-day trial for 'Starter' identities only on MONTHLY cycle
-        const { data: account } = await supabase.from('user_accounts').select('is_trial_used, subscription_status').eq('user_id', user.id).single()
-        const isTrialEligible = plan.name === 'Starter' && interval === 'MONTHLY' && !account?.is_trial_used && account?.subscription_status !== 'ACTIVE'
+        const { data: account } = await supabase.from('user_accounts').select('is_trial_used, subscription_status, phone_number').eq('user_id', user.id).single()
+        
+        // 🛡️ ANTI-FRAUD: Check if this phone number has already used a trial on any other account
+        const { data: duplicatePhoneTrial } = account?.phone_number ? await supabase
+            .from('user_accounts')
+            .select('id')
+            .eq('phone_number', account.phone_number)
+            .eq('is_trial_used', true)
+            .limit(1) : { data: null };
+
+        const isTrialEligible = plan.name === 'Starter' && 
+                                interval === 'MONTHLY' && 
+                                !account?.is_trial_used && 
+                                !duplicatePhoneTrial?.length && // Block if phone used before
+                                account?.subscription_status !== 'ACTIVE'
         
         const trialDays = 30;
         const startAt = isTrialEligible 

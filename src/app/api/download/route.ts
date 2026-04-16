@@ -32,7 +32,27 @@ export async function GET(req: Request) {
 
     const supabase = await createClient()
 
-    // 3. Ownership Verification
+    // 3. Ownership & Trial Shield Verification
+    const { data: userAccount } = await supabase
+      .from('user_accounts')
+      .select('is_trial_active, trial_downloads_count')
+      .eq('user_id', decoded.userId)
+      .single()
+
+    if (userAccount?.is_trial_active) {
+      if ((userAccount.trial_downloads_count || 0) >= 10) {
+        return NextResponse.json({ 
+          error: 'Trial limit reached. Please wait for your first full payment to unlock unlimited downloads.' 
+        }, { status: 403 })
+      }
+      
+      // Increment Trial Signal Counter
+      await supabase
+        .from('user_accounts')
+        .update({ trial_downloads_count: (userAccount.trial_downloads_count || 0) + 1 })
+        .eq('user_id', decoded.userId)
+    }
+
     const { data: sample, error } = await supabase
       .from('samples')
       .select('name, download_url')

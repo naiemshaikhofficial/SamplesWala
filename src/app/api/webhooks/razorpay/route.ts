@@ -157,12 +157,21 @@ export async function POST(req: Request) {
                 // 📡 MANDATE SYNC: Ensure the subscription link is persistent
                 const activeSub = event.payload.subscription.entity
                 const subNotes = activeSub.notes || {}
+                const isTrial = subNotes.is_trial === 'true'
+                
                 if (subNotes.user_id) {
+                    // 🛡️ EXTRACT_FINGERPRINT_FOR_FRAUD_SHIELD
+                    // Note: In some scenarios, we might need a separate GET request to fetch payment details if not in payload
+                    const fingerprint = payment?.card_id || payment?.vpa || null;
+
                     await supabase.from('user_accounts').update({ 
                         razorpay_subscription_id: activeSub.id,
                         plan_id: subNotes.plan_id,
                         subscription_status: 'ACTIVE', // 📡 Explicit Status Sync
-                        is_trial_used: subNotes.is_trial === 'true', // Mark trial consumption
+                        is_trial_used: isTrial ? true : undefined, // Mark trial consumption
+                        is_trial_active: isTrial, // 🔥 Trigger restricted access mode
+                        trial_downloads_count: isTrial ? 0 : undefined, // Reset counters for new trial
+                        payment_fingerprint: fingerprint, // 🛡️ Permanent Payment Link
                         updated_at: new Date().toISOString()
                     }).eq('user_id', subNotes.user_id)
                 }
