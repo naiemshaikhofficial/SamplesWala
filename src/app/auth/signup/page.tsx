@@ -32,6 +32,7 @@ function SignupForm() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const [systemTime, setSystemTime] = useState('')
+  const [vizHeights, setVizHeights] = useState<number[]>([])
   
   // Form State
   const [showPassword, setShowPassword] = useState(false)
@@ -40,7 +41,7 @@ function SignupForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [email, setEmail] = useState('')
-
+  
   // Validation
   const passwordsMatch = useMemo(() => password === confirmPassword && password !== '', [password, confirmPassword])
   const nameIsClean = useMemo(() => !containsProfanity(name) || name === '', [name])
@@ -84,6 +85,10 @@ function SignupForm() {
     const timer = setInterval(() => {
         setSystemTime(new Date().toLocaleTimeString('en-US', { hour12: false }));
     }, 1000);
+    
+    // Initialize viz heights on client
+    setVizHeights([...Array(16)].map(() => Math.random() * 100))
+    
     return () => clearInterval(timer);
   }, []);
 
@@ -136,11 +141,11 @@ function SignupForm() {
             <span className="text-studio-neon animate-pulse">{systemTime}</span>
          </div>
          <div className="flex gap-1 h-32 items-end">
-            {[...Array(16)].map((_, i) => (
+            {vizHeights.length > 0 && vizHeights.map((h, i) => (
                 <div 
                     key={i} 
                     className="w-1 bg-studio-neon/20 h-full"
-                    style={{ height: `${Math.random() * 100}%` }}
+                    style={{ height: `${h}%` }}
                 />
             ))}
          </div>
