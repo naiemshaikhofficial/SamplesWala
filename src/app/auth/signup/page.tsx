@@ -1,10 +1,17 @@
 'use client'
 
-import React, { useState, Suspense, useEffect } from 'react'
+import React, { useState, Suspense, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, UserPlus, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, UserCheck } from 'lucide-react'
+import Image from 'next/image'
+import { 
+    ArrowLeft, Sparkles, UserPlus, Mail, Lock, Loader2, 
+    AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, 
+    UserCheck, Eye, EyeOff, CheckCircle2, XCircle 
+} from 'lucide-react'
 import { signup } from '../actions'
 import { useSearchParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { containsProfanity } from '@/lib/profanity'
 
 export default function SignupPage() {
     return (
@@ -25,6 +32,53 @@ function SignupForm() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
   const [systemTime, setSystemTime] = useState('')
+  
+  // Form State
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [email, setEmail] = useState('')
+
+  // Validation
+  const passwordsMatch = useMemo(() => password === confirmPassword && password !== '', [password, confirmPassword])
+  const nameIsClean = useMemo(() => !containsProfanity(name) || name === '', [name])
+  const isValidEmail = useMemo(() => email.endsWith('@gmail.com'), [email])
+
+  // 🔐 PASSWORD COMPLEXITY ENGINE
+  const pwdMetrics = useMemo(() => {
+    return {
+        hasLength: password.length >= 6,
+        hasUpper: /[A-Z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+        hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    }
+  }, [password])
+
+  const pwdStrength = useMemo(() => {
+    let score = 0;
+    if (pwdMetrics.hasLength) score += 1;
+    if (pwdMetrics.hasUpper) score += 1;
+    if (pwdMetrics.hasNumber) score += 1;
+    if (pwdMetrics.hasSpecial) score += 1;
+    return score;
+  }, [pwdMetrics])
+
+  const strengthColor = useMemo(() => {
+    if (pwdStrength <= 1) return 'bg-spider-red shadow-[0_0_10px_#E11D48]';
+    if (pwdStrength <= 2) return 'bg-orange-500 shadow-[0_0_10px_#f97316]';
+    if (pwdStrength <= 3) return 'bg-studio-yellow shadow-[0_0_10px_#FFC800]';
+    return 'bg-studio-neon shadow-[0_0_10px_#a6e22e]';
+  }, [pwdStrength])
+
+  const strengthLabel = useMemo(() => {
+    if (password.length === 0) return 'PENDING';
+    if (pwdStrength <= 1) return 'WEAK';
+    if (pwdStrength <= 2) return 'MEDIUM';
+    if (pwdStrength <= 3) return 'GOOD';
+    return 'STRONG';
+  }, [pwdStrength, password])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -35,13 +89,34 @@ function SignupForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    if (!passwordsMatch) {
+        setError("PASSWORDS DON'T MATCH")
+        return
+    }
+    
+    if (!nameIsClean) {
+        setError('THIS NAME IS BLOCKED')
+        return
+    }
+
+    if (!isValidEmail) {
+        setError('GMAIL EMAIL REQUIRED')
+        return
+    }
+
+    if (!pwdMetrics.hasLength) {
+        setError('PASSWORD TOO SHORT')
+        return
+    }
+
     setIsPending(true)
     setError(null)
     
     const formData = new FormData(e.currentTarget)
     const result = await signup(formData)
     if (result?.error) {
-        setError(result.error)
+        setError(result.error.toUpperCase())
         setIsPending(false)
     }
   }
@@ -52,174 +127,347 @@ function SignupForm() {
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-50 scanline-bg" />
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat opacity-[0.02] pointer-events-none" />
       
-      {/* Industrial Hardware Accents */}
-      <div className="absolute top-10 left-10 hidden xl:block opacity-20">
+      {/* DAW Interface Decoration */}
+      <div className="absolute top-10 left-10 hidden xl:flex flex-col gap-6 opacity-20">
          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em]">
             <Cpu size={14} className="text-studio-neon" />
-            <span>CONNECTION: READY</span>
+            <span>SESSION: ACTIVE</span>
             <span className="text-white/20">::</span>
             <span className="text-studio-neon animate-pulse">{systemTime}</span>
          </div>
+         <div className="flex gap-1 h-32 items-end">
+            {[...Array(16)].map((_, i) => (
+                <div 
+                    key={i} 
+                    className="w-1 bg-studio-neon/20 h-full"
+                    style={{ height: `${Math.random() * 100}%` }}
+                />
+            ))}
+         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center container mx-auto px-4 relative z-10">
-        <div className="w-full max-w-lg">
-          {/* Main Terminal Frame */}
-          <div className="border-4 border-black bg-[#0a0a0a] shadow-[0_0_80px_rgba(0,0,0,1)] relative">
-            {/* Top Bar */}
-            <div className="bg-black p-3 flex justify-between items-center border-b border-white/5">
-                <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 bg-red-500/40 rounded-full" />
-                    <div className="w-2.5 h-2.5 bg-studio-yellow/40 rounded-full" />
-                    <div className="w-2.5 h-2.5 bg-studio-neon/40 rounded-full" />
+      <div className="flex-1 flex items-center justify-center container mx-auto px-4 py-12 relative z-10">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg"
+        >
+          {/* Main DAW Module Frame */}
+          <div className="border-4 border-black bg-[#0a0a0a] shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden">
+            {/* Top Bar / Handle */}
+            <div className="bg-black p-4 flex justify-between items-center border-b-2 border-white/5">
+                <div className="flex gap-2">
+                    <div className="w-2.5 h-2.5 border border-white/20 rounded-none" />
+                    <div className="w-2.5 h-2.5 border border-white/20 rounded-none" />
+                    <div className="w-2.5 h-2.5 border border-white/20 rounded-none" />
                 </div>
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">SECURE SIGNUP V5.1</span>
+                <div className="flex items-center gap-3">
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">ACCOUNT SETUP // 0.1</span>
+                </div>
             </div>
 
             <div className="p-8 md:p-12">
-                {/* Header */}
+                {/* Header Section */}
                 <div className="mb-10 flex flex-col items-center">
                     <div className="relative mb-6">
-                        <div className="absolute -inset-4 bg-studio-neon/5 blur-2xl rounded-full" />
-                        <div className="w-20 h-20 bg-black border-2 border-studio-neon/20 flex items-center justify-center relative transform rotate-45 shadow-[0_0_30px_rgba(0,255,65,0.05)]">
-                           <UserPlus className="h-8 w-8 text-studio-neon -rotate-45" />
+                        <div className="absolute -inset-4 bg-studio-neon/5 blur-3xl rounded-full" />
+                        <motion.div 
+                            whileHover={{ scale: 1.05 }}
+                            className="w-20 h-20 bg-black border-2 border-white/10 flex items-center justify-center relative shadow-[0_0_40px_rgba(255,255,255,0.02)] transition-all duration-700 group cursor-pointer"
+                        >
+                           <Image 
+                                src="/Logo.png" 
+                                alt="Samples Wala Logo" 
+                                width={40} 
+                                height={40} 
+                                className="group-hover:scale-110 transition-transform brightness-0 invert opacity-40 group-hover:opacity-100"
+                           />
+                           <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-studio-neon/30" />
+                           <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-studio-neon/30" />
+                        </motion.div>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 italic">JOIN THE</span>
+                        <div className="flex items-center gap-4">
+                            <Image 
+                                src="/Logo.png" 
+                                alt="Logo" 
+                                width={32} 
+                                height={32} 
+                                className="brightness-0 invert shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                            />
+                            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter italic leading-none">
+                                <span className="text-studio-neon vibe-glow">SAMPLES WALA.</span>
+                            </h1>
                         </div>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter italic leading-none text-center">
-                        Create Your<br /><span className="text-studio-neon shadow-studio-neon">Account</span>
-                    </h1>
                 </div>
 
-                {/* Google Signup (Simple Style) */}
-                <button 
-                    onClick={async () => {
-                        const supabase = (await import('@/lib/supabase/client')).createClient()
-                        await supabase.auth.signInWithOAuth({
-                            provider: 'google',
-                            options: {
-                                redirectTo: `${window.location.origin}/auth/callback?next=${redirectPath}`,
-                            },
-                        })
-                    }}
-                    className="w-full flex items-center justify-center gap-4 py-5 bg-white/2 border-2 border-white/5 hover:bg-white/5 hover:border-white/10 transition-all font-black uppercase tracking-[0.2em] text-[10px] mb-8 group"
-                >
-                    <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                        <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                        <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                        <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" />
-                    </svg>
-                    Continue with Google
-                </button>
+                {/* 🌈 GOOGLE SIGNUP - TOP PRIORITY */}
+                <div className="mb-8">
+                    <button 
+                        onClick={async () => {
+                            const supabase = (await import('@/lib/supabase/client')).createClient()
+                            await supabase.auth.signInWithOAuth({
+                                provider: 'google',
+                                options: {
+                                    redirectTo: `${window.location.origin}/auth/callback?next=${redirectPath}`,
+                                },
+                            })
+                        }}
+                        className="w-full flex items-center justify-center gap-4 py-5 bg-white text-black hover:bg-studio-neon transition-all font-black uppercase tracking-[0.2em] text-[11px] group relative"
+                    >
+                        <Image 
+                            src="/Logo.png" 
+                            alt="Google Signup" 
+                            width={16} 
+                            height={16} 
+                            className="brightness-0"
+                        />
+                        <span>SIGN UP WITH GOOGLE</span>
+                    </button>
 
-                <div className="flex items-center gap-4 mb-8 text-white/5">
-                    <div className="h-px flex-1 bg-current" />
-                    <span className="text-[8px] font-black uppercase tracking-[0.5em]">OR SIGN UP WITH EMAIL</span>
-                    <div className="h-px flex-1 bg-current" />
+                    <div className="flex items-center gap-4 mt-8 mb-2 text-white/10">
+                        <div className="h-px flex-1 bg-current" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.5em]">OR</span>
+                        <div className="h-px flex-1 bg-current" />
+                    </div>
                 </div>
 
                 {/* Registration Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <input type="hidden" name="redirect" value={redirectPath} />
-                    {error && (
-                        <div className="flex items-center gap-3 p-4 bg-orange-500/10 border-l-4 border-orange-500 text-orange-500 font-black text-[10px] uppercase tracking-widest animate-shake">
-                            <AlertCircle className="h-4 w-4 shrink-0" />
-                            {error}
-                        </div>
-                    )}
+                    
+                    <AnimatePresence mode="wait">
+                        {error && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="flex items-center gap-4 p-5 bg-red-500/10 border-2 border-red-500/50 text-red-500 font-black text-[10px] uppercase tracking-[0.1em] relative mb-6"
+                            >
+                                <AlertCircle className="h-5 w-5 shrink-0" />
+                                <div>{error}</div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
+                    {/* Name */}
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 ml-1">Full Name:</label>
+                        <div className="flex justify-between items-end ml-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">NAME</label>
+                            {name && (
+                                <span className={`text-[8px] font-black uppercase tracking-widest ${nameIsClean ? 'text-studio-neon' : 'text-red-500'}`}>
+                                    {nameIsClean ? '[ OK ]' : '[ BLOCKED ]'}
+                                </span>
+                            )}
+                        </div>
                         <div className="relative group">
-                            <UserCheck className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/10 group-focus-within:text-studio-neon transition-colors" />
+                            <UserCheck className={`absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${name && !nameIsClean ? 'text-red-500' : 'text-white/10 group-focus-within:text-studio-neon'}`} />
                             <input 
                                 name="name"
                                 type="text" 
-                                placeholder="Enter your name" 
-                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-neon focus:bg-studio-neon/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="YOUR FULL NAME" 
+                                className={`w-full pl-14 pr-6 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 ${name && !nameIsClean ? 'border-red-500/40 bg-red-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
                                 required
                             />
                         </div>
                     </div>
 
+                    {/* Email */}
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 ml-1">Email Address:</label>
+                        <div className="flex justify-between items-end ml-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">EMAIL</label>
+                            {email && (
+                                <span className={`text-[8px] font-black uppercase tracking-widest ${isValidEmail ? 'text-studio-neon' : 'text-orange-500'}`}>
+                                    {isValidEmail ? '[ OK ]' : '[ GMAIL REQ ]'}
+                                </span>
+                            )}
+                        </div>
                         <div className="relative group">
-                            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/10 group-focus-within:text-studio-neon transition-colors" />
+                            <Mail className={`absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${email && !isValidEmail ? 'text-orange-500' : 'text-white/10 group-focus-within:text-studio-neon'}`} />
                             <input 
                                 name="email"
                                 type="email" 
-                                placeholder="Gmail preferred" 
-                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-neon focus:bg-studio-neon/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="EMAIL@GMAIL.COM" 
+                                className={`w-full pl-14 pr-6 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 ${email && !isValidEmail ? 'border-orange-500/40 bg-orange-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
                                 required
-                                pattern=".+@gmail\.com$"
-                                title="Only @gmail.com emails are allowed"
                             />
                         </div>
                     </div>
                     
-                    <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 ml-1">Password:</label>
+                    {/* Password */}
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-end ml-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">PASSWORD</label>
+                            {password && (
+                                <span className={`text-[8px] font-black uppercase tracking-widest ${pwdStrength >= 3 ? 'text-studio-neon' : 'text-white/40'}`}>
+                                    {strengthLabel}
+                                </span>
+                            )}
+                        </div>
                         <div className="relative group">
                             <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/10 group-focus-within:text-studio-neon transition-colors" />
                             <input 
                                 name="password"
-                                type="password" 
-                                placeholder="6+ characters required" 
-                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-neon focus:bg-studio-neon/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                type={showPassword ? "text" : "password"} 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="CREATE PASSWORD" 
+                                className="w-full hide-password-toggle pl-14 pr-14 py-5 bg-black/40 border-2 border-white/5 rounded-none focus:border-studio-neon focus:bg-studio-neon/5 transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10"
                                 required
                                 minLength={6}
                             />
+                            <button 
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-studio-neon transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+
+                        {/* ⚡ STRENGTH METER */}
+                        <div className="px-1 pt-1 space-y-3">
+                            <div className="flex gap-1.5 h-1.5 sticky">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div 
+                                        key={i} 
+                                        className={`flex-1 transition-all duration-500 ${pwdStrength >= i ? strengthColor : 'bg-white/5'}`}
+                                    />
+                                ))}
+                            </div>
+                            
+                            {/* Requirements Grid */}
+                            <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                                <div className={`flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest transition-colors ${pwdMetrics.hasLength ? 'text-studio-neon' : 'text-white/20'}`}>
+                                    {pwdMetrics.hasLength ? <CheckCircle2 size={10} /> : <div className="w-2.5 h-2.5 border border-white/20 rounded-none shrink-0" />}
+                                    6+ LETTERS
+                                </div>
+                                <div className={`flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest transition-colors ${pwdMetrics.hasUpper ? 'text-studio-neon' : 'text-white/20'}`}>
+                                    {pwdMetrics.hasUpper ? <CheckCircle2 size={10} /> : <div className="w-2.5 h-2.5 border border-white/20 rounded-none shrink-0" />}
+                                    UPPERCASE
+                                </div>
+                                <div className={`flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest transition-colors ${pwdMetrics.hasNumber ? 'text-studio-neon' : 'text-white/20'}`}>
+                                    {pwdMetrics.hasNumber ? <CheckCircle2 size={10} /> : <div className="w-2.5 h-2.5 border border-white/20 rounded-none shrink-0" />}
+                                    NUMBERS
+                                </div>
+                                <div className={`flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest transition-colors ${pwdMetrics.hasSpecial ? 'text-studio-neon' : 'text-white/20'}`}>
+                                    {pwdMetrics.hasSpecial ? <CheckCircle2 size={10} /> : <div className="w-2.5 h-2.5 border border-white/20 rounded-none shrink-0" />}
+                                    SYMBOLS
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="text-center px-1 py-2">
-                        <p className="text-[9px] uppercase font-black tracking-widest text-white/20 flex items-center justify-center gap-2">
-                            Already have an account? 
-                            <Link href="/auth/login" className="text-white hover:text-studio-neon transition-colors underline underline-offset-4">LOGIN</Link>
+                    {/* Confirm Password */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-end ml-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">REPEAT PASSWORD</label>
+                            {confirmPassword && (
+                                <span className={`text-[8px] font-black uppercase tracking-widest ${passwordsMatch ? 'text-studio-neon' : 'text-red-500'}`}>
+                                    {passwordsMatch ? '[ OK ]' : '[ WRONG ]'}
+                                </span>
+                            )}
+                        </div>
+                        <div className="relative group">
+                            <ShieldCheck className={`absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${confirmPassword && !passwordsMatch ? 'text-red-500' : 'text-white/10 group-focus-within:text-studio-neon'}`} />
+                            <input 
+                                type={showConfirmPassword ? "text" : "password"} 
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="CONFIRM PASSWORD" 
+                                className={`w-full hide-password-toggle pl-14 pr-14 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 ${confirmPassword && !passwordsMatch ? 'border-red-500/40 bg-red-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
+                                required
+                            />
+                            <button 
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-studio-neon transition-colors"
+                            >
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="text-center py-2">
+                        <p className="text-[9px] uppercase font-black tracking-[0.2em] text-white/20 flex items-center justify-center gap-3">
+                            ALREADY HAVE AN ACCOUNT? 
+                            <Link href="/auth/login" className="text-white hover:text-studio-neon transition-colors underline underline-offset-8 decoration-white/20 hover:decoration-studio-neon font-black">LOGIN</Link>
                         </p>
                     </div>
 
-                    <button 
-                        disabled={isPending}
-                        className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-[0.4em] text-xs flex items-center justify-center gap-4 hover:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-wait shadow-[0_0_50px_rgba(0,255,65,0.2)]"
-                    >
-                        {isPending ? (
-                            <>
-                                <Loader2 className="h-5 w-5 animate-spin text-black" />
-                                <span>Creating account...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles className="h-5 w-5" />
-                                <span>Create Account</span>
-                            </>
-                        )}
-                    </button>
+                    <div className="pt-8 border-t border-white/5 space-y-6">
+                        <button 
+                            type="submit"
+                            disabled={isPending || !nameIsClean || !isValidEmail || (password !== '' && !passwordsMatch)}
+                            className="w-full py-6 bg-studio-neon text-black font-black uppercase tracking-[0.4em] text-[13px] flex items-center justify-center gap-6 hover:bg-white hover:text-black transition-all duration-500 disabled:opacity-10 disabled:grayscale disabled:cursor-not-allowed group relative overflow-hidden"
+                        >
+                            {isPending ? (
+                                <>
+                                    <Loader2 className="h-6 w-6 animate-spin text-black" />
+                                    <span>PROCESSING...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="h-6 w-6" />
+                                    <span>SIGN UP</span>
+                                </>
+                            )}
+                        </button>
+
+                        <div className="text-center px-4">
+                            <p className="text-[8px] md:text-[9px] uppercase font-black tracking-[0.1em] text-white/20 leading-relaxed max-w-sm mx-auto">
+                                By signing up, you agree to our{' '}
+                                <Link href="/terms" className="text-white/40 hover:text-studio-neon transition-colors underline decoration-white/10">Terms</Link>,{' '}
+                                <Link href="/privacy" className="text-white/40 hover:text-studio-neon transition-colors underline decoration-white/10">Privacy</Link>, and{' '}
+                                <Link href="/refund" className="text-white/40 hover:text-studio-neon transition-colors underline decoration-white/10">Refund Policy</Link>.
+                            </p>
+                        </div>
+                    </div>
                 </form>
             </div>
             
-            {/* Footer Status */}
-            <div className="bg-black/40 p-4 border-t border-white/5 flex justify-between items-center px-8">
-                <div className="flex items-center gap-3">
-                    <Disc className="w-3 h-3 text-studio-neon animate-spin-slow" />
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">SAMPLES WALA SECURE SIGNUP</span>
-                </div>
-                <div className="flex gap-4">
-                    <div className="h-1 w-8 bg-studio-neon/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-studio-neon w-1/2 animate-pulse" />
+            {/* DAW Status Bar */}
+            <div className="bg-black p-4 border-t-2 border-white/5 flex justify-between items-center px-8">
+                <div className="flex items-center gap-4">
+                    <div className="flex gap-1">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="w-1.5 h-1.5 bg-studio-neon rounded-full animate-pulse shadow-[0_0_5px_#a6e22e]" style={{ animationDelay: `${i * 0.2}s` }} />
+                        ))}
                     </div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 tracking-widest">SIGNAL STABLE</span>
+                </div>
+                <div className="hidden md:flex gap-6 opacity-30 items-center">
+                    <div className="h-0.5 w-12 bg-white/20 relative overflow-hidden">
+                        <motion.div 
+                            animate={{ left: ['-100%', '100%'] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                            className="absolute inset-0 bg-studio-neon w-1/2"
+                        />
+                    </div>
+                    <Disc className="w-4 h-4 text-white animate-spin-slow" />
                 </div>
             </div>
           </div>
 
           {/* Exterior Info */}
-          <div className="mt-8 flex justify-between items-center px-4 opacity-30 text-[8px] font-black uppercase tracking-[0.5em] italic">
-             <span>SAFE & SECURED</span>
-             <span>© 2026 SAMPLES WALA</span>
+          <div className="mt-8 flex justify-between items-center px-6 opacity-20 text-[9px] font-black uppercase tracking-[0.6em] italic">
+             <div className="flex items-center gap-4">
+                <Zap size={14} className="text-studio-neon" />
+                <span>POWERED BY SAMPLES WALA</span>
+             </div>
+             <span>© 2026</span>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )
 }
+
+
+

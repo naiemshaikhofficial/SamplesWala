@@ -29,6 +29,12 @@ export async function signup(formData: FormData) {
   const name = formData.get('name') as string
   const redirectTo = (formData.get('redirect') as string) || '/browse'
 
+  // 🛡️ PROFANITY FILTER
+  const { containsProfanity } = await import('@/lib/profanity')
+  if (containsProfanity(name)) {
+    return { error: 'Please use a more appropriate name for our professional community.' }
+  }
+
   // 🛡️ STRICT GMAIL ENFORCEMENT
   if (!email.endsWith('@gmail.com')) {
     return { error: 'Only @gmail.com emails are allowed to maintain high-quality producer signal.' }
