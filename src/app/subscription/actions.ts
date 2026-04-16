@@ -43,7 +43,7 @@ const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
 /**
  * 🛒 Razorpay Subscription Action (Monthly UPI Mandate Flow)
  */
-export async function createSubscription(planId: string) {
+export async function createSubscription(planId: string, interval: 'MONTHLY' | 'ANNUAL' = 'MONTHLY') {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -67,8 +67,8 @@ export async function createSubscription(planId: string) {
             : undefined;
 
         const subscription = await razorpay.subscriptions.create({
-          plan_id: plan.razorpay_plan_id,
-          total_count: 60, // Authorize for 1 year of recurring signals
+          plan_id: interval === 'ANNUAL' ? (plan.razorpay_plan_id_annual || plan.razorpay_plan_id) : plan.razorpay_plan_id,
+          total_count: interval === 'ANNUAL' ? 10 : 60, // 10 years for annual, 5 years for monthly
           quantity: 1,
           start_at: startAt, // 🔥 Charges start after 30 days if eligible
           customer_notify: 1,
@@ -76,7 +76,8 @@ export async function createSubscription(planId: string) {
             user_id: user.id,
             plan_id: planId,
             type: 'subscription_mandate',
-            is_trial: isTrialEligible ? 'true' : 'false'
+            is_trial: isTrialEligible ? 'true' : 'false',
+            interval: interval
           }
         })
 
@@ -93,10 +94,15 @@ export async function createSubscription(planId: string) {
     } else {
         // Fallback to standard order if no plan_id is mapped yet
         const order = await razorpay.orders.create({
-          amount: plan.price_inr * 100, 
+          amount: (interval === 'ANNUAL' ? (plan.price_inr_annual || plan.price_inr * 12) : plan.price_inr) * 100, 
           currency: 'INR',
           receipt: `sub_${Date.now()}`,
-          notes: { user_id: user.id, plan_id: planId, type: 'subscription' }
+          notes: { 
+            user_id: user.id, 
+            plan_id: planId, 
+            type: 'subscription',
+            interval: interval 
+          }
         })
 
         return { 
@@ -236,7 +242,7 @@ export async function purchaseSoftware(softwareId: string) {
 /**
  * ✅ Razorpay Payment Verification (High-Fidelity Handshake)
  */
-export async function verifyPayment(paymentRes: any, targetId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software', itemId: string) {
+export async function verifyPayment(paymentRes: any, targetId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software', itemId: string, interval: 'MONTHLY' | 'ANNUAL' = 'MONTHLY') {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
@@ -268,6 +274,14 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         const { data: plan } = await adminSupabase.from('subscription_plans').select('*').eq('id', itemId).single()
         if (!plan) throw new Error('Artifact Plan not found')
 
+        // calculate expiry based on interval
+        const nextBillingDate = new Date()
+        if (interval === 'ANNUAL') {
+            nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1)
+        } else {
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 1)
+        }
+
         // 1. Finalize Local Membership
         const { error: accountError } = await adminSupabase
             .from('user_accounts')
@@ -276,7 +290,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
                 plan_id: plan.id,
                 subscription_status: 'ACTIVE', // 🟢 Explicitly activate membership
                 razorpay_subscription_id: subscriptionId || null, // Link recurring signal
-                next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                next_billing: nextBillingDate.toISOString(),
                 is_trial_used: true, // Consume trial eligibility
                 updated_at: new Date().toISOString()
             }, { onConflict: 'user_id' })
@@ -284,15 +298,22 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
         if (accountError) throw accountError
 
         // 2. Inject Initial Credits (Tokens)
-        await adminSupabase.rpc('add_credits', { u_id: user.id, amount: plan.credits_per_month })
+        // If yearly, give yearly credits up front
+        const creditsToAward = interval === 'ANNUAL' 
+            ? (plan.credits_annual || plan.credits_per_month * 12) 
+            : plan.credits_per_month;
+
+        await adminSupabase.rpc('add_credits', { u_id: user.id, amount: creditsToAward })
 
         // 3. Log Secure Audit Trail
+        const finalPrice = interval === 'ANNUAL' ? (plan.price_inr_annual || plan.price_inr * 12) : plan.price_inr;
+
         await adminSupabase.from('credit_orders').insert({
             user_id: user.id,
             order_id: subscriptionId || orderId,
             payment_id: paymentId,
-            amount_inr: plan.price_inr,
-            credits_awarded: plan.credits_per_month,
+            amount_inr: finalPrice,
+            credits_awarded: creditsToAward,
             status: 'paid',
             raw_response: paymentRes
         })

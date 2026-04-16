@@ -12,10 +12,11 @@ interface RazorpayCheckoutProps {
     mode: 'subscription' | 'pack' | 'sample_pack' | 'software'
     planName: string
     priceInr: number
+    interval?: 'MONTHLY' | 'ANNUAL'
     onSuccess?: (response: any) => void
 }
 
-export default function RazorpayCheckout({ itemId, mode, planName, priceInr, onSuccess }: RazorpayCheckoutProps) {
+export default function RazorpayCheckout({ itemId, mode, planName, priceInr, interval = 'MONTHLY', onSuccess }: RazorpayCheckoutProps) {
     const [loading, setLoading] = useState(false)
     const { showToast } = useNotify()
 
@@ -28,7 +29,7 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, onS
             else if (mode === 'sample_pack') action = purchaseSamplePack;
             else action = purchaseSoftware;
 
-            const orderData: any = await action(itemId)
+            const orderData: any = await action(itemId, interval)
             if (!orderData.success) {
                 showToast(orderData.error || 'Identity Synchronization Failed', 'error')
                 return

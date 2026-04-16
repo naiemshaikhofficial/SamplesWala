@@ -282,6 +282,7 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                                                     mode={mode as any} 
                                                     planName={`${item.name} (${billingCycle})`} 
                                                     priceInr={finalPrice} 
+                                                    interval={billingCycle}
                                                     onSuccess={async () => { await saveAddress(); router.push('/browse') }} 
                                                 />
                                             ) : (

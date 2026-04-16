@@ -19,7 +19,7 @@ export default async function PricingPage() {
   const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
 
   return (
-    <div className="min-h-screen bg-studio-charcoal text-white pt-24 md:pt-32 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
+    <div className="min-h-screen bg-studio-charcoal text-white pt-16 md:pt-20 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
         <MasterLight />
         <ScanlineOverlay />
         
@@ -29,16 +29,15 @@ export default async function PricingPage() {
         </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center max-w-4xl mx-auto mb-16 md:mb-24 px-4">
-          <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-studio-neon mb-6 md:mb-10 animate-pulse">
+        <div className="text-center max-w-4xl mx-auto mb-8 md:mb-12 px-4">
+          <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon mb-4 md:mb-6 animate-pulse">
             <Activity size={10} /> {activeSub ? `SUBSCRIPTION : ${currentPlanName.toUpperCase()}` : 'CHOOSE YOUR PLAN'}
           </div>
-          <h1 className="text-5xl md:text-[8rem] font-black tracking-tighter uppercase italic mb-8 leading-[0.8] mix-blend-difference">
-            SIMPLE <span className="text-studio-neon">SUBSCRIPTION</span>
+          <h1 className="text-4xl md:text-8xl font-black tracking-tighter uppercase italic mb-4 leading-[0.8] mix-blend-difference">
+            SIMPLE <span className="text-studio-neon">PRICING</span>
           </h1>
-          <p className="text-xs md:text-xl text-white/30 font-black uppercase tracking-widest max-w-2xl mx-auto leading-relaxed italic">
-            Choose a monthly subscription or buy credit packs to fit your needs. <br className="hidden md:block"/>
-            100% Royalty Free. Keep What You Download Forever.
+          <p className="text-[9px] md:text-sm text-white/20 font-black uppercase tracking-[0.3em] max-w-2xl mx-auto italic">
+            Monthly signals or top-up packs. 100% Royalty Free.
           </p>
         </div>
 

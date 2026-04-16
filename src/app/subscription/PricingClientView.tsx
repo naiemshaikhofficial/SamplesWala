@@ -34,95 +34,141 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
     }, [])
 
     const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
+    const [billingCycle, setBillingCycle] = useState<'MONTHLY' | 'ANNUAL'>('MONTHLY')
 
     return (
-        <div className="container mx-auto px-4 relative z-10 pt-20">
-            {/* 💎 1. SUBSCRIPTION PLANS SECTION */}
-            <div id="subscription-plans" className="mb-32 md:mb-48">
-                <div className="flex items-center gap-4 mb-12 md:mb-16 text-white/10 group px-2">
-                    <BarChart3 className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-neon transition-colors" />
-                    <h2 className="text-lg md:text-2xl font-black uppercase tracking-[0.3em] italic">Choose Your Plan</h2>
-                    <div className="h-px flex-1 bg-white/5" />
-                </div>
+        <div className="container mx-auto px-4 relative z-10 text-center">
+            {/* 🌸 COMPACT SPRING SALE BANNER */}
+            <div className="max-w-4xl mx-auto mb-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                <h2 className="text-2xl md:text-3xl font-black text-studio-neon italic tracking-tighter mb-1 mix-blend-difference">
+                    Spring Sale: 25% OFF Annual Plans
+                </h2>
+                <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-white/30 italic">
+                    Best value deal active. Save more with an Annual plan today.
+                </p>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 max-w-[1600px] mx-auto">
+            {/* 💎 1. COMPACT BILLING TOGGLE */}
+            <div className="flex flex-col items-center gap-4 mb-12">
+                <div className="flex items-center gap-8 bg-white/[0.03] border border-white/5 py-3 px-8 rounded-full backdrop-blur-xl">
+                    <button 
+                        onClick={() => setBillingCycle('MONTHLY')}
+                        className="flex items-center gap-3 group transition-all"
+                    >
+                        <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${billingCycle === 'MONTHLY' ? 'border-studio-neon bg-studio-neon shadow-[0_0_15px_#a6e22e]' : 'border-white/20 group-hover:border-white/40'}`}>
+                            {billingCycle === 'MONTHLY' && <div className="h-1.5 w-1.5 rounded-full bg-black" />}
+                        </div>
+                        <span className={`text-[12px] font-black uppercase tracking-widest transition-colors ${billingCycle === 'MONTHLY' ? 'text-white' : 'text-white/30 group-hover:text-white/60'}`}>Monthly</span>
+                    </button>
+
+                    <button 
+                        onClick={() => setBillingCycle('ANNUAL')}
+                        className="flex items-center gap-3 group transition-all relative"
+                    >
+                        <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${billingCycle === 'ANNUAL' ? 'border-studio-neon bg-studio-neon shadow-[0_0_15px_#a6e22e]' : 'border-white/20 group-hover:border-white/40'}`}>
+                            {billingCycle === 'ANNUAL' && <div className="h-1.5 w-1.5 rounded-full bg-black" />}
+                        </div>
+                        <span className={`text-[12px] font-black uppercase tracking-widest transition-colors ${billingCycle === 'ANNUAL' ? 'text-white' : 'text-white/30 group-hover:text-white/60'}`}>Annual</span>
+                        
+                        <div className="bg-studio-neon text-black text-[7px] font-black px-2 py-0.5 rounded-sm uppercase tracking-tighter ml-2 hidden md:block">
+                            LIMITED TIME OFFER
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            {/* 💎 2. SUBSCRIPTION PLANS SECTION */}
+            <div id="subscription-plans" className="mb-32 md:mb-48">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 max-w-[1400px] mx-auto items-stretch">
                     {plans?.map((plan) => {
                         const visuals = planVisuals[plan.name] || planVisuals['Starter']
                         const isActive = (activeSub?.plan_id && activeSub.plan_id === plan.id)
                         const isUpgrade = plan.price_inr > (activeSub?.subscription_plans?.price_inr || 0)
                         const isLower = plan.price_inr < (activeSub?.subscription_plans?.price_inr || 0)
                         
+                        // Signal Calculus
+                        const priceInr = billingCycle === 'ANNUAL' ? plan.price_inr_annual : plan.price_inr
+                        const priceUsd = billingCycle === 'ANNUAL' ? plan.price_usd_annual : plan.price_usd
+                        const effectiveMonthInr = Math.round(priceInr / (billingCycle === 'ANNUAL' ? 12 : 1))
+                        const savingsTotalInr = (plan.price_inr * 12) - plan.price_inr_annual
+
                         const features = plan.features || [
-                            `${plan.credits_per_month || 0} Monthly Credits`,
-                            '100% Royalty Free',
-                            'Keep Downloaded Sounds Forever'
+                            `${billingCycle === 'ANNUAL' ? (plan.credits_annual || plan.credits_per_month * 12) : plan.credits_per_month} Credits Added`,
+                            '100% Royalty Free access',
+                            'DAW-Ready WAV Artifacts',
+                            'Commercial Usage Rights'
                         ]
                         
+                        const isProducer = plan.name === 'Producer'
+                        const isProfessional = plan.name === 'Professional'
+
                         return (
                             <div 
                                 key={plan.id} 
-                                className={`group relative bg-[#151515] border-2 ${visuals.color} p-6 md:p-10 transition-all hover:bg-black hover:border-studio-neon flex flex-col min-h-[550px] md:min-h-[650px] shadow-2xl rounded-sm ${isActive ? 'border-studio-neon ring-4 ring-studio-neon/10' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''}`}
+                                className={`group relative bg-black/40 border border-white/5 p-8 md:p-10 transition-all hover:bg-black/60 flex flex-col min-h-[550px] shadow-2xl rounded-3xl ${isActive ? 'border-studio-neon/50 bg-studio-neon/[0.02]' : ''} ${isLower ? 'opacity-20 grayscale pointer-events-none' : ''} ${isProfessional ? 'border-[#df2d81]/30 ring-1 ring-[#df2d81]/10' : ''}`}
                             >
-                                <div className="absolute left-0 inset-y-0 w-1 bg-studio-neon/10 group-hover:bg-studio-neon transition-all" />
-                                
-                                <div className="mb-10 md:mb-12 flex items-center justify-between">
-                                    <div className={`h-12 w-12 md:h-16 md:w-16 flex items-center justify-center bg-black border border-white/5 ${visuals.glow} group-hover:bg-studio-neon group-hover:text-black transition-all`}>
-                                        {React.cloneElement(visuals.icon as React.ReactElement, { size: 24 } as any)}
+                                {/* Offer Badges */}
+                                {billingCycle === 'ANNUAL' && plan.name !== 'Starter' && (
+                                    <div className="absolute top-4 right-6 bg-studio-neon text-black px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-[0_0_15px_rgba(166,226,46,0.3)] animate-pulse">
+                                        LIMITED TIME OFFER
                                     </div>
-                                    <div className="text-right flex flex-col items-end gap-1">
-                                        <span className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.2em] text-white/20">CREDITS</span>
-                                        <span className="text-3xl md:text-4xl font-black italic tracking-tighter text-white">{plan.credits_per_month}</span>
-                                    </div>
+                                )}
+
+                                <div className="space-y-2 mb-10 text-left">
+                                    <h3 className="text-3xl font-black uppercase tracking-tighter text-white">{plan.name} Plan</h3>
+                                    <p className="text-[11px] font-bold text-white/20 italic tracking-widest uppercase">{plan.description || "High-fidelity audio signal access."}</p>
                                 </div>
 
-                                <div className="space-y-3 md:space-y-4 mb-8 md:mb-10">
-                                    <h3 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter leading-none">{plan.name}</h3>
-                                    <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[#fff]/20 leading-relaxed max-w-full md:max-w-[80%] italic">
-                                        {plan.description || "Get full access to all essential sounds with this plan."}
-                                    </p>
-                                </div>
-
-                                <div className="mb-10 md:mb-12 p-5 md:p-6 bg-black/40 border border-white/5 relative overflow-hidden group/price flex flex-col gap-2">
-                                    <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover/price:opacity-100 transition-opacity" />
-                                    <div className="flex flex-col gap-1 relative z-10">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-4xl md:text-6xl font-black tracking-tighter text-white mr-1 md:mr-2">
-                                                {currency === 'INR' ? `₹${plan.price_inr}` : `$${plan.price_usd}`}
+                                <div className="text-left mb-10">
+                                    <div className="flex items-baseline gap-2 mb-1">
+                                        {billingCycle === 'ANNUAL' ? (
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-[20px] font-black text-white/20 line-through tracking-tighter decoration-studio-neon">
+                                                    {currency === 'INR' ? `₹${plan.price_inr}` : `$${plan.price_usd}`}
+                                                </span>
+                                                <span className="text-5xl font-black tracking-tighter text-studio-neon">
+                                                    {currency === 'INR' ? `₹${effectiveMonthInr}` : `$${(priceUsd / 12).toFixed(1)}`}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-5xl font-black tracking-tighter text-white">
+                                                {currency === 'INR' ? `₹${priceInr}` : `$${priceUsd}`}
                                             </span>
-                                            <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">/ MON</span>
-                                        </div>
+                                        )}
+                                        <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">/month</span>
                                     </div>
-                                    {currency === 'USD' && (
-                                        <span className="text-[7px] font-black uppercase tracking-[0.2em] text-studio-neon bg-studio-neon/10 px-2 py-1 self-start rounded-full animate-pulse">
-                                            Includes Int. Signal Fees
-                                        </span>
+                                    
+                                    {billingCycle === 'ANNUAL' && plan.name !== 'Starter' && (
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black text-studio-neon uppercase tracking-[0.2em] italic">
+                                                Saves {currency === 'INR' ? `₹${savingsTotalInr}` : `$${(plan.price_usd * 12 - plan.price_usd_annual).toFixed(1)}`} by billing yearly!
+                                            </p>
+                                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Taxes calculated at checkout</p>
+                                        </div>
+                                    )}
+                                    {billingCycle === 'MONTHLY' && (
+                                        <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">Taxes calculated at checkout</p>
                                     )}
                                 </div>
 
-                                <div className="space-y-4 md:space-y-5 mb-10 md:mb-14 flex-1">
-                                    {features.map((feature: any) => (
-                                        <div key={feature} className="flex items-start gap-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-white transition-all text-left">
-                                            <div className="mt-1 h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-studio-neon shadow-[0_0_10px_#a6e22e]" />
-                                            {feature}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="space-y-4 mt-auto">
+                                <div className="mb-10">
                                     <SubscribeButton 
                                         planId={plan.id} 
-                                        planName={
-                                            isActive ? 'Active' : 
-                                            isUpgrade && currentPlanName !== 'Free' ? 'UPGRADE' : 
-                                            isLower ? '—' : 
-                                            (plan.name === 'Starter' && !activeSub?.is_trial_used) ? 'START FREE TRIAL' : 
-                                            'SUBSCRIBE'
-                                        }
-                                        isFeatured={plan.name === 'Professional' || isActive} 
+                                        planName={isActive ? 'Active Identity' : 'Subscribe'}
+                                        isFeatured={isProfessional || isActive} 
                                         mode="subscription"
                                         disabled={isActive || isLower}
                                         currency={currency}
                                     />
+                                </div>
+
+                                <div className="space-y-4 flex-1 text-left">
+                                    {features.map((feature: any) => (
+                                        <div key={feature} className="flex items-center gap-3 text-[11px] font-bold text-white/40 group-hover:text-white/70 transition-all">
+                                            <Check size={16} className="text-studio-neon" />
+                                            <span className="uppercase tracking-[0.15em]">{feature}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )
