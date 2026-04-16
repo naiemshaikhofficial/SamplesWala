@@ -17,6 +17,7 @@ import { getRelatedPacks, getFilteredSamples } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { Pagination } from '@/components/layout/Pagination'
+import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
 
@@ -135,13 +136,19 @@ export default async function PackPage({
 
   if (!pack) notFound()
   
-  const { samples, count } = await getFilteredSamples({ 
+  const { samples: rawSamples, count } = await getFilteredSamples({ 
     packId: pack.id,
     limit: pageSize.toString(),
     page: page,
     query: search, // 🔎 USE 'query' AS PER INTERFACE
     sort: sort // 🎚️ PASS SORT TO GLOBAL DB QUERY
   })
+
+  // 🧬 SIGNAL_INJECTION: Securely batch audio IDs
+  const samples = rawSamples.map((s: any) => ({
+      ...s,
+      signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
+  }))
   
   // Handled relation locally if joined query failed
   const categoryId = pack.category_id;

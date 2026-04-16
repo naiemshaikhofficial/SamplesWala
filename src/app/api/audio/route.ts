@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
+import { decodeAudioSignal, getDriveFileId } from '@/lib/audio/signal';
 
 const JWT_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fallback-secret-for-dev';
 
@@ -19,12 +20,7 @@ type CachedData = { url: string; cookie: string; timestamp: number; };
 const urlCache = new Map<string, CachedData>();
 const CACHE_TTL = 45 * 60 * 1000;
 
-function getDriveFileId(url: string): string | null {
-  if (!url) return null;
-  const regex = /(?:https?:\/\/)?(?:drive|docs)\.google\.com\/(?:.+?\/)*(?:file\/d\/|open\?id=|uc\?id=)([a-zA-Z0-9_-]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-}
+// Removed redundant getDriveFileId - now imported from @/lib/audio/signal
 
 function getCookiesFromResponse(response: Response): string {
   const setCookieHeader = response.headers.get('set-cookie');
@@ -64,8 +60,9 @@ async function resolveFinalDriveUrl(url: string, cookie: string = ''): Promise<{
 }
 
 export async function GET(req: NextRequest) {
-  const id = req.nextUrl.searchParams.get('id');
-  const token = req.nextUrl.searchParams.get('token');
+  const id = req.nextUrl.searchParams.get('id') || '';
+  const token = req.nextUrl.searchParams.get('token') || '';
+  const signal = req.nextUrl.searchParams.get('signal');
   
   if (!id || !token) {
     console.warn("[AUDIO PROXY] Missing id or token");
@@ -94,9 +91,6 @@ export async function GET(req: NextRequest) {
     const host = req.headers.get('host') || '';
     
     // 🛡️ SECURITY LAYER 2: Same-Origin & Anti-Hijack
-    // Check if the request comes from our own app. 
-    // Note: Some browsers (especially on mobile) strip referer on media/fetch redirects. 
-    // We trust the JWT token as the primary security layer.
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
     const isInternal = !referer || referer.includes(host) || origin.includes(host);
     
@@ -110,19 +104,37 @@ export async function GET(req: NextRequest) {
         return new NextResponse('Internal Server Error', { status: 500 });
     }
 
-    const isLq = id.endsWith('_lq');
-    const isHq = id.endsWith('_hq');
-    const cleanId = id.replace('_lq', '').replace('_hq', '');
+    let extractedId: string | null = null;
+    let sampleName = 'Preview';
 
-    const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url, download_url, name').eq('id', cleanId).single();
-    if (dbError || !sample) {
-        console.error("[AUDIO PROXY] DB Error:", dbError);
-        return new NextResponse('Not found', { status: 404 });
+    // 🧬 SIGNAL_RESOLVER_NODE :: Bypassing DB Fetch
+    if (signal) {
+        const decodedSignal = decodeAudioSignal(signal);
+        if (decodedSignal) {
+            extractedId = decodedSignal.id;
+            sampleName = decodedSignal.name;
+        }
     }
 
-    const isDownload = decoded.purpose === 'download' || isHq;
-    const dbUrl = (isHq || isDownload) ? sample.download_url : sample.audio_url;
-    const extractedId = getDriveFileId(dbUrl);
+    // 📦 FALLBACK_DB_FETCH :: Only if signal is missing or invalid
+    if (!extractedId) {
+        const isLq = id.endsWith('_lq');
+        const isHq = id.endsWith('_hq');
+        const cleanId = id.replace('_lq', '').replace('_hq', '');
+
+        const { data: sample, error: dbError } = await supabaseAdmin.from('samples').select('audio_url, download_url, name').eq('id', cleanId).single();
+        if (dbError || !sample) {
+            console.error("[AUDIO PROXY] DB Error:", dbError);
+            return new NextResponse('Not found', { status: 404 });
+        }
+
+        const isDownload = decoded.purpose === 'download' || isHq;
+        const dbUrl = (isHq || isDownload) ? sample.download_url : sample.audio_url;
+        extractedId = getDriveFileId(dbUrl);
+        sampleName = sample.name;
+    }
+
+    if (!extractedId) return new NextResponse('ID Resolution Failed', { status: 404 });
 
     /** 
      * 🛰️ SAMPLES_WALA :: V11_IP_LOCKED_STEALTH
@@ -157,8 +169,11 @@ export async function GET(req: NextRequest) {
             .replace(/=/g, "");
 
         // 🏷️ Filename Branding (Forcing .wav for previews)
-        const brandName = `SamplesWala - ${sample.name || 'Preview'}.wav`;
+        // 🔥 FIX: Use sampleName instead of sample.name to avoid undefined error
+        const brandName = `SamplesWala - ${sampleName || 'Preview'}.wav`;
         const encodedName = encodeURIComponent(brandName);
+        
+        const isDownload = decoded.purpose === 'download';
 
         // Redirect using V11 Parameters
         const redirectUrl = `${workerUrl}?payload=${payload}&sig=${sig}&exp=${timestamp}&name=${encodedName}${isDownload ? '&download=1' : ''}`;

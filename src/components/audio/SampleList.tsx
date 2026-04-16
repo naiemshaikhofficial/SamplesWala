@@ -17,6 +17,7 @@ type Sample = {
     bpm?: number | null
     key?: string | null
     credit_cost?: number
+    signal?: string | null
 }
 
 type SampleListProps = {
@@ -86,7 +87,8 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
             coverUrl,
             bpm: s.bpm,
             audioKey: s.key,
-            isUnlocked: unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false)
+            isUnlocked: unlockedIds.has(s.id) || (packId ? unlockedIds.has(packId) : false),
+            signal: s.signal // 🛰️ PASS_SIGNAL_TO_PLAYLIST
         }))
     }, [processedSamples, packName, coverUrl, unlockedIds, packId])
 
@@ -190,6 +192,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                                             audioKey={sample.key}
                                             isUnlocked={isUnlocked}
                                             creditCost={sample.credit_cost}
+                                            signal={sample.signal}
                                         />
                                     </div>
                                     

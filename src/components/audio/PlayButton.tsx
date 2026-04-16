@@ -13,7 +13,8 @@ export function PlayButton({
   isUnlocked = false,
   creditCost = null,
   lightMode = false,
-  size = "md"
+  size = "md",
+  signal = null
 }: { 
   id: string, 
   url?: string, 
@@ -22,11 +23,11 @@ export function PlayButton({
   coverUrl?: string | null,
   bpm?: number | null,
   audioKey?: string | null,
-  audio_url?: string | null,
   isUnlocked?: boolean,
   creditCost?: number | null,
   lightMode?: boolean,
-  size?: "md" | "lg" | "xl"
+  size?: "md" | "lg" | "xl",
+  signal?: string | null
 }) {
   const { activeId, isPlaying, isLoading, play } = useAudio()
   const isActive = activeId === id
@@ -46,7 +47,7 @@ export function PlayButton({
 
   return (
     <button 
-      onClick={(e) => { e.preventDefault(); play(id, url, { id, url, name, packName, coverUrl, bpm, audioKey, isUnlocked, creditCost }); }}
+      onClick={(e) => { e.preventDefault(); play(id, url, { id, url, name, packName, coverUrl, bpm, audioKey, isUnlocked, creditCost, signal }); }}
       className={`
         ${sizeClasses[size]} flex items-center justify-center rounded-full bg-white text-black transition-all hover:scale-110 active:scale-95 shadow-xl
         ${isActive && isPlaying ? 'ring-8 ring-white/10' : ''}

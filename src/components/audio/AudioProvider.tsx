@@ -13,7 +13,8 @@ type AudioMetadata = {
     bpm?: number | null, 
     audioKey?: string | null, 
     isUnlocked?: boolean,
-    creditCost?: number | null
+    creditCost?: number | null,
+    signal?: string | null
 }
 
 type AudioContextType = {
@@ -295,7 +296,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         } else {
             const cleanId = id.replace('_lq', '').replace('_hq', '');
             const token = await generatePreviewToken(cleanId);
-            const finalUrl = `/api/audio?id=${id}&token=${token}`;
+            
+            // 🛰️ SIGNAL_OPTIMIZATION_GATE :: Pass encrypted signal to bypass proxy DB lookups
+            const signalParam = metadata?.signal ? `&signal=${encodeURIComponent(metadata.signal)}` : '';
+            const finalUrl = `/api/audio?id=${id}&token=${token}${signalParam}`;
             
             const response = await fetch(finalUrl);
             if (!response.ok) throw new Error(`Proxy Fetch Failed: ${response.status}`);

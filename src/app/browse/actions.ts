@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 
 import { unstable_cache } from 'next/cache'
+import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 export const getAllCategories = unstable_cache(
   async () => {
@@ -169,7 +170,16 @@ export async function getFilteredSamples(filters: {
     processedData = data.filter((s: any) => s.sample_packs?.category_id === filters.category)
   }
 
-  return { samples: processedData, count: count || 0 }
+  // 🛰️ SIGNAL_BATCH_PROTOCOL :: Pre-encrypt Drive IDs to skip proxy-side DB lookups
+  const enrichedSamples = processedData.map((s: any) => {
+      const driveId = getDriveFileId(s.audio_url);
+      return {
+          ...s,
+          signal: driveId ? generateAudioSignal(driveId, s.name) : null
+      }
+  });
+
+  return { samples: enrichedSamples, count: count || 0 }
 }
 
 export async function getRelatedPacks(currentPackId: string, categoryId: string) {

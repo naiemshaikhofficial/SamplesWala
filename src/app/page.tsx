@@ -11,6 +11,7 @@ import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { SoftwareSpotlight } from "@/components/home/SoftwareSpotlight";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
+import { generateAudioSignal, getDriveFileId } from "@/lib/audio/signal";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { Suspense } from 'react'
 
@@ -87,17 +88,28 @@ async function FreshSoundsSection() {
     .order('created_at', { ascending: false })
     .limit(20)
 
-  if (!freshSounds || freshSounds.length === 0) {
-    const { data: rawFresh } = await adminClient.from('samples').select('*').order('created_at', { ascending: false }).limit(12)
-    freshSounds = rawFresh as any;
-  }
+  // 🛰️ SIGNAL_BATCH_PROTOCOL
+  const enrichedSounds = (freshSounds || []).map((s: any) => {
+      const driveId = getDriveFileId(s.audio_url);
+      return {
+          ...s,
+          signal: driveId ? generateAudioSignal(driveId, s.name) : null
+      }
+  });
 
-  return <FreshSounds samples={freshSounds || []} />
+  return <FreshSounds samples={enrichedSounds || []} />
 }
 
 async function TopChartsSection() {
   const topSamples = await getTopPopularSounds(20)
-  return <TopSounds samples={topSamples || []} />
+  
+  // 🧬 SIGNAL_PROTOCOL: Support secure playback for trending sounds
+  const enrichedTopSamples = (topSamples || []).map((s: any) => ({
+      ...s,
+      signal: generateAudioSignal(getDriveFileId(s.audio_url || s.url), s.name)
+  }))
+
+  return <TopSounds samples={enrichedTopSamples || []} />
 }
 
 async function SoftwareSection() {

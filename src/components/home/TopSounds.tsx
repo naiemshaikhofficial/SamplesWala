@@ -117,6 +117,7 @@ export function TopSounds({
                                         audioKey={sound.key}
                                         isUnlocked={isUnlocked}
                                         creditCost={cost}
+                                        signal={sound.signal}
                                         lightMode={false}
                                     />
                                 </div>

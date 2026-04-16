@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Gift, Zap, ArrowRight, Music, Download } from 'lucide-react'
 import { SampleList } from '@/components/audio/SampleList'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
+import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 import { Pagination } from '@/components/layout/Pagination'
 
@@ -30,12 +31,18 @@ export default async function FreeSamplesPage({
   const adminClient = getAdminClient()
   
   // Fetch samples with 0 credit cost
-  const { data: freeSamples, count } = await adminClient
+  const { data: rawSamples, count } = await adminClient
     .from('samples')
     .select('*, sample_packs(name, cover_url)', { count: 'exact' })
     .eq('credit_cost', 0)
     .order('created_at', { ascending: false })
     .range(from, to)
+
+  // 🧬 SIGNAL_INJECTION
+  const freeSamples = rawSamples?.map((s: any) => ({
+      ...s,
+      signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
+  }))
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white">

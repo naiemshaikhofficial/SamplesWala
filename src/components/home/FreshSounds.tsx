@@ -129,6 +129,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                                         audioKey={sample.key}
                                         isUnlocked={isUnlocked}
                                         creditCost={sample.credit_cost}
+                                        signal={sample.signal}
                                      />
                                 </div>
                             </div>

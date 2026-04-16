@@ -21,6 +21,7 @@ import { SampleList } from '@/components/audio/SampleList'
 import { Pagination } from '@/components/layout/Pagination'
 import { Cable } from 'lucide-react'
 import { Metadata } from 'next'
+import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
 
@@ -93,7 +94,7 @@ export default async function BrowsePage({
      filter: params.filter, 
   })
 
-  const { samples, count } = await getFilteredSamples({ 
+  const { samples: rawSamples, count } = await getFilteredSamples({ 
      query: params.q, 
      category: params.category, 
      type: params.type,
@@ -104,6 +105,12 @@ export default async function BrowsePage({
      limit: pageSize.toString(),
      page: page
   })
+
+  // 🧬 SIGNAL_INJECTION
+  const samples = rawSamples.map((s: any) => ({
+      ...s,
+      signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
+  }))
 
   const hasNoResults = (!packs || packs.length === 0) && (!samples || samples.length === 0);
 

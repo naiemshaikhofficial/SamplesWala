@@ -15,6 +15,7 @@ import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { getVibeSuggestions } from '@/app/api/vibe/actions'
 import { SampleList } from '@/components/audio/SampleList'
+import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 export const revalidate = 86400; // ⚡ CACHE: 24 HOURS (Static Sound Metadata)
 
@@ -62,8 +63,18 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
 
     if (!sample) notFound()
 
+    // 🧬 SIGNAL_SYNTHESIS :: SECURE_PLAYBACK_BYPASS
+    const driveId = getDriveFileId(sample.audio_url);
+    const audioSignal = driveId ? generateAudioSignal(driveId, sample.name) : null;
+
     // 🧬 VIBE_SYNC: Get related sounds
-    const relatedSounds = await getVibeSuggestions(id, 8)
+    const rawRelated = await getVibeSuggestions(id, 8)
+    
+    // Inject signals into related sounds for batch optimization
+    const relatedSounds = rawRelated.map((s: any) => ({
+        ...s,
+        signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
+    }))
 
     return (
         <div className="min-h-screen bg-studio-charcoal text-white pt-24 pb-32 relative overflow-hidden font-mono">
@@ -130,6 +141,7 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                                     audioKey={sample.key}
                                     isUnlocked={false} // Will be checked in client
                                     creditCost={sample.credit_cost}
+                                    signal={audioSignal}
                                     size="xl"
                                 />
                             </div>
