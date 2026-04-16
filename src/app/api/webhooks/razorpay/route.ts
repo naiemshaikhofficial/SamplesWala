@@ -117,6 +117,7 @@ export async function POST(req: Request) {
                         credits_awarded: credits,
                         status: 'paid',
                         raw_response: event
+                    })
                     await supabase.from('user_accounts').update({ 
                         subscription_status: 'ACTIVE', // 🔋 Re-activate on recurring charge
                         updated_at: new Date().toISOString() 
