@@ -274,9 +274,11 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
             .upsert({
                 user_id: user.id,
                 plan_id: plan.id,
+                subscription_status: 'ACTIVE', // 🟢 Explicitly activate membership
                 razorpay_subscription_id: subscriptionId || null, // Link recurring signal
                 next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-                is_trial_used: true // Consume trial eligibility
+                is_trial_used: true, // Consume trial eligibility
+                updated_at: new Date().toISOString()
             }, { onConflict: 'user_id' })
         
         if (accountError) throw accountError
@@ -556,8 +558,10 @@ export async function capturePayPalOrder(orderId: string, itemId: string, itemTy
         await adminSupabase.from('user_accounts').upsert({
             user_id: user.id,
             plan_id: plan.id,
+            subscription_status: 'ACTIVE', // 🟢 Explicit activation for PayPal
             next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            is_trial_used: true
+            is_trial_used: true,
+            updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
         await adminSupabase.rpc('add_credits', { u_id: user.id, amount: plan.credits_per_month });
     } else if (itemType === 'pack') {

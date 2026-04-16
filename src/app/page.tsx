@@ -13,6 +13,7 @@ import { SoftwareSpotlight } from "@/components/home/SoftwareSpotlight";
 import { getTopPopularSounds } from "@/lib/supabase/admin";
 import { generateAudioSignal, getDriveFileId } from "@/lib/audio/signal";
 import { FAQSection } from "@/components/seo/FAQSection";
+import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
 import { Suspense } from 'react'
 
 export const revalidate = 3600;
@@ -228,6 +229,9 @@ export default function Home() {
               </Suspense>
             </div>
         </section>
+
+        {/* 💳 MEMBERSHIP_UPGRADE_SIGNAL */}
+        <SubscriptionFeature />
 
         {/* 🛠️ SOFTWARE SPOTLIGHT */}
         <Suspense fallback={null}>

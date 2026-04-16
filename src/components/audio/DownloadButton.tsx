@@ -19,7 +19,7 @@ type DownloadButtonProps = {
 
 export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'default' }: DownloadButtonProps) {
     const isUnlocked = useIsUnlocked(sampleId, packId)
-    const { unlockedIds, mutate, unlockItem, removeItem } = useVault()
+    const { isSubscribed, unlockedIds, mutate, unlockItem, removeItem } = useVault()
     const [isProcessing, setIsProcessing] = useState(false)
     const [needsConfirm, setNeedsConfirm] = useState(false)
     const { isPlaying, updateMetadataUnlocked, user } = useAudio()
@@ -33,6 +33,16 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
             return
         }
 
+        // 🛡️ SUBSCRIPTION_ONLY_GATEway
+        if (!isUnlocked && !isSubscribed) {
+            showToast("Active Studio Subscription Required To Unlock Sounds", "error")
+            // Small delay to let toast settle before redirect or opening pricing
+            setTimeout(() => {
+                window.location.href = '/subscription';
+            }, 1000);
+            return
+        }
+
         if (!isUnlocked && !needsConfirm) {
             setNeedsConfirm(true)
             setTimeout(() => setNeedsConfirm(false), 3000)
@@ -43,7 +53,7 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
 
         try {
             if (!isUnlocked) {
-                // 💳 Flow 1: Unlock using credits
+                // 💳 Flow 1: Unlock using credits (Only if subscribed)
                 setNeedsConfirm(false)
                 
                 // 🚀 ABSOLUTE_INSTANT_SIGNAL
@@ -57,10 +67,10 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
                     updateMetadataUnlocked(sampleId)
                     
                     // Force-inject into SWR Cache
-                    mutate('user_vault', (current: Set<string> | undefined) => {
-                        const next = new Set(current instanceof Set ? current : (current || []))
+                    mutate('user_vault', (current: any) => {
+                        const next = new Set(current?.ids instanceof Set ? current.ids : (current?.ids || []))
                         next.add(sampleId)
-                        return next
+                        return { ...current, ids: next }
                     }, false)
 
                     showToast('Sound Unlocked!', 'success')
@@ -69,8 +79,13 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
                 } else {
                     // 🩸 SOFT_FAIL_PROTOCOL: Handle returned errors without throwing
                     if (result.error === 'INSUFFICIENT_FUNDS') {
-                        showToast("Insufficient credits. Opening top-up terminal...", "warning")
-                        showTopUpModal()
+                        if (isSubscribed) {
+                            showToast("Insufficient credits. Opening top-up terminal...", "warning")
+                            showTopUpModal()
+                        } else {
+                            showToast("Active Studio Subscription Required", "error")
+                            window.location.href = '/subscription';
+                        }
                         removeItem(sampleId)
                         return
                     }
@@ -96,8 +111,13 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
             }
 
             if (errMsg.toLowerCase().includes('insufficient')) {
-                showToast("Insufficient credits. Opening top-up terminal...", "warning")
-                showTopUpModal()
+                if (isSubscribed) {
+                    showToast("Insufficient credits. Opening top-up terminal...", "warning")
+                    showTopUpModal()
+                } else {
+                    showToast("Active Studio Subscription Required", "error")
+                    window.location.href = '/subscription';
+                }
                 return
             }
 

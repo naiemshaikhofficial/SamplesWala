@@ -77,8 +77,10 @@ export async function POST(req: Request) {
                         await supabase.from('user_accounts').upsert({
                             user_id: userId,
                             plan_id: plan.id,
+                            subscription_status: 'ACTIVE', // 🟢 Explicit activation on first payment
                             razorpay_subscription_id: payment?.subscription_id || notes.subscription_id,
-                            next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                            next_billing: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                            updated_at: new Date().toISOString()
                         }, { onConflict: 'user_id' })
 
                         await supabase.rpc('add_credits', { u_id: userId, amount: plan.credits_per_month })
@@ -115,7 +117,10 @@ export async function POST(req: Request) {
                         credits_awarded: credits,
                         status: 'paid',
                         raw_response: event
-                    })
+                    await supabase.from('user_accounts').update({ 
+                        subscription_status: 'ACTIVE', // 🔋 Re-activate on recurring charge
+                        updated_at: new Date().toISOString() 
+                    }).eq('razorpay_subscription_id', subEntity.id)
                 }
                 break;
 
@@ -128,14 +133,20 @@ export async function POST(req: Request) {
                     await supabase.from('user_accounts').update({ 
                         razorpay_subscription_id: activeSub.id,
                         plan_id: subNotes.plan_id,
-                        is_trial_used: subNotes.is_trial === 'true' // Mark trial consumption
+                        subscription_status: 'ACTIVE', // 📡 Explicit Status Sync
+                        is_trial_used: subNotes.is_trial === 'true', // Mark trial consumption
+                        updated_at: new Date().toISOString()
                     }).eq('user_id', subNotes.user_id)
                 }
                 break;
 
             case 'subscription.cancelled':
                 const cancelledSub = event.payload.subscription.entity
-                await supabase.from('user_accounts').update({ plan_id: null, razorpay_subscription_id: null }).eq('razorpay_subscription_id', cancelledSub.id)
+                await supabase.from('user_accounts').update({ 
+                    subscription_status: 'INACTIVE', // 🛑 Deactivate membership
+                    razorpay_subscription_id: null,
+                    updated_at: new Date().toISOString()
+                }).eq('razorpay_subscription_id', cancelledSub.id)
                 console.log(`[SUBSCRIPTION_HALTED] Node ${cancelledSub.id} disconnected.`)
                 break;
         }

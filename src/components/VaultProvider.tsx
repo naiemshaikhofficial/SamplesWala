@@ -7,6 +7,8 @@ import useSWR, { useSWRConfig } from 'swr'
 type VaultContextType = {
   unlockedIds: Set<string>
   isLoading: boolean
+  isSubscribed: boolean
+  subscriptionPlan: string | null
   mutate: (key?: any, data?: any, options?: any) => Promise<any>
   unlockItem: (id: string) => void
   removeItem: (id: string) => void
@@ -16,6 +18,8 @@ type VaultContextType = {
 const VaultContext = createContext<VaultContextType>({
   unlockedIds: new Set(),
   isLoading: true,
+  isSubscribed: false,
+  subscriptionPlan: null,
   mutate: async () => {},
   unlockItem: () => {},
   removeItem: () => {},
@@ -121,27 +125,46 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, globalMutate, getCacheKey])
 
   // 🧬 SWR_VAULT_FETCH: Use an array key including userId for stability and separation
-  const { data: unlockedIds, isLoading } = useSWR(sessionUser ? ['user_vault', sessionUser] : null, async ([_, userId]) => {
+  const { data: vaultData, isLoading } = useSWR(sessionUser ? ['user_vault', sessionUser] : null, async ([_, userId]) => {
     console.log(`[VAULT_SYNC] Synchronizing Artifacts for: ${userId}`);
-    const { data: vaultItems, error } = await supabase
+    
+    // 1. Fetch Vault Items
+    const { data: vaultItems, error: vError } = await supabase
       .from('user_vault')
       .select('item_id')
       .eq('user_id', userId)
 
-    if (error) throw error;
-    if (!vaultItems) return new Set<string>()
+    if (vError) throw vError;
+
+    // 2. Fetch Subscription Status
+    const { data: account, error: aError } = await supabase
+      .from('user_accounts')
+      .select('plan_id, subscription_status, subscription_plans(name)')
+      .eq('user_id', userId)
+      .single()
+
+    // 🛡️ A user is considered subscribed if they have a plan AND status is not 'INACTIVE'
+    // Note: 'CANCELED' users still have access until the end of their period.
+    const isSubscribed = account?.plan_id ? (account.subscription_status !== 'INACTIVE') : false;
 
     const ids = new Set<string>()
-    vaultItems.forEach((v: any) => ids.add(v.item_id))
-    return ids
+    if (vaultItems) {
+        vaultItems.forEach((v: any) => ids.add(v.item_id))
+    }
+
+    return { 
+        ids, 
+        isSubscribed, 
+        subscriptionPlan: (account?.subscription_plans as any)?.name || null 
+    }
   }, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 300000, // 5 minute dedupe window
-    onSuccess: (newData: Set<string>) => {
+    onSuccess: (newData: any) => {
         // 💾 SAVE_PERSISTENCE
-        if (sessionUser && newData instanceof Set) {
-            localStorage.setItem(getCacheKey(sessionUser), JSON.stringify(Array.from(newData)));
+        if (sessionUser && newData.ids instanceof Set) {
+            localStorage.setItem(getCacheKey(sessionUser), JSON.stringify(Array.from(newData.ids)));
         }
 
         // 🛡️ PERSISTENCE_PROTECTION: Only remove from local if server definitely has it
@@ -150,7 +173,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
             const next = new Set(prev)
             let changed = false
             prev.forEach(id => {
-                if (newData.has(id)) {
+                if (newData.ids.has(id)) {
                     next.delete(id)
                     changed = true
                 }
@@ -162,17 +185,19 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
 
   // 🧬 MERGE_SOURCES: Combined Ground Truth + Optimistic Local
   const combinedIds = React.useMemo(() => {
-    const serverSet = unlockedIds instanceof Set ? unlockedIds : new Set(unlockedIds || [])
+    const serverSet = vaultData?.ids instanceof Set ? vaultData.ids : new Set(vaultData?.ids || [])
     if (localUnlocked.size === 0) return serverSet;
     const merged = new Set(serverSet)
     localUnlocked.forEach(id => merged.add(id))
     return merged
-  }, [unlockedIds, localUnlocked])
+  }, [vaultData?.ids, localUnlocked])
 
   return (
     <VaultContext.Provider value={{ 
         unlockedIds: combinedIds, 
         isLoading, 
+        isSubscribed: vaultData?.isSubscribed || false,
+        subscriptionPlan: vaultData?.subscriptionPlan || null,
         mutate: globalMutate,
         unlockItem,
         removeItem,
