@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useRef, useEffect } from 'react'
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react'
 import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 import { getCachedAudio, cacheAudio } from '@/lib/audio/cache'
 import { getVibeSuggestions } from '@/app/api/vibe/actions'
@@ -55,14 +55,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeId])
 
-  const updateMetadataUnlocked = (id: string) => {
-    // 1. Update Active Metadata
-    if (activeId === id && activeMetadata) {
-        setActiveMetadata({ ...activeMetadata, isUnlocked: true })
-    }
-    // 2. Update Playlist (to prevent future plays of the same sample showing locked)
-    setPlaylist(prev => prev.map(item => item.id === id ? { ...item, isUnlocked: true } : item))
-  }
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -83,6 +75,15 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const userRef = useRef<any>(null)
   const playlistRef = useRef<AudioMetadata[]>([])
 
+  const setPlaylist = useCallback((list: AudioMetadata[] | ((prev: AudioMetadata[]) => AudioMetadata[])) => {
+      setPlaylistState(prev => {
+          const next = typeof list === 'function' ? list(prev) : list;
+          playlistRef.current = next;
+          return next;
+      });
+  }, []);
+
+  // Sync ref for immediate access in event handlers
   useEffect(() => {
     playlistRef.current = playlist
   }, [playlist])
@@ -105,7 +106,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
             stop();
             setPlaylist([]);
-            window.location.reload(); // Hard refresh to clear all server components
+            window.location.reload(); 
         }
     });
 
@@ -114,16 +115,35 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const pause = useCallback(() => { audioRef.current?.pause(); }, []);
+
+  const next = useCallback(() => {
+    const currentPlaylist = playlistRef.current
+    if (currentPlaylist.length === 0) return
+    const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
+    const nextIndex = (currentIndex + 1) % currentPlaylist.length
+    const nextSample = currentPlaylist[nextIndex]
+    play(nextSample.id, nextSample.url, nextSample)
+  }, [activeId]);
+
+  const prev = useCallback(() => {
+    const currentPlaylist = playlistRef.current
+    if (currentPlaylist.length === 0) return
+    const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
+    const prevIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length
+    const prevSample = currentPlaylist[prevIndex]
+    play(prevSample.id, prevSample.url, prevSample)
+  }, [activeId]);
+
   // 🎹 GLOBAL_STUDIO_SHORTCUTS
   useEffect(() => {
      const handleKeyDown = (e: KeyboardEvent) => {
-         // Don't trigger if user is typing in search/input
          const isInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable;
          if (isInput) return;
 
          switch (e.code) {
              case 'Space':
-                 e.preventDefault(); // Prevent page scroll
+                 e.preventDefault(); 
                  if (isPlaying) pause();
                  else if (activeId) audioRef.current?.play();
                  break;
@@ -165,7 +185,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
             analyzerRef.current = analyzer;
             ctxRef.current = ctx;
         } catch (e) {
-            console.warn("Analyzer setup failed (likely already connected):", e);
+            console.warn("Analyzer setup failed:", e);
         }
     }
 
@@ -230,17 +250,16 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
         stopWatermark();
     }
-  }, [])
+  }, [activeMetadata]);
 
-  const setVolume = (val: number) => {
+  const setVolume = useCallback((val: number) => {
     setVolumeState(val)
     userVolumeRef.current = val
     if (audioRef.current) audioRef.current.volume = val
-  }
+  }, []);
 
-  const resolveDriveSignal = (url: string) => {
+  const resolveDriveSignal = useCallback((url: string) => {
     if (!url) return '';
-    // 🚦 SIGNAL_RESOLUTION :: Transformer for Google Drive Nodes
     if (url.includes('drive.google.com')) {
         const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
         if (fileIdMatch && fileIdMatch[1]) {
@@ -248,13 +267,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
     }
     return url;
-  }
+  }, []);
 
-  async function play(id: string, url?: string, metadata?: { name: string, packName: string, coverUrl?: string | null, bpm?: number | null, audioKey?: string | null, isUnlocked?: boolean, creditCost?: number | null }) {
+  const play = useCallback(async (id: string, url?: string, metadata?: AudioMetadata) => {
     if (!audioRef.current) return
-    
-    // 🛰️ TRANSFORM_SIGNAL :: Resolve direct stream for admin/external nodes (if URL provided)
-    const finalStreamUrl = url ? resolveDriveSignal(url) : '';
     
     if (activeId === id) {
       if (isPlaying) audioRef.current.pause();
@@ -272,31 +288,25 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setDuration(0);
     setIsLoading(true);
     setActiveId(id);
-    if (metadata) setActiveMetadata(metadata as any);
+    if (metadata) setActiveMetadata(metadata);
 
     try {
-        // 🧪 PHASE 1: CHECK LOCAL REPOSITORY (VAULT_CACHE)
         const cachedBlob = await getCachedAudio(id);
         let blob: Blob;
 
-        // 🛡️ ADMIN_SIGNAL_OVERRIDE :: Admin signals skip cache but use Proxy
         const isAdminSignal = id.endsWith('_lq') || id.endsWith('_hq');
 
         if (cachedBlob && !isAdminSignal) {
-            console.log(`[VAULT_CACHE] Local signal found for node ${id}. Bypassing network fetch.`);
             blob = cachedBlob;
         } else {
-            // 🌡️ PHASE 2: VAULT FETCH (API HANDSHAKE)
             const cleanId = id.replace('_lq', '').replace('_hq', '');
             const token = await generatePreviewToken(cleanId);
             const finalUrl = `/api/audio?id=${id}&token=${token}`;
             
-            console.log(`[SIGNAL_ROUTE] Fetching via Proxy: ${finalUrl}`);
             const response = await fetch(finalUrl);
             if (!response.ok) throw new Error(`Proxy Fetch Failed: ${response.status}`);
             blob = await response.blob();
 
-            // 💾 PHASE 3: SECURE PERSISTENCE
             if (!metadata?.isUnlocked && !isAdminSignal) {
                 await cacheAudio(id, blob);
             }
@@ -322,22 +332,21 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
         setIsLoading(false);
     } catch (e) {
-        console.error("Token generation or setup failed:", e);
+        console.error("Playback failed:", e);
         setIsLoading(false);
         setActiveId(null);
         setActiveMetadata(null);
     }
-  }
+  }, [activeId, isPlaying]);
 
-  function pause() { audioRef.current?.pause(); }
-  function seek(time: number) { 
+  const seek = useCallback((time: number) => { 
     if (audioRef.current) {
         audioRef.current.currentTime = time
         setCurrentTime(time)
     }
-  }
+  }, []);
 
-  function stop() {
+  const stop = useCallback(() => {
     if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = "";
@@ -347,43 +356,35 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setCurrentTime(0);
     setSpectrum(new Array(40).fill(0));
     if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
-  }
+  }, []);
 
-  function toggleLoop() {
+  const toggleLoop = useCallback(() => {
     if (audioRef.current) {
         const nxt = !isLooping;
         audioRef.current.loop = nxt;
         setIsLooping(nxt);
     }
-  }
+  }, [isLooping]);
 
-    function next() {
-        const currentPlaylist = playlistRef.current
-        if (currentPlaylist.length === 0) return
-        const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
-        const nextIndex = (currentIndex + 1) % currentPlaylist.length
-        const nextSample = currentPlaylist[nextIndex]
-        play(nextSample.id, nextSample.url, nextSample)
+  const updateMetadataUnlocked = useCallback((id: string) => {
+    if (activeId === id && activeMetadata) {
+        setActiveMetadata({ ...activeMetadata, isUnlocked: true })
     }
+    setPlaylist(prev => prev.map(item => item.id === id ? { ...item, isUnlocked: true } : item))
+  }, [activeId, activeMetadata, setPlaylist]);
 
-    function prev() {
-        const currentPlaylist = playlistRef.current
-        if (currentPlaylist.length === 0) return
-        const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
-        const prevIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length
-        const prevSample = currentPlaylist[prevIndex]
-        play(prevSample.id, prevSample.url, prevSample)
-    }
+  // Rename setter to allow custom callback version
+  const [playlist, setPlaylistState] = useState<AudioMetadata[]>([])
 
-    return (
-        <AudioContext.Provider value={{ 
-            activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
-            isLooping, volume, playlist, vibeSuggestions, play, pause, seek, setVolume, toggleLoop, 
-            setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev, user
-        }}>
-            {children}
-        </AudioContext.Provider>
-    )
+  return (
+    <AudioContext.Provider value={{ 
+        activeId, activeMetadata, isPlaying, isLoading, currentTime, duration, spectrum, 
+        isLooping, volume, playlist, vibeSuggestions, play, pause, seek, setVolume, toggleLoop, 
+        setIsLoading, stop, setPlaylist, updateMetadataUnlocked, next, prev, user
+    }}>
+        {children}
+    </AudioContext.Provider>
+  )
 }
 
 export const useAudio = () => {
