@@ -49,12 +49,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [activeMetadata, setActiveMetadata] = useState<AudioMetadata | null>(null)
   const [vibeSuggestions, setVibeSuggestions] = useState<any[]>([])
 
-  useEffect(() => {
-    if (activeId) {
-        getVibeSuggestions(activeId).then(setVibeSuggestions)
-    }
-  }, [activeId])
-
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -62,8 +56,10 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
   const [isLooping, setIsLooping] = useState(false)
   const [volume, setVolumeState] = useState(1.0)
-  const [playlist, setPlaylist] = useState<AudioMetadata[]>([])
   const [user, setUser] = useState<any>(null)
+  
+  // 🎵 PLAYLIST_STATE :: Managed via ref-sync for instant navigation access
+  const [playlist, setPlaylistState] = useState<AudioMetadata[]>([])
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const analyzerRef = useRef<AnalyserNode | null>(null)
@@ -75,6 +71,17 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const userRef = useRef<any>(null)
   const playlistRef = useRef<AudioMetadata[]>([])
 
+  useEffect(() => {
+    if (activeId) {
+        getVibeSuggestions(activeId).then(setVibeSuggestions)
+    }
+  }, [activeId])
+
+  // Sync ref for immediate access in event handlers
+  useEffect(() => {
+    playlistRef.current = playlist
+  }, [playlist])
+
   const setPlaylist = useCallback((list: AudioMetadata[] | ((prev: AudioMetadata[]) => AudioMetadata[])) => {
       setPlaylistState(prev => {
           const next = typeof list === 'function' ? list(prev) : list;
@@ -82,11 +89,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
           return next;
       });
   }, []);
-
-  // Sync ref for immediate access in event handlers
-  useEffect(() => {
-    playlistRef.current = playlist
-  }, [playlist])
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -117,23 +119,17 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
   const pause = useCallback(() => { audioRef.current?.pause(); }, []);
 
-  const next = useCallback(() => {
-    const currentPlaylist = playlistRef.current
-    if (currentPlaylist.length === 0) return
-    const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
-    const nextIndex = (currentIndex + 1) % currentPlaylist.length
-    const nextSample = currentPlaylist[nextIndex]
-    play(nextSample.id, nextSample.url, nextSample)
-  }, [activeId]);
-
-  const prev = useCallback(() => {
-    const currentPlaylist = playlistRef.current
-    if (currentPlaylist.length === 0) return
-    const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
-    const prevIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length
-    const prevSample = currentPlaylist[prevIndex]
-    play(prevSample.id, prevSample.url, prevSample)
-  }, [activeId]);
+  const stop = useCallback(() => {
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+    }
+    setActiveId(null);
+    setActiveMetadata(null);
+    setCurrentTime(0);
+    setSpectrum(new Array(40).fill(0));
+    if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
+  }, []);
 
   // 🎹 GLOBAL_STUDIO_SHORTCUTS
   useEffect(() => {
@@ -145,7 +141,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
              case 'Space':
                  e.preventDefault(); 
                  if (isPlaying) pause();
-                 else if (activeId) audioRef.current?.play();
+                 else if (activeId) audioRef.current?.play().catch(() => {});
                  break;
              case 'ArrowRight':
                  next();
@@ -158,7 +154,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
      window.addEventListener('keydown', handleKeyDown);
      return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, activeId, next, prev, pause]);
+  }, [isPlaying, activeId]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -275,9 +271,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (activeId === id) {
       if (isPlaying) audioRef.current.pause();
       else {
-        audioRef.current.play().catch(e => {
-            if (e.name !== 'AbortError') console.error("Toggle play failed:", e);
-        });
+        audioRef.current.play().catch(() => {});
       }
       return
     }
@@ -324,12 +318,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         audioRef.current.volume = userVolumeRef.current;
         audioRef.current.load();
         
-        const mainPlayPromise = audioRef.current.play();
-        if (mainPlayPromise !== undefined) {
-            mainPlayPromise.catch((error) => {
-                if (error.name !== 'AbortError') console.error("SIGNAL_REJECTED:", error);
-            });
-        }
+        audioRef.current.play().catch(() => {});
         setIsLoading(false);
     } catch (e) {
         console.error("Playback failed:", e);
@@ -344,18 +333,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         audioRef.current.currentTime = time
         setCurrentTime(time)
     }
-  }, []);
-
-  const stop = useCallback(() => {
-    if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-    }
-    setActiveId(null);
-    setActiveMetadata(null);
-    setCurrentTime(0);
-    setSpectrum(new Array(40).fill(0));
-    if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
   }, []);
 
   const toggleLoop = useCallback(() => {
@@ -373,8 +350,23 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setPlaylist(prev => prev.map(item => item.id === id ? { ...item, isUnlocked: true } : item))
   }, [activeId, activeMetadata, setPlaylist]);
 
-  // Rename setter to allow custom callback version
-  const [playlist, setPlaylistState] = useState<AudioMetadata[]>([])
+  const next = useCallback(() => {
+    const currentPlaylist = playlistRef.current
+    if (currentPlaylist.length === 0) return
+    const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
+    const nextIndex = (currentIndex + 1) % currentPlaylist.length
+    const nextSample = currentPlaylist[nextIndex]
+    play(nextSample.id, nextSample.url, nextSample)
+  }, [activeId, play]);
+
+  const prev = useCallback(() => {
+    const currentPlaylist = playlistRef.current
+    if (currentPlaylist.length === 0) return
+    const currentIndex = currentPlaylist.findIndex(s => s.id === activeId)
+    const prevIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length
+    const prevSample = currentPlaylist[prevIndex]
+    play(prevSample.id, prevSample.url, prevSample)
+  }, [activeId, play]);
 
   return (
     <AudioContext.Provider value={{ 

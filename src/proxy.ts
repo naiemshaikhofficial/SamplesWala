@@ -68,11 +68,19 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // 🛡️ SECURITY_GATE: Private Route Protection
+  // 🛡️ SECURITY_GATE: Identify secured sectors
   const isProtectedRoute = pathname.startsWith('/library') || pathname.startsWith('/settings');
   const isAdminRoute = pathname.startsWith('/admin');
+  const isAuthCallback = pathname.startsWith('/auth/callback');
+
+  // 🧪 AUTH_SIGNAL_OPTIMIZATION
+  // Only call getUser if we are entering a protected route or handling a login callback.
+  // This drastically reduces /user calls on high-traffic public pages (Home, Browse, etc.)
+  let user = null;
+  if (isProtectedRoute || isAdminRoute || isAuthCallback) {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+  }
 
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/auth/login', request.url));
