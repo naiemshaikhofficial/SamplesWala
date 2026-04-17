@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 const SITE_URL = "https://sampleswala.com";
-const DEFAULT_TITLE = "SAMPLES WALA | India's #1 Premium samples, Loops & VSTs";
-const DEFAULT_DESC = "India's leading marketplace for pro-grade royalty-free audio samples, loops, and sample packs. Premium sounds for Desi Hip Hop, South Indian Percussion, Trap, and EDM from Bollywood to the streets.";
+const DEFAULT_TITLE = "Samples Wala | India's #1 Premium Samples, Loops & VSTs";
+const DEFAULT_DESC = "SamplesWala is a platform to buy music production plugins, presets, and sample packs online. Discover high-quality sounds, VST plugins, and tools for producers with worldwide access.";
 
 export type SEOMetadataParams = {
     title: string;
@@ -39,7 +39,7 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
             title: params.title,
             description: params.description,
             url,
-            siteName: "SAMPLES WALA",
+            siteName: "Samples Wala",
             type: params.type || "website",
             locale: "en_IN",
             images: [
@@ -69,7 +69,7 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
             },
         },
         // Performance & Identification
-        applicationName: 'SamplesWala',
+        applicationName: 'Samples Wala',
         authors: [{ name: 'SamplesWala Team' }],
         creator: 'SamplesWala',
         publisher: 'SamplesWala',

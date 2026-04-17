@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   ...generateMetadata(pagesMeta.home),
   title: {
     default: pagesMeta.home.title,
-    template: '%s | SAMPLES WALA'
+    template: '%s | Samples Wala'
   },
 }
 
@@ -71,12 +71,12 @@ export default function RootLayout({
         <JsonLdSchema data={{
           "@context": "https://schema.org",
           "@type": "Product",
-          "name": "SamplesWala",
+          "name": "Samples Wala",
           "image": "https://sampleswala.com/logo.png",
           "description": "Premium royalty-free sample packs and loops for music production.",
           "brand": {
             "@type": "Brand",
-            "name": "SamplesWala"
+            "name": "Samples Wala"
           },
           "aggregateRating": {
             "@type": "AggregateRating",

@@ -1,7 +1,7 @@
 import React from 'react';
 
 const SITE_URL = "https://sampleswala.com";
-const BRAND_NAME = "SamplesWala";
+const BRAND_NAME = "Samples Wala";
 
 // 👤 Person & MusicGroup combined (Nuclear SEO)
 export const PersonSchema = () => {
