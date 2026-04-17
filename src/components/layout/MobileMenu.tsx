@@ -15,8 +15,7 @@ const mainNav = [
   { id: 'home', label: 'Home', icon: Home, href: '/' },
   { id: 'browse', label: 'Browse', icon: Search, href: '/browse' },
   { id: 'packs', label: 'Packs', icon: Disc, href: '/browse?filter=packs' },
-  { id: 'studio', label: 'AI Forge', icon: Zap, href: '/studio' },
-  { id: 'library', label: 'Library', icon: Key, href: '/library' },
+  { id: 'sounds', label: 'Sounds', icon: Music, href: '/browse?filter=trending' },
 ];
 
 const sidebarGroups: {

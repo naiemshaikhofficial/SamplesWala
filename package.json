@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.1.0",
     "@paypal/react-paypal-js": "^9.1.1",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
@@ -24,7 +25,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.10.0",
-    "swr": "^2.4.1"
+    "swr": "^2.4.1",
+    "tone": "^15.1.22"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -193,12 +193,11 @@ export function Sidebar() {
                     { id: 'software', label: 'Software', icon: <CpuIcon className="w-3 h-3" />, href: '/software' },
                     { id: 'trending', label: 'Trending', icon: <Sparkles className="w-3 h-3" />, href: '/browse?filter=trending' },
                     { id: 'bundles', label: 'Bundles', icon: <Layers className="w-3 h-3" />, href: '/browse?filter=bundles' },
-                    { id: 'studio', label: 'AI Forge', icon: <Zap className="w-3 h-3 text-studio-neon" />, href: '/studio', secondary: 'NEW' },
-                ].map((item: any) => (
+                ].map((item) => (
                 <Link
                     key={item.id}
                     href={item.href}
-                    className={`flex flex-col gap-1 p-2 text-[10px] font-black uppercase tracking-tighter transition-all hover:bg-white/5 group border-l-2 relative ${
+                    className={`flex flex-col gap-1 p-2 text-[10px] font-black uppercase tracking-tighter transition-all hover:bg-white/5 group border-l-2 ${
                     (pathname === item.href || currentFilter === item.id) 
                     ? 'border-studio-neon bg-white/10 text-white' 
                     : 'border-transparent text-white/40 hover:text-white'
@@ -209,11 +208,6 @@ export function Sidebar() {
                         {item.icon}
                     </span>
                     {isOpen && item.label}
-                    {isOpen && item.secondary && (
-                        <span className="ml-auto text-[6px] bg-studio-neon text-black px-1 rounded-[1px] font-bold">
-                            {item.secondary}
-                        </span>
-                    )}
                     </div>
                 </Link>
                 ))}
