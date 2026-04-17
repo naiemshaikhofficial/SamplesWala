@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     pack = fallback as any;
   }
 
-  if (!pack) return { title: 'Pack Not Found | SAMPLES WALA' }
+  if (!pack) return { title: 'Pack Not Found | Samples Wala' }
 
   // Extract metadata samples for keywords
   const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
@@ -55,8 +55,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const genreBase = pack.categories?.name || 'Indian'
   const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   
-  const title = `${pack.name} - ${displayGenre} Sample Pack | Bollywood Sounds | SamplesWala`
-  const description = `Download ${pack.name} by SamplesWala. The ultimate ${displayGenre} Sample Pack featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
+  const title = `${pack.name} - ${displayGenre} Sample Pack | Bollywood Sounds | Samples Wala`
+  const description = `Download ${pack.name} by Samples Wala. The ultimate ${displayGenre} Sample Pack featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
   
   const keywords = [
     pack.name, 
@@ -178,7 +178,7 @@ export default async function PackPage({
     "description": pack.description,
     "brand": {
       "@type": "Brand",
-      "name": "SamplesWala"
+      "name": "Samples Wala"
     },
     "aggregateRating": {
       "@type": "AggregateRating",
@@ -373,7 +373,7 @@ export default async function PackPage({
             "name": pack.name,
             "image": pack.cover_url,
             "description": pack.description,
-            "brand": { "@type": "Brand", "name": "SamplesWala" },
+            "brand": { "@type": "Brand", "name": "Samples Wala" },
             "offers": {
               "@type": "Offer",
               "price": pack.price_inr || "0",

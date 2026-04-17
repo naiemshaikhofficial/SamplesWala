@@ -1,5 +1,14 @@
 import Link from 'next/link'
 import { ShieldCheck, Scale, Music, Globe, FileText, ArrowLeft, Download } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'Licensing Agreements | Samples Wala',
+    description: 'Review the Samples Wala license agreements. All our samples and loops are 100% royalty-free for commercial use worldwide.',
+    alternates: {
+        canonical: 'https://sampleswala.com/license'
+    }
+}
 
 export default function LicensePage() {
     return (

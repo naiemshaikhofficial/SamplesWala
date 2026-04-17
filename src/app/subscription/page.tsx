@@ -4,6 +4,15 @@ import Link from 'next/link'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import PricingClientView from './PricingClientView'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'Pricing Plans | Samples Wala Subscription',
+    description: 'Choose the perfect plan for your music production needs. Get monthly credits, royalty-free samples, and professional VST plugins with Samples Wala.',
+    alternates: {
+        canonical: 'https://sampleswala.com/subscription'
+    }
+}
 
 export default async function PricingPage() {
   const supabase = await createClient()
@@ -66,7 +75,7 @@ export default async function PricingPage() {
                     <Activity className="h-40 w-40" />
                 </div>
                 <h4 className="text-4xl font-black uppercase tracking-tighter mb-6 italic leading-none">Yours<br/>Forever</h4>
-                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">Every sound you download from SamplesWala is 100% royalty-free and yours to keep forever.</p>
+                <p className="text-sm font-black uppercase tracking-widest opacity-30 leading-loose max-w-sm mb-10">Every sound you download from Samples Wala is 100% royalty-free and yours to keep forever.</p>
                 <Link href="/profile/library" className="inline-flex items-center gap-4 text-studio-neon text-[10px] font-black uppercase tracking-widest group">
                     View My Sounds <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
                 </Link>
@@ -75,7 +84,7 @@ export default async function PricingPage() {
 
         <div className="mt-32 text-center">
              <p className="text-white/10 text-[9px] font-black uppercase tracking-[0.5em] italic">
-                SAMPLESWALA © {new Date().getFullYear()}
+                Samples Wala © {new Date().getFullYear()}
              </p>
         </div>
       </div>

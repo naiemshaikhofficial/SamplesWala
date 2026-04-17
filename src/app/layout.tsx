@@ -59,8 +59,7 @@ export default function RootLayout({
         <meta name="distribution" content="global" />
         <meta name="revisit-after" content="2 days" />
 
-        {/* 🔗 CANONICAL_URI_LOCK */}
-        <link rel="canonical" href="https://sampleswala.com" />
+
         
         {/* 📝 Structured Data (Nuclear SEO) */}
         <JsonLdSchema type="website" />

@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
   const { genre } = await params
   const genreTitle = genre.charAt(0).toUpperCase() + genre.slice(1)
   
-  const title = `Best ${genreTitle} Sample Packs & Drum Kits | SAMPLES WALA`
+  const title = `Best ${genreTitle} Sample Packs & Drum Kits | Samples Wala`
   const description = `Discover and download the best ${genreTitle} sample packs, loops, and drum kits. Professional royalty-free sounds for Your next ${genreTitle} production.`
 
   return {

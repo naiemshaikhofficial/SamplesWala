@@ -1,5 +1,14 @@
 import Link from 'next/link'
 import { Globe, Zap, ShieldCheck, Music4, Disc, Target, ArrowRight } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'About Samples Wala | The Ultimate Music Production Hub',
+    description: 'Learn more about Samples Wala, the industry gold standard for music production tools, VST plugins, and royalty-free samples based in Mumbai, India.',
+    alternates: {
+        canonical: 'https://sampleswala.com/about'
+    }
+}
 
 export default function AboutPage() {
     return (
@@ -80,7 +89,7 @@ export default function AboutPage() {
                                  <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Royalty Fees</span>
                              </div>
                         </div>
-                        <Link href="/pricing" className="h-64 bg-white text-black flex flex-col items-center justify-center gap-4 hover:bg-emerald-400 transition-all group">
+                        <Link href="/subscription" className="h-64 bg-white text-black flex flex-col items-center justify-center gap-4 hover:bg-emerald-400 transition-all group">
                              <Zap className="h-8 w-8 group-hover:scale-125 transition-transform" />
                              <span className="text-[10px] font-black uppercase tracking-widest">Join Signal</span>
                         </Link>

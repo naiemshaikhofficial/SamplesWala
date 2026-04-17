@@ -30,16 +30,16 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const q = params.q
   const category = params.category
   
-  let title = 'Sounds Library | SAMPLES WALA'
+  let title = 'Sounds Library | Samples Wala'
   let description = 'Browse our massive library of premium royalty-free samples, drum kits, and loops. Filter by BPM, Key, and Genre to find your perfect sound.'
   const domain = 'https://sampleswala.com'
 
   if (q) {
-    title = `Download "${q}" Samples & Loops | SAMPLES WALA`
+    title = `Download "${q}" Samples & Loops | Samples Wala`
     description = `Explore high-quality "${q}" audio samples and loops for music production. Pro-grade 24-bit WAV files, 100% royalty-free.`
   } else if (category) {
     const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
-    title = `Best ${formattedCategory} Samples & Drum Kits | SAMPLES WALA`
+    title = `Best ${formattedCategory} Samples & Drum Kits | Samples Wala`
     description = `Premium ${formattedCategory} loops and sounds for modern music producers. Discover the best royalty-free ${category} packs.`
   }
 

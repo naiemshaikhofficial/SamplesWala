@@ -91,7 +91,7 @@ export function Header() {
             <Link href="/" className="group relative transition-all hover:scale-105 shrink-0">
                 <Image 
                   src="/Logo.png" 
-                  alt="SAMPLES WALA Logo" 
+                  alt="Samples Wala Logo" 
                   width={120} 
                   height={30} 
                   className="h-6 md:h-9 w-auto object-contain brightness-110 group-hover:brightness-150 transition-all duration-700"

@@ -22,7 +22,7 @@ export function Footer() {
               <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-studio-neon">Top Genres</h4>
               <nav className="flex flex-col gap-4">
                   {['Trap', 'Drill', 'Lo-Fi', 'EDM', 'Hip-Hop'].map(g => (
-                      <Link key={g} href={`/genres/${g.toLowerCase()}`} className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">
+                      <Link key={g} href={`/sounds/genres/${g.toLowerCase()}`} className="text-[11px] font-bold text-white/30 hover:text-white transition-colors uppercase italic tracking-widest">
                           {g} Samples
                       </Link>
                   ))}
@@ -49,7 +49,7 @@ export function Footer() {
           </div>
           <div className="p-8 bg-studio-neon/5 border border-white/5 flex flex-col justify-center">
               <p className="text-[9px] font-black uppercase tracking-widest leading-loose text-white/40 italic">
-                  SamplesWala is the industry gold standard for <span className="text-white">Music Production Tools</span> and <span className="text-white">Royalty-Free Samples</span>. Dominate your DAW with precision-engineered sounds and cinematic software.
+                  Samples Wala is the industry gold standard for <span className="text-white">Music Production Tools</span> and <span className="text-white">Royalty-Free Samples</span>. Dominate your DAW with precision-engineered sounds and cinematic software.
               </p>
           </div>
       </div>
@@ -81,7 +81,7 @@ export function Footer() {
             {[
                 { name: 'SOUNDS', href: '/browse' },
                 { name: 'PACKS', href: '/browse' },
-                { name: 'PRICING', href: '/pricing' },
+                { name: 'PRICING', href: '/subscription' },
                 { name: 'LIBRARY', href: '/library' },
                 { name: 'ACCOUNT', href: '/settings' },
                 { name: 'HELP', href: '/faq' }
@@ -110,7 +110,7 @@ export function Footer() {
       <div className="px-8 py-3 bg-black/60 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 text-[8px] font-black uppercase text-white/10 tracking-[0.4em] italic">
-            © {currentYear} SAMPLES WALA // PRO_PRODUCER_CONSOLE
+            © {currentYear} Samples Wala // PRO_PRODUCER_CONSOLE
           </div>
         </div>
 

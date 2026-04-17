@@ -7,14 +7,14 @@ import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-    title: 'Professional Music Production Software & VST Plugins | SAMPLES WALA',
-    description: 'Explore the SamplesWala plugin suite. High-performance audio visualizers, MIDI engines, and professional production tools for modern music creators.',
+    title: 'Professional Music Production Software & VST Plugins | Samples Wala',
+    description: 'SamplesWala is a platform to buy music production plugins, presets, and sample packs online. Discover high-quality sounds, VST plugins, and tools for producers with worldwide access.',
     keywords: ['vst plugins', 'music visualizer', 'audio software', 'sampleswala software', 'production tools', 'beat making software'],
     openGraph: {
-        title: 'SamplesWala Software & Plugin Suite',
+        title: 'Samples Wala Software & Plugin Suite',
         description: 'Native performance plugins and professional audio tools for high-fidelity music production.',
         url: 'https://sampleswala.com/software',
-        siteName: 'SamplesWala',
+        siteName: 'Samples Wala',
         images: [{ url: '/og-software.jpg', width: 1200, height: 630, alt: 'SamplesWala Software Hub' }]
     }
 }

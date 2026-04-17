@@ -12,24 +12,24 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const supabase = await createClient()
     const { data: soft } = await supabase.from('software_products').select('*').eq('slug', slug).single()
     
-    if (!soft) return { title: 'Software Not Found | SamplesWala' }
+    if (!soft) return { title: 'Software Not Found | Samples Wala' }
 
     // 🚀 NUCLEAR SEO: VISUALIZER STUDIO EXCLUSIVE
     if (slug === 'visualizer-studio') {
         return {
-            title: 'Visualizer Studio | Best Music Audio Visualizer Software - SamplesWala',
+            title: 'Visualizer Studio | Best Music Audio Visualizer Software - Samples Wala',
             description: 'Create stunning audio-reactive music visualizers in seconds. The ultimate Visualizer Software for music producers, beatmakers, and YouTubers. Export high-quality music visualizer videos fast.',
             keywords: ['music visualizer', 'audio visualizer software', 'beat visualizer maker', 'podcast visualizer', 'audio reactive video', 'FL Studio visualizer alternative', 'after effects audio spectrum maker'],
             openGraph: {
                 title: 'Visualizer Studio - Fast Music Visualizer Software',
                 description: 'Transform your audio into eye-catching visual experiences effortlessly. Get the ultimate VST/Standalone visualizer engine.',
                 type: 'website',
-                siteName: 'SamplesWala',
+                siteName: 'Samples Wala',
                 ...(soft.cover_url && { images: [{ url: soft.cover_url }] })
             },
             twitter: {
                 card: 'summary_large_image',
-                title: 'Visualizer Studio by SamplesWala',
+                title: 'Visualizer Studio by Samples Wala',
                 description: 'The fastest way to generate professional audio-reactive videos for your beats.',
                 ...(soft.cover_url && { images: [soft.cover_url] })
             }
@@ -37,8 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
 
     // Default Fallback SEO
-    const title = `${soft.name} | Professional Music Software & VST Plugin | SAMPLES WALA`
-    const description = `Download ${soft.name} from SamplesWala. ${soft.description}. Premium production tool available for Windows and macOS. Lifetime updates included.`
+    const title = `${soft.name} | Professional Music Software & VST Plugin | Samples Wala`
+    const description = `Download ${soft.name} from Samples Wala. ${soft.description}. Premium production tool available for Windows and macOS. Lifetime updates included.`
     const ogImage = `https://sampleswala.com/api/og/software/${slug}`
     
     return {

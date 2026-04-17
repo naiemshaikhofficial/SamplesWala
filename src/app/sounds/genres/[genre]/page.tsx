@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
   const { genre } = await params
   const genreTitle = genre.charAt(0).toUpperCase() + genre.slice(1)
   
-  const title = `Best ${genreTitle} Samples, Loops & Drum Kits 2026 | SAMPLES WALA`
+  const title = `Best ${genreTitle} Samples, Loops & Drum Kits 2026 | Samples Wala`
   const description = `Download professional royalty-free ${genreTitle} samples, melodies, and drum kits. 24-bit WAV files compatible with FL Studio, Ableton, and Logic. Discover the industry's best ${genreTitle} loops and one-shots.`
 
   return {

@@ -19,12 +19,12 @@ import { Suspense } from 'react'
 export const revalidate = 3600;
 
 export const metadata = {
-  title: 'Samples Wala - Pro Global & Indian Sample Packs [Splice Alternative]',
-  description: 'The elite destination for high-quality Global & Indian samples. 100% royalty-free Trap, Drill, Hip-Hop, and Bollywood loops. Industry-standard WAV sounds for producers worldwide on FL Studio & Ableton.',
+  title: 'Samples Wala - Pro Global & Indian Sample Packs online',
+  description: 'Samples Wala is a platform to buy music production plugins, presets, and sample packs online. Discover high-quality sounds, VST plugins, and tools for producers with worldwide access.',
   keywords: [
     'sample packs', 'trap samples', 'drill loops', 'hip hop sounds', 'edm samples',
     'indian samples', 'bollywood sample packs', 'royalty free loops', 
-    'wav samples', 'music production', 'fl studio packs', 'sampleswala', 
+    'wav samples', 'music production', 'fl studio packs', 'samples wala', 
     'splice alternative', 'looperman alternative', 'cymatics style loops', 'landr samples'
   ],
   alternates: {
@@ -36,7 +36,7 @@ export const metadata = {
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "SamplesWala",
+  "name": "Samples Wala",
   "url": "https://sampleswala.com",
   "logo": "https://imagizer.imageshack.com/img924/3983/vzoEZd.png",
   "sameAs": [
@@ -146,13 +146,13 @@ export default function Home() {
             "mainEntity": [
               {
                 "@type": "Question",
-                "name": "Why is SamplesWala a better Splice alternative for Indian music?",
-                "acceptedAnswer": { "@type": "Answer", "text": "SamplesWala focuses specifically on authentic Indian sounds and Bollywood style samples that global platforms like Splice often lack. All our sounds are 100% royalty-free and curated by veteran Indian producers." }
+                "name": "Why is Samples Wala a better Splice alternative for Indian music?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Samples Wala focuses specifically on authentic Indian sounds and Bollywood style samples that global platforms like Splice often lack. All our sounds are 100% royalty-free and curated by veteran Indian producers." }
               },
               {
                 "@type": "Question",
-                "name": "Does SamplesWala offer free loops like LooperMan?",
-                "acceptedAnswer": { "@type": "Answer", "text": "Yes, SamplesWala has a dedicated free sounds section. While sites like LooperMan are community-driven, SamplesWala offers studio-quality, professionally mastered samples that are ready for commercial hits." }
+                "name": "Does Samples Wala offer free loops like LooperMan?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Yes, Samples Wala has a dedicated free sounds section. While sites like LooperMan are community-driven, Samples Wala offers studio-quality, professionally mastered samples that are ready for commercial hits." }
               }
             ]
           }) }}
@@ -330,7 +330,7 @@ export default function Home() {
             items={[
                 { 
                     q: "Are these samples royalty-free?", 
-                    a: "Yes, 100%. Every pack and individual sound on SamplesWala is cleared for commercial use. You can use them in your tracks and sell them on Spotify, Apple Music, and more without any legal issues." 
+                    a: "Yes, 100%. Every pack and individual sound on Samples Wala is cleared for commercial use. You can use them in your tracks and sell them on Spotify, Apple Music, and more without any legal issues." 
                 },
                 { 
                     q: "What format are the sounds in?", 

@@ -29,11 +29,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         .eq('id', id)
         .single()
     
-    if (!sample) return { title: 'Sound Not Found | SAMPLES WALA' }
+    if (!sample) return { title: 'Sound Not Found | Samples Wala' }
 
     const packName = sample.sample_packs?.name || 'Studio Pack'
-    const title = `${sample.name} - ${sample.bpm || ''} ${sample.key || ''} ${sample.type} Sound | SAMPLES WALA`
-    const description = `Download the high-quality "${sample.name}" sound from ${packName}. 24-bit WAV, royalty-free ${sample.ai_genre} ${sample.type}. Preview and download at SamplesWala.`
+    const title = `${sample.name} - ${sample.bpm || ''} ${sample.key || ''} ${sample.type} Sound | Samples Wala`
+    const description = `Download the high-quality "${sample.name}" sound from ${packName}. 24-bit WAV, royalty-free ${sample.ai_genre} ${sample.type}. Preview and download at Samples Wala.`
 
     return {
         title,
@@ -205,7 +205,7 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                                     if (navigator.share) {
                                         navigator.share({
                                             title: `${sample.name} Sample`,
-                                            text: `Check out this ${sample.bpm} BPM ${sample.key} ${sample.type} on SamplesWala!`,
+                                            text: `Check out this ${sample.bpm} BPM ${sample.key} ${sample.type} on Samples Wala!`,
                                             url: window.location.href
                                         }).catch(() => {
                                             navigator.clipboard.writeText(window.location.href);

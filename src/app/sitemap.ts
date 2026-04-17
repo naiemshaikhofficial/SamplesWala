@@ -102,7 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${domain}/browse`, lastModified: currentDate, changeFrequency: 'daily', priority: 0.9 },
     { url: `${domain}/free`, lastModified: currentDate, changeFrequency: 'daily', priority: 0.9 },
     { url: `${domain}/software`, lastModified: currentDate, changeFrequency: 'daily', priority: 0.9 },
-    { url: `${domain}/pricing`, lastModified: currentDate, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${domain}/subscription`, lastModified: currentDate, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${domain}/faq`, lastModified: currentDate, changeFrequency: 'daily', priority: 0.8 },
     { url: `${domain}/about`, lastModified: currentDate, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${domain}/contact`, lastModified: currentDate, changeFrequency: 'monthly', priority: 0.5 },

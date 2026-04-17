@@ -3,8 +3,11 @@ import { Metadata } from 'next'
 import FAQContent from '@/components/faq/FAQContent'
 
 export const metadata: Metadata = {
-    title: 'Support Console | Help & FAQ | SAMPLES WALA',
+    title: 'Support Console | Help & FAQ | Samples Wala',
     description: 'Access surgical troubleshooting guides and frequently asked protocols regarding subscriptions, cancellations, and royalty-free licensing.',
+    alternates: {
+        canonical: 'https://sampleswala.com/faq'
+    }
 }
 
 export default function HelpPage() {
