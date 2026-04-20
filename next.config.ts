@@ -29,6 +29,14 @@ const nextConfig: NextConfig = {
       },
     ]
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/webhooks/razorpay/',
+        destination: '/api/webhooks/razorpay',
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

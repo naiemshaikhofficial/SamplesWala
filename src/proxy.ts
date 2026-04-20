@@ -25,6 +25,13 @@ export async function proxy(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+
+  // 🛡️ WEBHOOK_BYPASS: Protocols like Razorpay/PayPal handle their own security.
+  // Bypassing proxy to prevent Rate Limiting or Bot Shield from blocking critical signals.
+  if (pathname.startsWith('/api/webhooks')) {
+    return NextResponse.next();
+  }
+
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
   // 🛡️ 1. RATE LIMITING (Basic Edge implementation)

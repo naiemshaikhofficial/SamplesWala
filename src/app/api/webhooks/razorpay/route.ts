@@ -29,7 +29,10 @@ export async function POST(req: Request) {
 
     const event = JSON.parse(payload)
     console.log(`[RAZORPAY_WEBHOOK] 📡 RECEIVED_EVENT: ${event.event}`)
-    const supabase = await createClient()
+    
+    // 🧬 ADMIN_SIGNAL_GATE: Webhooks must use service_role to bypass RLS
+    const { getAdminClient } = await import('@/lib/supabase/admin')
+    const supabase = getAdminClient()
 
     try {
         const payment = event.payload.payment?.entity
