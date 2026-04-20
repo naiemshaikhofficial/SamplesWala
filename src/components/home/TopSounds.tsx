@@ -66,7 +66,7 @@ export function TopSounds({
                     key={i} 
                     className="w-full bg-studio-yellow animate-meter origin-bottom"
                     style={{ 
-                        height: `${20 + Math.random() * 80}%`,
+                        height: `${20 + ((i * 17) % 80)}%`,
                         animationDelay: `${i * 0.1}s`
                     }}
                 />

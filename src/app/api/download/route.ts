@@ -70,26 +70,44 @@ export async function GET(req: Request) {
       return NextResponse.redirect(sample.download_url)
     }
 
-    /** 📠 V4 SIGNAL PIPE **/
-    const drive = getDriveClient();
-    const driveResponse = await drive.files.get(
-      { fileId: driveId, alt: 'media' },
-      { responseType: 'stream' }
-    )
+    /** 📠 V4 SIGNAL PIPE :: CLOUDFLARE_STEALTH_UPGRADE **/
+    const workerUrl = process.env.CLOUDFLARE_WORKER_URL;
+    const proxySecret = process.env.PROXY_SECRET;
 
-    const stream = driveResponse.data as unknown as Readable;
-    
-    const fileName = sample.name.endsWith('.wav') || sample.name.endsWith('.zip') || sample.name.endsWith('.rar') 
-        ? sample.name 
-        : `${sample.name}.wav`;
+    if (workerUrl && proxySecret && driveId) {
+      const crypto = await import('crypto');
+      
+      // 🔐 AES-256-GCM Encryption (Sync with [id] protocol)
+      const secretHash = crypto.createHash('sha256').update(proxySecret).digest();
+      const iv = crypto.randomBytes(12);
+      const cipher = crypto.createCipheriv('aes-256-gcm', secretHash, iv);
+      let encryptedId = cipher.update(driveId, 'utf8', 'hex');
+      encryptedId += cipher.final('hex');
+      const authTag = cipher.getAuthTag().toString('hex');
+      const payload = iv.toString('hex') + encryptedId + authTag;
 
-    return new Response(stream as any, {
-      headers: {
-        'Content-Type': driveResponse.headers['content-type'] || 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-      },
-    })
+      // 🔐 Generate EXPIRING Signature (1 Hour for Downloads)
+      const timestamp = Math.floor(Date.now() / 1000) + 3600; 
+      
+      const hmac = crypto.createHmac('sha256', proxySecret);
+      hmac.update(`${payload}:${timestamp}`);
+      
+      const sig = hmac.digest('base64')
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=/g, "");
+
+      const fileName = sample.name.endsWith('.wav') || sample.name.endsWith('.zip') || sample.name.endsWith('.rar') 
+          ? sample.name 
+          : `${sample.name}.wav`;
+      const encodedName = encodeURIComponent(`SamplesWala - ${fileName}`);
+
+      return NextResponse.redirect(`${workerUrl}?payload=${payload}&sig=${sig}&exp=${timestamp}&name=${encodedName}&download=1`);
+    }
+
+    // 🔄 Fallback: Direct Drive
+    const fallbackUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+    return NextResponse.redirect(fallbackUrl);
 
   } catch (err: any) {
     console.error('Download bridge failed:', err.message)

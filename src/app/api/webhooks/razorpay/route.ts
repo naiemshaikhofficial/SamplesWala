@@ -23,21 +23,25 @@ export async function POST(req: Request) {
         .digest('hex')
 
     if (expectedSignature !== signature) {
-        console.error('[COMMERCE_ERROR] SIGNATURE_MISMATCH_SECURITY_ALERT.')
+        console.error('[RAZORPAY_WEBHOOK] ❌ SIGNATURE_MISMATCH. Secret might be invalid.')
         return NextResponse.json({ error: 'Forgery Detected' }, { status: 400 })
     }
 
     const event = JSON.parse(payload)
+    console.log(`[RAZORPAY_WEBHOOK] 📡 RECEIVED_EVENT: ${event.event}`)
     const supabase = await createClient()
 
     try {
         const payment = event.payload.payment?.entity
-        const notes = payment?.notes || {}
+        console.log(`[RAZORPAY_WEBHOOK] 💳 PAYMENT_ID: ${payment?.id || 'N/A'}`)
+        
+        const notes = payment?.notes || event.payload.subscription?.entity?.notes || {}
         const userId = notes.user_id
         const type = notes.type // 'subscription', 'pack', 'sample_pack'
         const itemId = notes.plan_id || notes.pack_id
 
         if (!userId && event.event !== 'subscription.charged' && event.event !== 'subscription.cancelled') {
+             console.log('[RAZORPAY_WEBHOOK] ⚠️ SKIP: No user_id in notes.')
              return NextResponse.json({ received: true, skip: "Manual / Untracked payment" })
         }
 
@@ -191,10 +195,11 @@ export async function POST(req: Request) {
 
         revalidatePath('/', 'layout')
         revalidatePath('/profile')
+        console.log(`[RAZORPAY_WEBHOOK] ✅ PROCESSED_EVENT: ${event.event}`)
         return NextResponse.json({ received: true })
 
     } catch (err: any) {
-        console.error('[WEBHOOK_CRITICAL_SIGNAL_FAILURE]', err.message)
-        return NextResponse.json({ error: 'Internal Signal Error' }, { status: 500 })
+        console.error('[RAZORPAY_WEBHOOK] 🛑 CRITICAL_FAILURE:', err.message)
+        return NextResponse.json({ error: 'Internal Signal Error', details: err.message }, { status: 500 })
     }
 }

@@ -152,6 +152,10 @@ export async function GET(
             {
                 width: 1200,
                 height: 630,
+                // 🧬 EDGE_CACHING_LOGIC
+                headers: {
+                    'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=43200'
+                }
             }
         )
     } catch (e) {

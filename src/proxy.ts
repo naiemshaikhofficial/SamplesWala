@@ -14,6 +14,16 @@ const SENSITIVE_PATHS = ['/api/auth', '/api/payment', '/admin'];
  * Handles Gatekeeping, SEO Protection, and Security Headers.
  */
 export async function proxy(request: NextRequest) {
+  // 🏎️ 0. PREFETCH_OPTIMIZATION
+  // Skip heavy logic for Next.js prefetches to save CPU cycles & Invocations.
+  const isPrefetch = request.headers.get('next-router-prefetch') || 
+                     request.headers.get('purpose') === 'prefetch' ||
+                     request.headers.get('x-middleware-prefetch') === '1';
+
+  if (isPrefetch) {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
@@ -96,11 +106,13 @@ export async function proxy(request: NextRequest) {
      if (!isAuthorized) return NextResponse.redirect(new URL('/browse', request.url));
   }
 
-  // 🏛️ NUCLEAR SEO HEADERS
+  // 🏛️ NUCLEAR SEO & SECURITY HEADERS (Offloaded to Edge)
+  // Note: These are also in next.config.ts for redundancy but enforced here for API/Direct hits
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Content-Security-Policy", "upgrade-insecure-requests;"); // Basic Policy, specific one below
 
   // API No-Index Protection
   if (pathname.startsWith("/api")) {
