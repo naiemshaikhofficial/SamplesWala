@@ -19,6 +19,7 @@ import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { SidebarFilters } from '@/components/browse/SidebarFilters'
 import { SampleList } from '@/components/audio/SampleList'
 import { Pagination } from '@/components/layout/Pagination'
+import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { Cable } from 'lucide-react'
 import { Metadata } from 'next'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
@@ -105,6 +106,23 @@ export default async function BrowsePage({
      limit: pageSize.toString(),
      page: page
   })
+
+  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let isSubscribed = false
+
+  if (user) {
+    const { data: account } = await supabase
+        .from('user_accounts')
+        .select('subscription_status')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    
+    isSubscribed = account?.subscription_status === 'ACTIVE'
+  }
+
+  const isRestricted = pageVal > 1 && !isSubscribed;
 
   // 🧬 SIGNAL_INJECTION
   const samples = rawSamples.map((s: any) => ({
@@ -260,22 +278,29 @@ export default async function BrowsePage({
                             <Zap className="h-6 w-6 text-studio-neon" /> Individual Sounds
                         </h2>
                     </div>
-                    <SampleList 
-                        samples={samples} 
-                        packName="Browse Results" 
-                        coverUrl={null} 
-                    />
-
-                    {!hasNoResults && (
-                        <div className="mt-20">
-                            <Pagination 
-                                currentPage={pageVal} 
-                                totalCount={count ?? 0} 
-                                pageSize={pageSize} 
-                                baseUrl="/browse"
-                                searchParams={params}
+                    
+                    {isRestricted ? (
+                        <PremiumPaywall />
+                    ) : (
+                        <>
+                            <SampleList 
+                                samples={samples} 
+                                packName="Browse Results" 
+                                coverUrl={null} 
                             />
-                        </div>
+
+                            {!hasNoResults && (
+                                <div className="mt-20">
+                                    <Pagination 
+                                        currentPage={pageVal} 
+                                        totalCount={count ?? 0} 
+                                        pageSize={pageSize} 
+                                        baseUrl="/browse"
+                                        searchParams={params}
+                                    />
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

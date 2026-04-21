@@ -9,6 +9,8 @@ import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 import { Pagination } from '@/components/layout/Pagination'
+import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: 'Free Samples & Loops Download | 100% Royalty Free | SamplesWala',
@@ -43,6 +45,23 @@ export default async function FreeSamplesPage({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
+
+  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let isSubscribed = false
+
+  if (user) {
+    const { data: account } = await supabase
+        .from('user_accounts')
+        .select('subscription_status')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    
+    isSubscribed = account?.subscription_status === 'ACTIVE'
+  }
+
+  const isRestricted = pageVal > 1 && !isSubscribed;
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white">
@@ -83,21 +102,27 @@ export default async function FreeSamplesPage({
 
           {freeSamples && freeSamples.length > 0 ? (
               <>
-                  <SampleList 
-                      samples={freeSamples} 
-                      packName="Free Collection" 
-                      coverUrl={null} 
-                  />
+                  {isRestricted ? (
+                      <PremiumPaywall />
+                  ) : (
+                      <>
+                          <SampleList 
+                              samples={freeSamples} 
+                              packName="Free Collection" 
+                              coverUrl={null} 
+                          />
 
-                  <div className="mt-20">
-                      <Pagination 
-                          currentPage={pageVal} 
-                          totalCount={count ?? 0} 
-                          pageSize={pageSize} 
-                          baseUrl="/free"
-                          searchParams={sParams}
-                      />
-                  </div>
+                          <div className="mt-20">
+                              <Pagination 
+                                  currentPage={pageVal} 
+                                  totalCount={count ?? 0} 
+                                  pageSize={pageSize} 
+                                  baseUrl="/free"
+                                  searchParams={sParams}
+                              />
+                          </div>
+                      </>
+                  )}
               </>
           ) : (
               <div className="py-40 border-4 border-dashed border-white/5 text-center bg-black/20">
