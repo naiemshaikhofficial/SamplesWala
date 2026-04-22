@@ -106,6 +106,53 @@ export const OrganizationSchema = () => {
     );
 };
 
+// 🏪 Local Business Schema (Mumbai HQ)
+export const LocalBusinessSchema = () => {
+    const schema = {
+        '@context': 'https://schema.org',
+        '@type': 'LocalBusiness',
+        '@id': `${SITE_URL}/#localbusiness`,
+        name: BRAND_NAME,
+        image: `${SITE_URL}/Logo.png`,
+        url: SITE_URL,
+        telephone: '+919000000000', 
+        priceRange: '₹-₹₹₹',
+        address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Andheri West',
+            addressLocality: 'Mumbai',
+            addressRegion: 'Maharashtra',
+            postalCode: '400053',
+            addressCountry: 'IN',
+        },
+        geo: {
+            '@type': 'GeoCoordinates',
+            latitude: 19.1136,
+            longitude: 72.8697,
+        },
+        openingHoursSpecification: {
+            '@type': 'OpeningHoursSpecification',
+            dayOfWeek: [
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday'
+            ],
+            opens: '09:00',
+            closes: '21:00',
+        },
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+};
+
 // 📦 Product Schema (For dynamic use in product pages)
 interface ProductSchemaProps {
     name: string;
@@ -267,6 +314,7 @@ const JsonLdSchema: React.FC<JsonLdProps> = ({ type, data }) => {
                 />
                 <PersonSchema />
                 <OrganizationSchema />
+                <LocalBusinessSchema />
             </>
         );
     }

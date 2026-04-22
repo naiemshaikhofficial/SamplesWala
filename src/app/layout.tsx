@@ -73,9 +73,7 @@ export default function RootLayout({
 
         
         {/* 📝 Structured Data (Nuclear SEO) */}
-        <JsonLdSchema type="website" />
-        <JsonLdSchema type="organization" />
-        <JsonLdSchema type="music-group" />
+        <JsonLdSchema />
         
         {/* ⭐ Aggregate Brand Rating for CTR Boost */}
         <JsonLdSchema data={{
