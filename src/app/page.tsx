@@ -78,10 +78,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
-
-
-  return (
-    <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
         {/* 🧬 NUCLEAR_SEO: Brand & Search Payloads */}
         <script
           type="application/ld+json"
@@ -142,7 +138,7 @@ export default async function Home() {
             <div className="max-w-7xl mx-auto px-4 md:px-20">
                 <div className="flex items-center justify-between mb-16 px-4 border-l-4 border-studio-neon">
                    <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">Browse By Genre</h2>
-                   <Link href="/browse" className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon transition-colors">See All</Link>
+                   <Link href="/browse" prefetch={false} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon transition-colors">See All</Link>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-4">
@@ -159,6 +155,7 @@ export default async function Home() {
                         <Link 
                             key={genre.name} 
                             href={`/browse?category=${genre.slug}`}
+                            prefetch={false}
                             className="group relative h-32 md:h-48 overflow-hidden border-2 border-white/5 hover:border-white/20 transition-all studio-panel"
                         >
                             <div className={`absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity ${genre.color}`} />
@@ -317,9 +314,9 @@ export default async function Home() {
                     </div>
                 </div>
                 <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">
-                    <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-                    <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-                    <Link href="/license" className="hover:text-white transition-colors">License</Link>
+                    <Link href="/terms" prefetch={false} className="hover:text-white transition-colors">Terms</Link>
+                    <Link href="/privacy" prefetch={false} className="hover:text-white transition-colors">Privacy</Link>
+                    <Link href="/license" prefetch={false} className="hover:text-white transition-colors">License</Link>
                 </div>
             </div>
         </footer>
