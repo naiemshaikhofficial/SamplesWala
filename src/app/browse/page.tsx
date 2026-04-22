@@ -94,30 +94,33 @@ export default async function BrowsePage({
   }
 }) {
   const params = await (searchParams as any)
-  const categories = await getAllCategories()
   
   const page = (params.page as string) || '1'
   const pageVal = parseInt(page)
   const pageSize = 20
   
-  // 🎹 Loading Sounds (Precision Search)
-  const packs = await getFilteredPacks({ 
-     query: params.q, 
-     category: params.category, 
-     filter: params.filter, 
-  })
+  // 🚀 PARALLEL_SIGNAL_ACQUISITION
+  const [categories, packs, samplesBatch] = await Promise.all([
+    getAllCategories(),
+    getFilteredPacks({ 
+       query: params.q, 
+       category: params.category, 
+       filter: params.filter, 
+    }),
+    getFilteredSamples({ 
+       query: params.q, 
+       category: params.category, 
+       type: params.type,
+       filter: params.filter,
+       bpm_min: params.bpm_min ? parseInt(params.bpm_min) : undefined,
+       bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
+       key: params.key,
+       limit: pageSize.toString(),
+       page: page
+    })
+  ])
 
-  const { samples: rawSamples, count } = await getFilteredSamples({ 
-     query: params.q, 
-     category: params.category, 
-     type: params.type,
-     filter: params.filter,
-     bpm_min: params.bpm_min ? parseInt(params.bpm_min) : undefined,
-     bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
-     key: params.key,
-     limit: pageSize.toString(),
-     page: page
-  })
+  const { samples: rawSamples, count } = samplesBatch;
 
   // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
   const supabase = await createClient()

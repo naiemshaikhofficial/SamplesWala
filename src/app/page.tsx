@@ -16,8 +16,9 @@ import { FAQSection } from "@/components/seo/FAQSection";
 import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
 import { Suspense } from 'react'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
+import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 
-export const revalidate = 3600;
+export const revalidate = 300; // ⚡ DYNAMIC_RECOVERY_WINDOW: 5 MINUTES
 
 export const metadata = generateMetadata(pagesMeta.home);
 
@@ -53,72 +54,31 @@ const searchboxSchema = {
   }
 }
 
-async function NewArrivalsSection() {
+export default async function Home() {
   const adminClient = getAdminClient()
-  let { data: latestPacks } = await adminClient
-    .from('sample_packs')
-    .select('id, name, slug, price_inr, cover_url, categories(name), samples(bpm, key)')
-    .order('created_at', { ascending: false })
-    .limit(12)
 
-  // Fallback check
-  if (!latestPacks || latestPacks.length === 0) {
-    const { data: fallbackScan } = await adminClient
-      .from('sample_packs')
-      .select('id, name, slug, price_inr, cover_url, samples(bpm, key)')
-      .order('created_at', { ascending: false })
-      .limit(12)
-    latestPacks = fallbackScan as any;
-  }
+  // 🚀 PARALLEL_SIGNAL_ACQUISITION: Fetch everything at once
+  const [latestPacksData, freshSoundsData, topSamplesData, softwareData] = await Promise.all([
+    adminClient.from('sample_packs').select('id, name, slug, price_inr, cover_url, categories(name), samples(bpm, key)').order('created_at', { ascending: false }).limit(12),
+    adminClient.from('samples').select('id, name, audio_url, bpm, key, credit_cost, sample_packs(name, slug, cover_url)').order('created_at', { ascending: false }).limit(20),
+    getTopPopularSounds(20),
+    adminClient.from('software_products').select('id, name, slug, description, price_inr, cover_url, current_version').eq('is_active', true).order('created_at', { ascending: false }).limit(2)
+  ])
 
-  return <NewArrivals packs={latestPacks || []} />
-}
+  // 🧬 SIGNAL_PROCESSING
+  const enrichedFreshSounds = (freshSoundsData.data || []).map((s: any) => ({
+      ...s,
+      signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
+  }))
 
-async function FreshSoundsSection() {
-  const adminClient = getAdminClient()
-  let { data: freshSounds } = await adminClient
-    .from('samples')
-    .select('id, name, audio_url, bpm, key, credit_cost, sample_packs(name, slug, cover_url)')
-    .order('created_at', { ascending: false })
-    .limit(20)
-
-  // 🛰️ SIGNAL_BATCH_PROTOCOL
-  const enrichedSounds = (freshSounds || []).map((s: any) => {
-      const driveId = getDriveFileId(s.audio_url);
-      return {
-          ...s,
-          signal: driveId ? generateAudioSignal(driveId, s.name) : null
-      }
-  });
-
-  return <FreshSounds samples={enrichedSounds || []} />
-}
-
-async function TopChartsSection() {
-  const topSamples = await getTopPopularSounds(20)
-  
-  // 🧬 SIGNAL_PROTOCOL: Support secure playback for trending sounds
-  const enrichedTopSamples = (topSamples || []).map((s: any) => ({
+  const enrichedTopSamples = (topSamplesData || []).map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url || s.url), s.name)
   }))
 
-  return <TopSounds samples={enrichedTopSamples || []} />
-}
+  return (
+    <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
 
-async function SoftwareSection() {
-  const adminClient = getAdminClient()
-  const { data: products } = await adminClient
-    .from('software_products')
-    .select('id, name, slug, description, price_inr, cover_url, current_version')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(2)
-
-  return <SoftwareSpotlight products={products || []} />
-}
-
-export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
@@ -171,9 +131,9 @@ export default function Home() {
                     <span className="text-[11px] md:text-sm font-black uppercase tracking-[0.4em] text-studio-neon">NEW RELEASES</span>
                 </div>
                 
-                <Suspense fallback={null}>
-                    <NewArrivalsSection />
-                </Suspense>
+                <SectionErrorBoundary sectionName="New Arrivals">
+                    <NewArrivals packs={latestPacksData.data || []} />
+                </SectionErrorBoundary>
             </div>
         </section>
 
@@ -217,9 +177,9 @@ export default function Home() {
         {/* 📡 LIVE CHANNEL RACK: FRESH SOUNDS */}
         <section id="fresh-sounds" className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
             <div className="max-w-7xl mx-auto">
-              <Suspense fallback={null}>
-                <FreshSoundsSection />
-              </Suspense>
+                <SectionErrorBoundary sectionName="Fresh Signals">
+                    <FreshSounds samples={enrichedFreshSounds} />
+                </SectionErrorBoundary>
             </div>
         </section>
 
@@ -227,9 +187,9 @@ export default function Home() {
         <SubscriptionFeature />
 
         {/* 🛠️ SOFTWARE SPOTLIGHT */}
-        <Suspense fallback={null}>
-            <SoftwareSection />
-        </Suspense>
+        <SectionErrorBoundary sectionName="Software Matrix">
+            <SoftwareSpotlight products={softwareData.data || []} />
+        </SectionErrorBoundary>
 
         {/* 🎚️ MIXER MATRIX (FX RACK) - FORCED ROW ON MOBILE */}
         <section className="relative z-20 border-b-4 border-white/5 bg-studio-charcoal overflow-hidden">
@@ -285,7 +245,7 @@ export default function Home() {
                                 style={{ 
                                     height: `${30 + Math.random() * 70}%`
                                 }} 
-                            />
+                                />
                         ))}
                     </div>
                 </div>
@@ -298,9 +258,9 @@ export default function Home() {
                 Trending
             </div>
             <div className="max-w-7xl mx-auto px-4 md:px-20 relative">
-                <Suspense fallback={null}>
-                  <TopChartsSection />
-                </Suspense>
+                <SectionErrorBoundary sectionName="Trending Charts">
+                    <TopSounds samples={enrichedTopSamples} />
+                </SectionErrorBoundary>
             </div>
         </section>
 

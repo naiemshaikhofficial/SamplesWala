@@ -9,6 +9,7 @@ import PayPalCheckout from '../../components/payment/PayPalCheckout'
 import { createClient } from '@/lib/supabase/client'
 import { validateDiscountCoupon } from '@/app/actions/coupons'
 import { Tag, Ticket } from 'lucide-react'
+import Script from 'next/script'
 
 interface CheckoutClientViewProps {
     item: any
@@ -172,6 +173,11 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
 
     return (
         <div className="container mx-auto px-4 max-w-7xl">
+            {/* 🚀 PRELOAD_PAYMENT_INFRASTRUCTURE */}
+            <Script 
+                src="https://checkout.razorpay.com/v1/checkout.js" 
+                strategy="afterInteractive"
+            />
             {/* 🏁 PROGRESS_FLOW_INDICATOR */}
             <div className="flex items-center justify-center gap-12 mb-20 px-4">
                 {[

@@ -92,7 +92,6 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, int
 
     return (
         <>
-            <Script src="https://checkout.razorpay.com/v1/checkout.js" />
             <button 
                 onClick={handlePayment}
                 disabled={loading}
