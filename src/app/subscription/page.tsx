@@ -4,15 +4,9 @@ import Link from 'next/link'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import PricingClientView from './PricingClientView'
-import { Metadata } from 'next'
+import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 
-export const metadata: Metadata = {
-    title: 'Pricing Plans | Samples Wala Subscription',
-    description: 'Choose the perfect plan for your music production needs. Get monthly credits, royalty-free samples, and professional VST plugins with Samples Wala.',
-    alternates: {
-        canonical: 'https://sampleswala.com/subscription'
-    }
-}
+export const metadata = generateMetadata(pagesMeta.pricing);
 
 export default async function PricingPage() {
   const supabase = await createClient()

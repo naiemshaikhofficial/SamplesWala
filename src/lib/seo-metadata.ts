@@ -25,11 +25,12 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
         title: params.title,
         description: params.description,
         keywords: params.keywords || [
-            "Indian sample packs", "South Indian percussion", "Desi Hip Hop loops", 
+            "Indian sample packs", "South Indian percussion", "Desi Hip Hop loops",
             "Bollywood samples", "Tabla loops", "Indian Trap samples", "Tamil loops",
-            "Telugu samples", "music samples India", "sample packs", "royalty free loops", 
-            "trap samples", "edm loops", "music production India", 
-            "drum kits", "sampleswala", "vst plugins India", "audio samples"
+            "Telugu samples", "music samples India", "sample packs", "royalty free loops", "sample", "samples",
+            "trap samples", "edm loops", "music production India", "FL Studio presets",
+            "drum kits", "sampleswala", "vst plugins India", "audio samples",  "music samples", 
+            "Indian rhythm loops", "Bhangra samples", "Dhol loops", "Carnatic samples"
         ],
         metadataBase: new URL(SITE_URL),
         alternates: {
@@ -73,6 +74,8 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
         authors: [{ name: 'Samples Wala Team' }],
         creator: 'Samples Wala',
         publisher: 'Samples Wala',
+        category: 'Music',
+        classification: 'Music Production, Audio Samples, Loops, Presets',
     };
 }
 

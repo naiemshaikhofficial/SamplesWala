@@ -1,14 +1,8 @@
 import Link from 'next/link'
 import { Globe, Zap, ShieldCheck, Music4, Disc, Target, ArrowRight } from 'lucide-react'
-import { Metadata } from 'next'
+import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 
-export const metadata: Metadata = {
-    title: 'About Samples Wala | The Ultimate Music Production Hub',
-    description: 'Learn more about Samples Wala, the industry gold standard for music production tools, VST plugins, and royalty-free samples based in Mumbai, India.',
-    alternates: {
-        canonical: 'https://sampleswala.com/about'
-    }
-}
+export const metadata = generateMetadata(pagesMeta.about);
 
 export default function AboutPage() {
     return (

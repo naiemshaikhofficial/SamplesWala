@@ -15,23 +15,11 @@ import { generateAudioSignal, getDriveFileId } from "@/lib/audio/signal";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
 import { Suspense } from 'react'
+import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 
 export const revalidate = 3600;
 
-export const metadata = {
-  title: 'Samples Wala | Best Indian Sample Packs, Bollywood Loops & VSTs',
-  description: 'India\'s leading platform for premium royalty-free sample packs, Bollywood loops, and VST plugins. Download high-quality WAV files for music production. Worldwide access to authentic Indian sounds.',
-  keywords: [
-    'Indian sample packs', 'Bollywood loops', 'royalty free samples', 'drum kits', 
-    'vocal presets', 'tabla loops', 'dhol sounds', 'trap samples', 'drill loops', 
-    'hip hop sounds', 'edm samples', 'wav samples download', 'music production tools', 
-    'FL Studio packs', 'Ableton samples', 'Logic Pro loops', 'Samples Wala', 
-    'best splice alternative India'
-  ],
-  alternates: {
-    canonical: 'https://sampleswala.com'
-  }
-}
+export const metadata = generateMetadata(pagesMeta.home);
 
 // 🧬 NUCLEAR_SEO: Home Page Identity Payloads
 const organizationSchema = {

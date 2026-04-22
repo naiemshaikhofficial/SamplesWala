@@ -1,14 +1,8 @@
 
-import { Metadata } from 'next'
+import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 import FAQContent from '@/components/faq/FAQContent'
 
-export const metadata: Metadata = {
-    title: 'Support Console | Help & FAQ | Samples Wala',
-    description: 'Access surgical troubleshooting guides and frequently asked protocols regarding subscriptions, cancellations, and royalty-free licensing.',
-    alternates: {
-        canonical: 'https://sampleswala.com/faq'
-    }
-}
+export const metadata = generateMetadata(pagesMeta.faq);
 
 export default function HelpPage() {
     const faqs = [

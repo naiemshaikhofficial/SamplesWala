@@ -58,6 +58,17 @@ export default function RootLayout({
         <meta name="rating" content="general" />
         <meta name="distribution" content="global" />
         <meta name="revisit-after" content="2 days" />
+        
+        {/* 🎹 Music Industry Specifics */}
+        <meta name="subject" content="Music Production, Sample Packs, Bollywood Loops, VST Plugins" />
+        <meta name="topic" content="Music Production and Indian Hip Hop" />
+        <meta name="classification" content="Music Marketplace, Audio Samples, Loops, Presets" />
+        <meta name="summary" content="Samples Wala - India's premier destination for high-quality, royalty-free sample packs and music production tools." />
+        
+        {/* 💳 Payment & Image Pre-fetching */}
+        <link rel="dns-prefetch" href="https://api.razorpay.com" />
+        <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
+        <link rel="dns-prefetch" href="https://api.phonepe.com" />
 
 
         
