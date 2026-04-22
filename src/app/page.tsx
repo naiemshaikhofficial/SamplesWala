@@ -40,7 +40,7 @@ const organizationSchema = {
   "name": "Samples Wala",
   "alternateName": "SamplesWala",
   "url": "https://sampleswala.com",
-  "logo": "https://imagizer.imageshack.com/img924/3983/vzoEZd.png",
+  "logo": "https://sampleswala.com/Logo.png",
   "sameAs": [
     "https://youtube.com/@SamplesWala",
     "https://instagram.com/sampleswala"
@@ -55,6 +55,8 @@ const organizationSchema = {
 const searchboxSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
+  "name": "Samples Wala",
+  "alternateName": ["SamplesWala", "SamplesWala Official"],
   "url": "https://sampleswala.com",
   "potentialAction": {
     "@type": "SearchAction",
