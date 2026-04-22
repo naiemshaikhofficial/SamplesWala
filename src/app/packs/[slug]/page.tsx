@@ -277,10 +277,10 @@ export default async function PackPage({
                 {/* Module Header */}
                 <div className="absolute top-0 inset-x-0 bg-studio-grey px-3 py-2 flex items-center justify-between border-b border-white/10 z-20">
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-studio-neon animate-pulse" />
+                        <div className={`w-1.5 h-1.5 rounded-full ${enrichedPack.is_featured ? 'bg-studio-neon' : 'bg-white/20'} animate-pulse`} />
                         <span className="text-[9px] font-black uppercase tracking-widest text-white/50">PACK HUB</span>
                     </div>
-                    <span className="text-[9px] font-black text-studio-neon">PREMIUM</span>
+                    {enrichedPack.is_featured && <span className="text-[9px] font-black text-studio-neon uppercase tracking-tighter">Featured Collection</span>}
                 </div>
 
                 {/* Poster / Cover */}
@@ -304,11 +304,18 @@ export default async function PackPage({
                 {/* 🛒 IMMEDIATE_ACTION_ZONE */}
                 <div className="p-6 space-y-6 bg-black/40 border-t border-white/10">
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black uppercase tracking-tighter text-white leading-none">
-                            {enrichedPack.name}
-                        </h1>
+                        <div className="flex items-start justify-between">
+                            <h1 className="text-3xl font-black uppercase tracking-tighter text-white leading-none">
+                                {enrichedPack.name}
+                            </h1>
+                            {enrichedPack.price_usd && (
+                                <span className="text-[10px] font-black text-white/20">
+                                    ${enrichedPack.price_usd} USD
+                                </span>
+                            )}
+                        </div>
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-studio-yellow">
-                            Professional Sample Pack
+                            {enrichedPack.categories?.name || 'Professional'} Sample Pack
                         </p>
                     </div>
 
@@ -327,8 +334,8 @@ export default async function PackPage({
                             <span className="text-[10px] font-black text-studio-neon">{melodies + loops + oneShots} WAVS</span>
                         </div>
                         <div className="flex flex-col text-right border-l border-white/5 pl-4">
-                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">TYPE</span>
-                            <span className="text-[10px] font-black text-white/60">{enrichedPack.categories?.name || 'STUDIO'}</span>
+                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">CREDITS</span>
+                            <span className="text-[10px] font-black text-white/60">{enrichedPack.bundle_credit_cost || 50} PTS</span>
                         </div>
                     </div>
                 </div>
@@ -340,9 +347,15 @@ export default async function PackPage({
                     <Disc className="h-3 w-3 text-white/20 animate-spin-slow" />
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product Details</span>
                  </div>
-                 <p className="text-[11px] text-white/40 leading-relaxed font-bold italic">
+                 <p className="text-[11px] text-white/40 leading-relaxed font-bold italic mb-4">
                     {enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
                  </p>
+                 {enrichedPack.total_contents_summary && (
+                    <div className="pt-3 border-t border-white/5">
+                        <span className="text-[8px] font-black text-studio-neon uppercase tracking-widest block mb-1">BUNDLE CONTENTS</span>
+                        <p className="text-[9px] font-black text-white/60 uppercase">{enrichedPack.total_contents_summary}</p>
+                    </div>
+                 )}
             </div>
 
             {/* 3. ARTIFACT_BREAKDOWN */}
