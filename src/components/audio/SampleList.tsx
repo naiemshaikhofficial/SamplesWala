@@ -18,6 +18,7 @@ type Sample = {
     key?: string | null
     credit_cost?: number
     signal?: string | null
+    type?: string
 }
 
 type SampleListProps = {
@@ -28,16 +29,17 @@ type SampleListProps = {
     totalCount?: number
     loopsCount?: number
     oneShotsCount?: number
+    presetsCount?: number
 }
 
-export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount }: SampleListProps) {
+export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount, presetsCount }: SampleListProps) {
     const { unlockedIds } = useVault()
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const [isPending, startTransition] = useTransition()
     
-    const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots'>('all')
+    const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots' | 'presets'>('all')
     const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
     const [sortBy, setSortBy] = useState<any>(searchParams.get('sort') || 'newest')
     const { setPlaylist, activeId } = useAudio()
@@ -73,7 +75,8 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
     const processedSamples = useMemo(() => {
         let result = [...samples]
         if (filter === 'loops') result = result.filter(s => s.bpm)
-        else if (filter === 'oneshots') result = result.filter(s => !s.bpm)
+        else if (filter === 'oneshots') result = result.filter(s => !s.bpm && s.type !== 'preset')
+        else if (filter === 'presets') result = result.filter(s => s.type === 'preset')
         return result
     }, [samples, filter])
 
@@ -128,7 +131,8 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                         {[
                             { id: 'all', label: 'All', count: totalCount },
                             { id: 'loops', label: 'Loops', count: loopsCount },
-                            { id: 'oneshots', label: '1-shots', count: oneShotsCount }
+                            { id: 'oneshots', label: '1-shots', count: oneShotsCount },
+                            { id: 'presets', label: 'Presets', count: presetsCount }
                         ].map((t) => (
                             <button
                                 key={t.id}
@@ -203,24 +207,30 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                                             </span>
                                         </Link>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            {sample.bpm && (
-                                                <Link 
-                                                    href={`/browse?bpm_min=${sample.bpm}&bpm_max=${sample.bpm}`}
-                                                    className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter hover:text-studio-neon transition-colors"
-                                                >
-                                                    {sample.bpm} BPM
-                                                </Link>
-                                            )}
-                                            {sample.key && (
-                                                <Link 
-                                                    href={`/browse?key=${encodeURIComponent(sample.key)}`}
-                                                    className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter hover:text-studio-neon transition-colors"
-                                                >
-                                                    {sample.bpm ? `// ${sample.key}` : sample.key}
-                                                </Link>
-                                            )}
-                                            {!sample.bpm && !sample.key && (
-                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter italic">One-Shot</span>
+                                            {sample.type === 'preset' ? (
+                                                <span className="text-[9px] font-black text-studio-yellow uppercase tracking-tighter italic">Preset artifact</span>
+                                            ) : (
+                                                <>
+                                                    {sample.bpm && (
+                                                        <Link 
+                                                            href={`/browse?bpm_min=${sample.bpm}&bpm_max=${sample.bpm}`}
+                                                            className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter hover:text-studio-neon transition-colors"
+                                                        >
+                                                            {sample.bpm} BPM
+                                                        </Link>
+                                                    )}
+                                                    {sample.key && (
+                                                        <Link 
+                                                            href={`/browse?key=${encodeURIComponent(sample.key)}`}
+                                                            className="text-[9px] font-black text-studio-neon/50 uppercase tracking-tighter hover:text-studio-neon transition-colors"
+                                                        >
+                                                            {sample.bpm ? `// ${sample.key}` : sample.key}
+                                                        </Link>
+                                                    )}
+                                                    {!sample.bpm && !sample.key && (
+                                                        <span className="text-[9px] font-black text-white/20 uppercase tracking-tighter italic">One-Shot</span>
+                                                    )}
+                                                </>
                                             )}
 
 

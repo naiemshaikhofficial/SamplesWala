@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database, Video } from 'lucide-react'
 import Link from 'next/link'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
@@ -55,8 +55,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const genreBase = pack.categories?.name || 'Indian'
   const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   
-  const title = `${pack.name} - ${displayGenre} Sample Pack | Bollywood Sounds | Samples Wala`
-  const description = `Download ${pack.name} by Samples Wala. The ultimate ${displayGenre} Sample Pack featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
+  const title = `${pack.name}${pack.name.toLowerCase().includes('sample pack') ? '' : ' - ' + displayGenre + ' Sample Pack'} | Bollywood Sounds | Samples Wala`
+  const description = `Download ${pack.name} by Samples Wala. The ultimate ${displayGenre}${displayGenre.toLowerCase().includes('sample pack') ? '' : ' Sample Pack'} featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
   
   const keywords = [
     pack.name, 
@@ -101,6 +101,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
+// 🎥 YOUTUBE_ID_EXTRACTOR
+function getYouTubeId(url: string | null) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
 export default async function PackPage({ 
   params,
   searchParams 
@@ -117,24 +125,38 @@ export default async function PackPage({
   const pageVal = parseInt(page)
   const pageSize = 20
   
-  // 🎹 ENHANCED FETCH WITH RELATIONAL FALLBACK (Admin Signal)
+  // 🎹 STABILITY_FETCH: Fetch pack first, then category separately to avoid schema cache issues
   let { data: pack, error } = await adminClient
     .from('sample_packs')
-    .select('*, categories(name, id), samples(bpm, key, credit_cost)')
+    .select('*')
     .eq('slug', slug)
     .single()
 
-  // Fallback for cases where foreign keys are descriptive but missing in schema cache
-  if (!pack || error) {
-    const { data: fallbackPack } = await adminClient
-        .from('sample_packs')
-        .select('*, samples(bpm, key, credit_cost)')
-        .eq('slug', slug)
-        .single()
-    pack = fallbackPack;
+  if (error || !pack) {
+    if (error) console.error(`[PACK_FETCH_ERROR] Slug: ${slug}`, error.message);
+    notFound();
   }
 
-  if (!pack) notFound()
+  // Fetch category separately if ID exists
+  let categoryData = null;
+  if (pack.category_id) {
+    const { data: cat } = await adminClient
+        .from('categories')
+        .select('name, id')
+        .eq('id', pack.category_id)
+        .single();
+    categoryData = cat;
+  }
+
+  // Inject category into pack object for UI compatibility
+  const enrichedPack = { ...pack, categories: categoryData };
+  const videoId = getYouTubeId(enrichedPack.video_url);
+
+  // Fetch all artifacts for counting
+  const { data: allSamples } = await adminClient
+    .from('artifact_registry')
+    .select('bpm, key, type, credit_cost')
+    .eq('pack_id', pack.id)
   
   const { samples: rawSamples, count } = await getFilteredSamples({ 
     packId: pack.id,
@@ -144,7 +166,6 @@ export default async function PackPage({
     sort: sort // 🎚️ PASS SORT TO GLOBAL DB QUERY
   })
 
-  // 🧬 SIGNAL_INJECTION: Securely batch audio IDs
   const samples = rawSamples.map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
@@ -154,13 +175,14 @@ export default async function PackPage({
   const categoryId = pack.category_id;
   const relatedPacks = categoryId ? await getRelatedPacks(pack.id, categoryId) : [];
   
-  const allSamples = pack?.samples || []
-  const melodies = allSamples.filter((s: any) => s.bpm && s.key).length || 0
-  const loops = allSamples.filter((s: any) => s.bpm && !s.key).length || 0
-  const oneShots = allSamples.filter((s: any) => !s.bpm).length || 0
+  const allArtifacts = allSamples || []
+  const melodies = allArtifacts.filter((s: any) => s.bpm && s.key).length || 0
+  const loops = allArtifacts.filter((s: any) => s.bpm && !s.key).length || 0
+  const oneShots = allArtifacts.filter((s: any) => !s.bpm && s.type !== 'preset').length || 0
+  const presets = allArtifacts.filter((s: any) => s.type === 'preset').length || 0
   
   // 💹 Master Credit Summation Engine
-  const totalIndividualCredits = allSamples.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0) || 0
+  const totalIndividualCredits = allArtifacts.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0) || 0
 
   // 🧪 DETECTION_PROTOCOL: IDENTIFY IF THIS IS A PREMIUM ARTIFACT (DRIVE / STEMS / MIDI)
   const hasPremiumArtifacts = pack.description?.toLowerCase().includes('stems') || 
@@ -204,8 +226,8 @@ export default async function PackPage({
       <Breadcrumbs 
         items={[
           { label: 'BROWSE', href: '/browse' },
-          { label: pack.categories?.name || 'PACKS', href: `/browse?category=${pack.categories?.id}` },
-          { label: pack.name, href: `/packs/${slug}`, active: true }
+          { label: enrichedPack.categories?.name || 'PACKS', href: `/browse?category=${enrichedPack.categories?.id}` },
+          { label: enrichedPack.name, href: `/packs/${slug}`, active: true }
         ]} 
       />
 
@@ -253,7 +275,7 @@ export default async function PackPage({
                 <div className="p-6 space-y-6 bg-black/40 border-t border-white/10">
                     <div className="space-y-1">
                         <h1 className="text-3xl font-black uppercase tracking-tighter text-white leading-none">
-                            {pack.name}
+                            {enrichedPack.name}
                         </h1>
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-studio-yellow">
                             Professional Sample Pack
@@ -262,9 +284,9 @@ export default async function PackPage({
 
                     <div className="py-2">
                         <PackActionCenter 
-                            packId={pack.id} 
-                            bundleCost={pack.bundle_credit_cost || 50} 
-                            priceInr={pack.price_inr} 
+                            packId={enrichedPack.id} 
+                            bundleCost={enrichedPack.bundle_credit_cost || 50} 
+                            priceInr={enrichedPack.price_inr} 
                         />
                     </div>
 
@@ -276,7 +298,7 @@ export default async function PackPage({
                         </div>
                         <div className="flex flex-col text-right border-l border-white/5 pl-4">
                             <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">TYPE</span>
-                            <span className="text-[10px] font-black text-white/60">{pack.categories?.name || 'STUDIO'}</span>
+                            <span className="text-[10px] font-black text-white/60">{enrichedPack.categories?.name || 'STUDIO'}</span>
                         </div>
                     </div>
                 </div>
@@ -289,7 +311,7 @@ export default async function PackPage({
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product Details</span>
                  </div>
                  <p className="text-[11px] text-white/40 leading-relaxed font-bold italic">
-                    {pack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
+                    {enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
                  </p>
             </div>
 
@@ -299,7 +321,30 @@ export default async function PackPage({
                 {melodies > 0 && <div className="flex items-center justify-between text-[10px] font-black text-studio-neon"><span>MELODIES</span><span className="text-white/40">[{melodies}]</span></div>}
                 {loops > 0 && <div className="flex items-center justify-between text-[10px] font-black text-white/80"><span>LOOPS</span><span className="text-white/40">[{loops}]</span></div>}
                 {oneShots > 0 && <div className="flex items-center justify-between text-[10px] font-black text-white/60"><span>ONE SHOTS</span><span className="text-white/40">[{oneShots}]</span></div>}
+                {presets > 0 && <div className="flex items-center justify-between text-[10px] font-black text-studio-yellow"><span>PRESETS</span><span className="text-white/40">[{presets}]</span></div>}
             </div>
+
+            {/* 🎥 YOUTUBE_DEMO_EMBED */}
+            {videoId && (
+                <div className="mt-8 space-y-4">
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-studio-neon">
+                        <Video size={14} /> VIDEO PREVIEW
+                    </div>
+                    <div className="relative aspect-video w-full border-2 border-white/5 bg-black overflow-hidden group">
+                        <iframe 
+                            width="100%" 
+                            height="100%" 
+                            src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+                            title="YouTube video player" 
+                            frameBorder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowFullScreen
+                            className="grayscale-[0.5] group-hover:grayscale-0 transition-all duration-700"
+                        />
+                        <div className="absolute inset-0 pointer-events-none border border-white/10" />
+                    </div>
+                </div>
+            )}
         </div>
 
         {/* ➡️ MAINBOARD: PREVIEW_ENGINE */}
@@ -323,9 +368,10 @@ export default async function PackPage({
                 packName={pack.name} 
                 coverUrl={pack.cover_url} 
                 packId={pack.id} 
-                totalCount={allSamples.length}
+                totalCount={allArtifacts.length}
                 loopsCount={loops + melodies}
                 oneShotsCount={oneShots}
+                presetsCount={presets}
             />
             
             {samples && samples.length > 0 && (

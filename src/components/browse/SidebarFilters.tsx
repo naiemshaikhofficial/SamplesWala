@@ -240,8 +240,8 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
                 <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.2em] text-white/50">
                     <Activity size={14} className="text-studio-neon" /> FORMAT
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    {['Loops', 'Oneshots'].map((type) => {
+                <div className="grid grid-cols-3 gap-2">
+                    {['Loops', 'Oneshots', 'Presets'].map((type) => {
                         const typeVal = type.toLowerCase();
                         const isActive = currentType === typeVal;
                         return (

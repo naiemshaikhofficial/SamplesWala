@@ -32,7 +32,7 @@ CREATE TABLE samples (
     download_url TEXT NOT NULL, -- High-quality external link
     bpm INTEGER,
     key TEXT,
-    type TEXT CHECK (type IN ('one-shot', 'loop')),
+    type TEXT CHECK (type IN ('one-shot', 'loop', 'preset')),
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

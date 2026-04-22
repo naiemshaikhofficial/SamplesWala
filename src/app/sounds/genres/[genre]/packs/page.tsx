@@ -66,7 +66,7 @@ export default async function GenrePacksPage({
 
       <header className="mb-24 mt-12">
         <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter italic leading-none mb-8">
-            {genreDisplay} <span className="text-studio-neon">PACKS</span>
+            {genreDisplay.toUpperCase().includes('PACK') ? genreDisplay : <>{genreDisplay} <span className="text-studio-neon">PACKS</span></>}
         </h1>
         <p className="text-xl text-white/40 max-w-2xl font-bold italic leading-tight">
             Comprehensive archive of professional {genreDisplay} sample packs and drum kits.

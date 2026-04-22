@@ -94,13 +94,17 @@ export async function getFilteredSamples(filters: {
   const from = (pageVal - 1) * limitVal
   const to = from + limitVal - 1
   
-  let queryBuilder = adminClient.from('samples').select('id, name, audio_url, bpm, key, credit_cost, pack_id, type, created_at, sample_packs(name, category_id, cover_url)', { count: 'exact' })
+  let queryBuilder = adminClient.from('artifact_registry').select('id, name, audio_url, bpm, key, credit_cost, pack_id, type, created_at, pack_name, pack_category_id, pack_cover_url', { count: 'exact' })
   
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (cleanQuery) {
     queryBuilder = queryBuilder.or(`name.ilike.%${cleanQuery}%,tags.cs.{${cleanQuery}}`)
   }
 
+  if (filters.category) {
+      queryBuilder = queryBuilder.eq('pack_category_id', filters.category)
+  }
+  
   if (filters.tag) {
     queryBuilder = queryBuilder.contains('tags', [filters.tag.toLowerCase()])
   }
@@ -128,6 +132,8 @@ export async function getFilteredSamples(filters: {
         queryBuilder = queryBuilder.gt('bpm', 0).not('bpm', 'is', null);
     } else if (typeLabel === 'oneshots') {
         queryBuilder = queryBuilder.or('bpm.eq.0,bpm.is.null');
+    } else if (typeLabel === 'presets') {
+        queryBuilder = queryBuilder.eq('type', 'preset');
     }
   }
 
@@ -165,21 +171,21 @@ export async function getFilteredSamples(filters: {
     return { samples: [], count: 0 };
   }
 
-  let processedData = data || [];
-  if (filters.category && data) {
-    processedData = data.filter((s: any) => s.sample_packs?.category_id === filters.category)
-  }
-
-  // 🛰️ SIGNAL_BATCH_PROTOCOL :: Pre-encrypt Drive IDs to skip proxy-side DB lookups
-  const enrichedSamples = processedData.map((s: any) => {
+  // 🧬 STRUCTURE_MAPPING: Transform flattened view data into the nested format the UI expects
+  const enrichedSamples = (data || []).map((s: any) => {
       const driveId = getDriveFileId(s.audio_url);
       return {
           ...s,
-          signal: driveId ? generateAudioSignal(driveId, s.name) : null
+          signal: driveId ? generateAudioSignal(driveId, s.name) : null,
+          sample_packs: {
+              name: s.pack_name,
+              category_id: s.pack_category_id,
+              cover_url: s.pack_cover_url
+          }
       }
   });
 
-  return { samples: enrichedSamples, count: count || 0 }
+  return { samples: enrichedSamples, count: count || 0 };
 }
 
 export async function getRelatedPacks(currentPackId: string, categoryId: string) {
@@ -207,7 +213,7 @@ export async function unlockSampleBatch(sampleIds: string[]) {
 
   // 1. Calculate total credit cost with Admin Signal
   const { data: samples, error: sError } = await adminClient
-      .from('samples')
+      .from('artifact_registry')
       .select('id, credit_cost')
       .in('id', sampleIds)
 

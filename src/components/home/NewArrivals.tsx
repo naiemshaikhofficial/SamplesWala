@@ -73,7 +73,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                         {pack.cover_url ? (
                                             <Image 
                                                 src={pack.cover_url} 
-                                                alt={`${pack.name} - ${pack.categories?.name || 'Pro'} Sample Pack | SamplesWala`} 
+                                                alt={`${pack.name} - ${pack.categories?.name?.toUpperCase().includes('SAMPLE PACK') ? pack.categories.name : (pack.categories?.name || 'Pro') + ' Sample Pack'} | SamplesWala`} 
                                                 fill 
                                                 sizes="(max-width: 768px) 50vw, 25vw"
                                                 priority={i < 2}
@@ -92,7 +92,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                         <div className="flex flex-col">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-[8px] font-black text-studio-neon uppercase tracking-widest">
-                                                    {pack.categories?.name ? `${pack.categories.name} SAMPLE PACK` : 'SAMPLE PACK'}
+                                                    {pack.categories?.name ? (pack.categories.name.toUpperCase().includes('SAMPLE PACK') ? pack.categories.name.toUpperCase() : `${pack.categories.name.toUpperCase()} SAMPLE PACK`) : 'SAMPLE PACK'}
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">

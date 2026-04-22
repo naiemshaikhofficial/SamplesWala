@@ -30,6 +30,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const params = await searchParams
   const q = params.q
   const category = params.category
+  const type = params.type
   
   let title = 'Sounds Library | Samples Wala'
   let description = 'Browse our massive library of premium royalty-free samples, drum kits, and loops. Filter by BPM, Key, and Genre to find your perfect sound.'
@@ -38,6 +39,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   if (q) {
     title = `Download "${q}" Samples & Loops | Samples Wala`
     description = `Explore high-quality "${q}" audio samples and loops for music production. Pro-grade 24-bit WAV files, 100% royalty-free.`
+  } else if (type === 'presets') {
+    title = 'Pro Vocal Presets & Plugin Patches | Samples Wala'
+    description = 'Download premium vocal presets, Serum patches, and DAW chains. Industry-standard sound design for FL Studio, Ableton, and Logic Pro.'
   } else if (category) {
     const formattedCategory = category.charAt(0).toUpperCase() + category.slice(1);
     title = `Best ${formattedCategory} Samples & Drum Kits | Samples Wala`
@@ -47,6 +51,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   // 📡 CANONICAL_GENERATOR: Consolidate permutations to avoid GSC "Currently Not Indexed"
   const cParams = new URLSearchParams()
   if (category) cParams.set('category', category)
+  if (type) cParams.set('type', type)
   if (params.genre) cParams.set('genre', params.genre as string)
   if (params.tag) cParams.set('tag', params.tag as string)
   
@@ -136,8 +141,10 @@ export default async function BrowsePage({
 
   const isNewAssets = params.sort === 'newest';
   const isTrending = params.filter === 'trending';
-  const dynamicTitle = isNewAssets ? 'NEW ARRIVALS' : (isTrending ? 'TOP TRENDS' : 'SOUNDS LIBRARY');
-  const dynamicLabel = isNewAssets ? 'NEW SIGNAL ARCHIVE' : (isTrending ? 'POPULAR SONIC DATA' : 'EXPLORE LIBRARY');
+  const isPresets = params.type === 'presets';
+  
+  const dynamicTitle = isPresets ? 'PRO PRESETS' : (isNewAssets ? 'NEW ARRIVALS' : (isTrending ? 'TOP TRENDS' : 'SOUNDS LIBRARY'));
+  const dynamicLabel = isPresets ? 'PRESET ARTIFACTS' : (isNewAssets ? 'NEW SIGNAL ARCHIVE' : (isTrending ? 'POPULAR SONIC DATA' : 'EXPLORE LIBRARY'));
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white bg-[#0a0a0a]">
@@ -287,6 +294,7 @@ export default async function BrowsePage({
                                 samples={samples} 
                                 packName="Browse Results" 
                                 coverUrl={null} 
+                                totalCount={count}
                             />
 
                             {!hasNoResults && (
