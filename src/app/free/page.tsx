@@ -12,11 +12,9 @@ import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { createClient } from '@/lib/supabase/server'
 
-export const metadata: Metadata = {
-  title: 'Free Samples & Loops Download | 100% Royalty Free | SamplesWala',
-  description: 'Download 100% free music samples, loops, and drum kits. Premium quality royalty-free sounds for Trap, EDM, and Lo-Fi. No credit card required.',
-  keywords: ['free samples', 'free loops', 'free drum kits', 'fl studio free samples', 'royalty free free loops'],
-}
+import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
+
+export const metadata = generateMetadata(pagesMeta.free);
 
 export default async function FreeSamplesPage({
     searchParams
@@ -65,6 +63,42 @@ export default async function FreeSamplesPage({
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-12 min-h-screen font-mono text-white">
+      {/* 📝 COLLECTION_PAGE_SCHEMA (JSON-LD) */}
+      <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "CollectionPage",
+                  "name": "Free Samples & Loops Library | Samples Wala",
+                  "description": "Premium quality royalty-free Indian sounds and trap samples available for free download.",
+                  "url": "https://sampleswala.com/free",
+                  "mainEntity": {
+                      "@type": "ItemList",
+                      "itemListElement": (freeSamples || []).map((s: any, i: number) => ({
+                          "@type": "ListItem",
+                          "position": i + 1,
+                          "url": `https://sampleswala.com/samples/${s.id}`,
+                          "name": s.name
+                      }))
+                  }
+              })
+          }}
+      />
+      <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "BreadcrumbList",
+                  "itemListElement": [
+                      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sampleswala.com/" },
+                      { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://sampleswala.com/browse" },
+                      { "@type": "ListItem", "position": 3, "name": "Free Samples", "item": "https://sampleswala.com/free" }
+                  ]
+              })
+          }}
+      />
       <Breadcrumbs 
         items={[
           { label: 'BROWSE', href: '/browse' },

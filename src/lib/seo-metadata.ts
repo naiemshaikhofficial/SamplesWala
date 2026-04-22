@@ -123,4 +123,24 @@ export const pagesMeta: Record<string, SEOMetadataParams> = {
         description: "The mission behind India's #1 sample marketplace and our commitment to empowering independent Indian music producers.",
         path: "/about",
     },
+    free: {
+        title: "Free Indian Samples & Loops Download | Samples Wala",
+        description: "Download 100% free royalty-free music samples, loops, and drum kits. Premium quality Indian percussion and trap sounds for free.",
+        path: "/free",
+    },
+    refund: {
+        title: "Refund Policy | Samples Wala Returns & Credits",
+        description: "Understand the Samples Wala refund policy for digital audio artifacts. Digital downloads are generally non-refundable to protect creator rights.",
+        path: "/refund",
+    },
+    terms: {
+        title: "Terms of Service | Samples Wala Usage Rules",
+        description: "Review the terms and conditions for using Samples Wala. Understand your rights, membership rules, and sound ownership policies.",
+        path: "/terms",
+    },
+    privacy: {
+        title: "Privacy Policy | Samples Wala Data Protection",
+        description: "How Samples Wala handles your digital identity and personal data. We are committed to transparency and secure music production environments.",
+        path: "/privacy",
+    },
 };
