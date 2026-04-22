@@ -48,6 +48,12 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     description = `Premium ${formattedCategory} loops and sounds for modern music producers. Discover the best royalty-free ${category} packs.`
   }
 
+  const keywords = [
+    'sample packs', 'drum kits', 'wav loops', 'royalty free samples',
+    'music production sounds', 'FL Studio packs', 'Ableton samples',
+    q, category, type
+  ].filter(Boolean)
+
   // 📡 CANONICAL_GENERATOR: Consolidate permutations to avoid GSC "Currently Not Indexed"
   const cParams = new URLSearchParams()
   if (category) cParams.set('category', category)
@@ -56,18 +62,19 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   if (params.tag) cParams.set('tag', params.tag as string)
   
   const canonicalQuery = cParams.toString()
-  const canonicalPath = canonicalQuery ? `/browse?${canonicalQuery}` : '/browse'
+  const canonicalPath = canonicalQuery ? `https://sampleswala.com/browse?${canonicalQuery}` : 'https://sampleswala.com/browse'
 
   return { 
     title, 
     description,
+    keywords,
     alternates: {
       canonical: canonicalPath
     },
     openGraph: {
       title,
       description,
-      url: `${domain}/browse`,
+      url: `https://sampleswala.com/browse`,
       images: ['/og-image.jpg']
     }
   }
@@ -173,6 +180,19 @@ export default async function BrowsePage({
                 "url": `https://sampleswala.com/packs/${p.slug}`
               }))
             }
+          })
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sampleswala.com/" },
+              { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://sampleswala.com/browse", "active": true }
+            ]
           })
         }}
       />

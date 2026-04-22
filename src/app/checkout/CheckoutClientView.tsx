@@ -48,15 +48,24 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
         }
     }, [])
 
-    const isTrialEligible = item.name === 'Starter' && 
+    const isTrialEligible = mode === 'subscription' && 
+                           item.name === 'Starter' && 
                            billingCycle === 'MONTHLY' && 
                            !browserTrialUsed && // 🔥 BROWSER_LOCK_SIG
                            (!profile?.is_trial_used && profile?.subscription_status !== 'ACTIVE')
     
     // Calculate Pricing Constants
-    const annualSavings = Math.round(((item.price_inr * 12) - item.price_inr_annual) / (item.price_inr * 12) * 100)
-    const currentPriceInr = billingCycle === 'MONTHLY' ? item.price_inr : item.price_inr_annual
-    const currentPriceUsd = billingCycle === 'MONTHLY' ? item.price_usd : item.price_usd_annual
+    const annualSavings = mode === 'subscription' 
+        ? Math.round(((item.price_inr * 12) - item.price_inr_annual) / (item.price_inr * 12) * 100)
+        : 0
+
+    const currentPriceInr = mode === 'subscription' 
+        ? (billingCycle === 'MONTHLY' ? item.price_inr : item.price_inr_annual)
+        : item.price_inr
+
+    const currentPriceUsd = mode === 'subscription'
+        ? (billingCycle === 'MONTHLY' ? item.price_usd : item.price_usd_annual)
+        : (item.price_usd || Math.round(item.price_inr / 80)) // Fallback if USD price missing
 
     const [couponCode, setCouponCode] = useState('')
     const [appliedDiscount, setAppliedDiscount] = useState<any>(null)
@@ -325,11 +334,23 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                             )}
                             <h2 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-6 flex items-center gap-2"><Activity size={14} className="text-studio-neon" /> Review Order</h2>
                             <h3 className="text-3xl font-black uppercase tracking-tight mb-2">{item.name}</h3>
-                            <p className="text-xs text-white/30">{billingCycle === 'MONTHLY' ? 'Monthly Access' : 'Full Year Access'}</p>
+                            <p className="text-xs text-white/30">
+                                {mode === 'subscription' 
+                                    ? (billingCycle === 'MONTHLY' ? 'Monthly Access' : 'Full Year Access')
+                                    : mode === 'pack' 
+                                    ? 'Credit Top-up'
+                                    : 'Full Sample Pack Purchase'}
+                            </p>
                         </div>
                         <div className="p-8 bg-black/20 space-y-5">
-                            <div className="flex justify-between text-xs font-bold text-white/40"><span>Pack Credits</span><span className="text-white">{item.credits}</span></div>
-                            <div className="flex justify-between text-xs font-bold text-white/40"><span>Plan Duration</span><span className="text-white">{billingCycle}</span></div>
+                            {mode === 'subscription' || mode === 'pack' ? (
+                                <div className="flex justify-between text-xs font-bold text-white/40"><span>Pack Credits</span><span className="text-white">{item.credits}</span></div>
+                            ) : (
+                                <div className="flex justify-between text-xs font-bold text-white/40"><span>Collection</span><span className="text-white">Full Access</span></div>
+                            )}
+                            {mode === 'subscription' && (
+                                <div className="flex justify-between text-xs font-bold text-white/40"><span>Plan Duration</span><span className="text-white">{billingCycle}</span></div>
+                            )}
                             
                             {/* 🎟️ COUPON_SECTION */}
                             <div className="pt-4 space-y-3">

@@ -32,20 +32,41 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     if (!sample) return { title: 'Sound Not Found | Samples Wala' }
 
     const packName = sample.sample_packs?.name || 'Studio Pack'
-    const title = `${sample.name} - ${sample.bpm || ''} ${sample.key || ''} ${sample.type} Sound | Samples Wala`
-    const description = `Download the high-quality "${sample.name}" sound from ${packName}. 24-bit WAV, royalty-free ${sample.ai_genre} ${sample.type}. Preview and download at Samples Wala.`
+    const title = `${sample.name} | ${sample.bpm ? sample.bpm + ' BPM ' : ''}${sample.key ? sample.key : ''} ${sample.ai_genre} ${sample.type} | Samples Wala`
+    const description = `Download the professional "${sample.name}" sound from ${packName}. High-quality 24-bit WAV, 100% royalty-free ${sample.ai_genre} ${sample.type} for music production. Preview now at Samples Wala.`
 
     return {
         title,
         description,
+        keywords: [
+            sample.name,
+            `${sample.ai_genre} samples`,
+            `${sample.type} sounds`,
+            `${sample.bpm || ''} bpm`,
+            `${sample.key || ''} key`,
+            packName,
+            'royalty free loops',
+            'wav audio samples',
+            'Indian music samples',
+            'Bollywood sounds'
+        ],
         openGraph: {
             title,
             description,
             type: 'music.song',
             url: `https://sampleswala.com/samples/${id}`,
+            images: [
+                { url: sample.sample_packs?.cover_url || '/og-image.jpg', width: 800, height: 800, alt: sample.name }
+            ]
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [sample.sample_packs?.cover_url || '/og-image.jpg']
         },
         alternates: {
-            canonical: `/samples/${id}`
+            canonical: `https://sampleswala.com/samples/${id}`
         }
     }
 }
@@ -86,17 +107,37 @@ export default async function SampleDetailPage({ params }: { params: Promise<{ i
                         "@context": "https://schema.org",
                         "@type": "MusicRecording",
                         "name": sample.name,
-                        "duration": "PT0M10S", // Approximation
+                        "duration": "PT0M10S",
                         "url": `https://sampleswala.com/samples/${id}`,
                         "image": sample.sample_packs?.cover_url,
-                        "description": `${sample.name} - ${sample.bpm} BPM ${sample.key} ${sample.type} sound.`,
+                        "description": `${sample.name} - ${sample.bpm} BPM ${sample.key} ${sample.type} sound from the ${sample.sample_packs?.name} pack.`,
                         "genre": sample.ai_genre,
+                        "inAlbum": {
+                            "@type": "MusicAlbum",
+                            "name": sample.sample_packs?.name
+                        },
                         "offers": {
                             "@type": "Offer",
-                            "price": "0", // Preview is free
+                            "price": "0",
                             "priceCurrency": "INR",
-                            "availability": "https://schema.org/InStock"
+                            "availability": "https://schema.org/InStock",
+                            "url": `https://sampleswala.com/samples/${id}`
                         }
+                    })
+                }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "BreadcrumbList",
+                        "itemListElement": [
+                            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sampleswala.com/" },
+                            { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://sampleswala.com/browse" },
+                            { "@type": "ListItem", "position": 3, "name": (sample.sample_packs?.name || 'Pack').toUpperCase(), "item": `https://sampleswala.com/packs/${sample.sample_packs?.slug}` },
+                            { "@type": "ListItem", "position": 4, "name": sample.name, "item": `https://sampleswala.com/samples/${id}` }
+                        ]
                     })
                 }}
             />

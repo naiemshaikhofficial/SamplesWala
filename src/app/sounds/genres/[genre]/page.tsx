@@ -13,7 +13,17 @@ import { Pagination } from '@/components/layout/Pagination'
 
 export async function generateMetadata({ params }: { params: Promise<{ genre: string }> }): Promise<Metadata> {
   const { genre } = await params
+  const adminClient = getAdminClient()
+  
+  // 🛰️ SIGNAL_FETCH: Get first pack cover for dynamic OG
+  const { data: packs } = await adminClient
+    .from('sample_packs')
+    .select('cover_url, categories!inner(name)')
+    .ilike('categories.name', genre)
+    .limit(1)
+
   const genreTitle = genre.charAt(0).toUpperCase() + genre.slice(1)
+  const dynamicImage = packs?.[0]?.cover_url || '/og-genres.jpg'
   
   const title = `Best ${genreTitle} Samples, Loops & Drum Kits 2026 | Samples Wala`
   const description = `Download professional royalty-free ${genreTitle} samples, melodies, and drum kits. 24-bit WAV files compatible with FL Studio, Ableton, and Logic. Discover the industry's best ${genreTitle} loops and one-shots.`
@@ -22,24 +32,31 @@ export async function generateMetadata({ params }: { params: Promise<{ genre: st
     title,
     description,
     keywords: [
-        `${genre} samples`, 
-        `${genre} loops`, 
-        `${genre} drum kit`, 
-        `free ${genre} beats`,
-        'royalty free samples',
-        'music production',
+        `${genre} samples download`, 
+        `best ${genre} loops 2026`, 
+        `${genre} drum kit wav`, 
+        `royalty free ${genre} samples`,
+        'Indian music samples',
+        'Bollywood sounds',
         'wav audio samples',
-        'producers kits'
+        'music production kits',
+        'Samples Wala library'
     ],
     openGraph: {
       title,
       description,
       type: 'website',
       url: `https://sampleswala.com/sounds/genres/${genre}`,
-      images: [{ url: '/og-genres.jpg' }]
+      images: [{ url: dynamicImage, width: 1200, height: 630, alt: `${genreTitle} Samples` }]
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [dynamicImage]
     },
     alternates: {
-      canonical: `/sounds/genres/${genre}`
+      canonical: `https://sampleswala.com/sounds/genres/${genre}`
     }
   }
 }
@@ -103,6 +120,21 @@ export default async function GenrePage({
                           "url": `https://sampleswala.com/packs/${p.slug}`
                       }))
                   }
+              })
+          }}
+      />
+      <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "BreadcrumbList",
+                  "itemListElement": [
+                      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sampleswala.com/" },
+                      { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://sampleswala.com/browse" },
+                      { "@type": "ListItem", "position": 3, "name": "Genres", "item": "https://sampleswala.com/browse" },
+                      { "@type": "ListItem", "position": 4, "name": genreDisplay, "item": `https://sampleswala.com/sounds/genres/${genre}` }
+                  ]
               })
           }}
       />

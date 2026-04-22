@@ -55,13 +55,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const genreBase = pack.categories?.name || 'Indian'
   const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   
-  const title = `${pack.name}${pack.name.toLowerCase().includes('sample pack') ? '' : ' - ' + displayGenre + ' Sample Pack'} | Bollywood Sounds | Samples Wala`
-  const description = `Download ${pack.name} by Samples Wala. The ultimate ${displayGenre}${displayGenre.toLowerCase().includes('sample pack') ? '' : ' Sample Pack'} featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
+  // 🚀 SEO_REFINEMENT: Punchy, Keyword-Rich Titles
+  const title = `${pack.name} | ${displayGenre} Sample Pack & Drum Kit | Samples Wala`
+  
+  // Use actual pack description if available, otherwise fallback
+  const seoDescription = pack.description 
+    ? (pack.description.length > 160 ? `${pack.description.substring(0, 157)}...` : pack.description)
+    : `Download ${pack.name} by Samples Wala. Professional ${displayGenre} Sample Pack featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
   
   const keywords = [
     pack.name, 
     'Indian sample pack',
     'Bollywood sample pack',
+    `${genreBase} loops`,
     `${displayGenre} samples`, 
     'Indian percussion loops', 
     'Bollywood melody loops', 
@@ -72,6 +78,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     'SamplesWala Indian sounds',
     'Desi Hip Hop samples',
     'Indian Trap loops',
+    'royalty free samples',
+    'music production',
+    'wav samples',
     ...[...new Set(bpmList)].map(b => `${b} bpm`),
     ...[...new Set(keyList)].map(k => `${k} key`)
   ]
@@ -80,20 +89,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return {
     title,
-    description,
+    description: seoDescription,
     keywords,
     openGraph: {
       title,
-      description,
+      description: seoDescription,
       type: 'article',
       url: `https://sampleswala.com/packs/${slug}`,
-      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+      images: [
+        { url: ogImage, width: 1200, height: 630, alt: title },
+        { url: pack.cover_url || '', width: 800, height: 800, alt: `${pack.name} Cover` }
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
-      description,
-      images: [ogImage],
+      description: seoDescription,
+      images: [ogImage, pack.cover_url || ''],
     },
     alternates: {
       canonical: `https://sampleswala.com/packs/${slug}`
@@ -150,6 +162,8 @@ export default async function PackPage({
 
   // Inject category into pack object for UI compatibility
   const enrichedPack = { ...pack, categories: categoryData };
+  const genreBase = categoryData?.name || 'Indian'
+  const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   const videoId = getYouTubeId(enrichedPack.video_url);
 
   // Fetch all artifacts for counting
@@ -212,8 +226,20 @@ export default async function PackPage({
       "url": `https://sampleswala.com/packs/${slug}`,
       "priceCurrency": "INR",
       "price": pack.price_inr,
-      "availability": "https://schema.org/InStock"
+      "availability": "https://schema.org/InStock",
+      "itemCondition": "https://schema.org/NewCondition"
     }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sampleswala.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Browse", "item": "https://sampleswala.com/browse" },
+      { "@type": "ListItem", "position": 3, "name": enrichedPack.categories?.name || 'Packs', "item": `https://sampleswala.com/browse?category=${enrichedPack.categories?.id}` },
+      { "@type": "ListItem", "position": 4, "name": enrichedPack.name, "item": `https://sampleswala.com/packs/${slug}` }
+    ]
   };
 
   return (
@@ -221,6 +247,10 @@ export default async function PackPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       
       <Breadcrumbs 
@@ -462,12 +492,17 @@ export default async function PackPage({
               {
                 "@type": "Question",
                 "name": `Is ${pack.name} royalty-free?`,
-                "acceptedAnswer": { "@type": "Answer", "text": "Yes, all loops and samples in this pack are 100% royalty-free for commercial music production." }
+                "acceptedAnswer": { "@type": "Answer", "text": `Yes, all loops and samples in ${pack.name} are 100% royalty-free for commercial music production. You can use them in your tracks and sell them on Spotify, Apple Music, and more.` }
               },
               {
                 "@type": "Question",
                 "name": `What files are included in ${pack.name}?`,
-                "acceptedAnswer": { "@type": "Answer", "text": "This pack contains high-quality 24-bit WAV files, including melody loops, drum loops, and individual one-shots." }
+                "acceptedAnswer": { "@type": "Answer", "text": `This pack contains high-quality 24-bit WAV files, including ${melodies} melodies, ${loops} loops, and ${oneShots} one-shots. Compatible with all major DAWs like FL Studio, Ableton, and Logic.` }
+              },
+              {
+                "@type": "Question",
+                "name": `Can I use ${pack.name} for Bollywood and Hip Hop production?`,
+                "acceptedAnswer": { "@type": "Answer", "text": `Absolutely. ${pack.name} is specifically designed for modern ${displayGenre} production, blending authentic traditional sounds with contemporary urban textures.` }
               }
             ]
           })

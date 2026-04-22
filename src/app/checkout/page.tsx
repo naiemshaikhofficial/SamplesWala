@@ -17,6 +17,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     } else if (mode === 'pack' && packId) {
         const { data } = await supabase.from('credit_packs').select('*').eq('id', packId).single()
         itemDetails = data
+    } else if (mode === 'sample_pack' && packId) {
+        const { data } = await supabase.from('sample_packs').select('*').eq('id', packId).single()
+        itemDetails = data
     }
 
     if (!itemDetails) {

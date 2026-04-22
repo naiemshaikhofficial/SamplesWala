@@ -18,6 +18,9 @@ type SubscribeButtonProps = {
   disabled?: boolean
   currency?: 'INR' | 'USD'
   hasActiveSubscription?: boolean
+  variant?: 'neon' | 'white' | 'ghost'
+  fullWidth?: boolean
+  className?: string
 }
 
 declare global {
@@ -26,7 +29,18 @@ declare global {
   }
 }
 
-export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscription', disabled, currency = 'INR', hasActiveSubscription }: SubscribeButtonProps) {
+export function SubscribeButton({ 
+  planId, 
+  planName, 
+  isFeatured, 
+  mode = 'subscription', 
+  disabled, 
+  currency = 'INR', 
+  hasActiveSubscription,
+  variant = 'neon',
+  fullWidth = true,
+  className = ''
+}: SubscribeButtonProps) {
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const { showAuthGate, showToast } = useNotify()
@@ -62,21 +76,24 @@ export function SubscribeButton({ planId, planName, isFeatured, mode = 'subscrip
       onClick={handleSubscribe}
       disabled={disabled}
       className={`
-        relative w-full py-4 lg:py-5 rounded-xl lg:rounded-2xl text-center text-[10px] lg:text-sm font-black uppercase tracking-widest transition-all overflow-hidden group
-        ${isFeatured 
+        relative ${fullWidth ? 'w-full' : ''} py-4 lg:py-5 rounded-xl lg:rounded-2xl text-center text-[10px] lg:text-sm font-black uppercase tracking-widest transition-all overflow-hidden group
+        ${variant === 'neon' || isFeatured
           ? 'bg-studio-neon text-black hover:shadow-[0_0_30px_rgba(166,226,46,0.4)] hover:scale-[1.02]' 
+          : variant === 'white'
+          ? 'bg-white text-black hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:scale-[1.02]'
           : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white'
         }
         active:scale-[0.98]
         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none
+        ${className}
       `}
     >
       <div className="relative z-10 flex flex-row items-center justify-center gap-3 px-4 w-full">
-        <Sparkles className={`h-4 w-4 shrink-0 ${isFeatured ? 'text-black/40' : 'text-white/20'} group-hover:animate-pulse`} />
+        <Sparkles className={`h-4 w-4 shrink-0 ${variant === 'neon' || variant === 'white' || isFeatured ? 'text-black/40' : 'text-white/20'} group-hover:animate-pulse`} />
         <span className="leading-snug">{planName}</span>
       </div>
 
-      {isFeatured && (
+      {(variant === 'neon' || isFeatured) && (
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
       )}
     </button>

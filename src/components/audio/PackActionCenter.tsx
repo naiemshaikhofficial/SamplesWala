@@ -41,7 +41,7 @@ export function PackActionCenter({ packId, bundleCost, priceInr }: PackActionCen
                     planId={packId} 
                     planName={`BUY_NOW: ₹${priceInr}`} 
                     mode="sample_pack"
-                    isFeatured
+                    variant="white"
                 />
                 <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">INSTANT_DELIVERY</span>
             </div>

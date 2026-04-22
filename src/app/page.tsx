@@ -19,13 +19,14 @@ import { Suspense } from 'react'
 export const revalidate = 3600;
 
 export const metadata = {
-  title: 'Samples Wala - Pro Global & Indian Sample Packs online',
-  description: 'Samples Wala is a platform to buy music production plugins, presets, and sample packs online. Discover high-quality sounds, VST plugins, and tools for producers with worldwide access.',
+  title: 'Samples Wala | Best Indian Sample Packs, Bollywood Loops & VSTs',
+  description: 'India\'s leading platform for premium royalty-free sample packs, Bollywood loops, and VST plugins. Download high-quality WAV files for music production. Worldwide access to authentic Indian sounds.',
   keywords: [
-    'sample packs', 'trap samples', 'drill loops', 'hip hop sounds', 'edm samples',
-    'indian samples', 'bollywood sample packs', 'royalty free loops', 
-    'wav samples', 'music production', 'fl studio packs', 'samples wala', 
-    'splice alternative', 'looperman alternative', 'cymatics style loops', 'landr samples'
+    'Indian sample packs', 'Bollywood loops', 'royalty free samples', 'drum kits', 
+    'vocal presets', 'tabla loops', 'dhol sounds', 'trap samples', 'drill loops', 
+    'hip hop sounds', 'edm samples', 'wav samples download', 'music production tools', 
+    'FL Studio packs', 'Ableton samples', 'Logic Pro loops', 'Samples Wala', 
+    'best splice alternative India'
   ],
   alternates: {
     canonical: 'https://sampleswala.com'
@@ -37,10 +38,12 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Samples Wala",
+  "alternateName": "SamplesWala",
   "url": "https://sampleswala.com",
   "logo": "https://imagizer.imageshack.com/img924/3983/vzoEZd.png",
   "sameAs": [
-    "https://youtube.com/@SamplesWala"
+    "https://youtube.com/@SamplesWala",
+    "https://instagram.com/sampleswala"
   ],
   "contactPoint": {
     "@type": "ContactPoint",
