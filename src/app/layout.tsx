@@ -71,7 +71,7 @@ export default function RootLayout({
           "@context": "https://schema.org",
           "@type": "Product",
           "name": "Samples Wala",
-          "image": "https://sampleswala.com/logo.png",
+          "image": "https://sampleswala.com/Logo.png",
           "description": "Premium royalty-free sample packs and loops for music production.",
           "brand": {
             "@type": "Brand",

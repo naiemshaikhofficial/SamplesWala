@@ -10,10 +10,10 @@ export const PersonSchema = () => {
         '@type': ['Person', 'MusicGroup'],
         '@id': `${SITE_URL}/#brand`,
         name: BRAND_NAME,
-        alternateName: ['Samples Wala', 'SamplesWala Official'],
+        alternateName: ["SamplesWala", "SampleWala"],
         description: 'India\'s leading marketplace for premium sample packs, musical loops, and VST software. Crafted for modern music producers.',
         url: SITE_URL,
-        image: `${SITE_URL}/logo.png`,
+        image: `${SITE_URL}/Logo.png`,
         sameAs: [
             'https://instagram.com/sampleswala',
             'https://youtube.com/@sampleswala',
@@ -78,7 +78,7 @@ export const OrganizationSchema = () => {
         url: SITE_URL,
         logo: {
             '@type': 'ImageObject',
-            url: `${SITE_URL}/logo.png`,
+            url: `${SITE_URL}/Logo.png`,
             width: 512,
             height: 512,
         },
@@ -245,6 +245,7 @@ const JsonLdSchema: React.FC<JsonLdProps> = ({ type, data }) => {
         '@type': 'WebSite',
         '@id': `${SITE_URL}/#website`,
         name: BRAND_NAME,
+        alternateName: ["SamplesWala", "SampleWala"],
         url: SITE_URL,
         potentialAction: {
             '@type': 'SearchAction',
