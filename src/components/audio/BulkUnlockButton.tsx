@@ -79,16 +79,16 @@ export function BulkUnlockButton({ packId, cost }: { packId: string, cost: numbe
       onClick={handleBulkUnlock}
       disabled={loading}
       className={`
-        h-12 lg:h-14 px-8 lg:px-10 border-2 font-black text-[9px] lg:text-[10px] uppercase tracking-widest 
-        transition-all group flex items-center justify-center gap-3 relative overflow-hidden rounded-sm w-full
+        h-12 lg:h-14 px-4 lg:px-6 border-2 font-black text-[9px] lg:text-[10px] uppercase tracking-widest 
+        transition-all group flex items-center justify-center gap-2 relative overflow-hidden rounded-sm w-full whitespace-nowrap
         ${needsConfirm 
-          ? 'bg-black text-studio-neon border-studio-neon shadow-[0_0_20px_#a6e22e33]' 
-          : 'border-studio-yellow/40 bg-black/80 text-white hover:bg-studio-yellow hover:text-black hover:border-studio-yellow hover:shadow-[0_0_30px_rgba(234,179,8,0.3)]'}
+          ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]' 
+          : 'border-white/20 bg-black text-white hover:bg-white hover:text-black hover:border-white hover:shadow-[0_0_30px_rgba(255,255,255,0.1)]'}
         ${loading ? 'opacity-80 cursor-wait' : 'active:scale-[0.98]'}
       `}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
-      <Zap className={`h-4 w-4 ${loading ? 'animate-spin text-studio-yellow' : needsConfirm ? 'text-studio-neon animate-pulse' : 'group-hover:fill-current'}`} />
+      <Zap className={`h-4 w-4 ${loading ? 'animate-spin text-white' : needsConfirm ? 'text-black animate-pulse' : 'group-hover:fill-current text-white/40'}`} />
       <span>
         {loading 
           ? 'UNLOCKING...' 

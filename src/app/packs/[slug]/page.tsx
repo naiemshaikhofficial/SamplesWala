@@ -324,6 +324,7 @@ export default async function PackPage({
                             packId={enrichedPack.id} 
                             bundleCost={enrichedPack.bundle_credit_cost || 50} 
                             priceInr={enrichedPack.price_inr} 
+                            priceUsd={enrichedPack.price_usd}
                         />
                     </div>
 

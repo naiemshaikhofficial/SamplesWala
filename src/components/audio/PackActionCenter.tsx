@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useState } from 'react'
 import { useVault } from '@/components/VaultProvider'
 import { BulkUnlockButton } from './BulkUnlockButton'
 import { SecureDownloadButton } from './SecureDownloadButton'
@@ -10,9 +11,19 @@ interface PackActionCenterProps {
     packId: string
     bundleCost: number
     priceInr: number
+    priceUsd?: number
 }
 
-export function PackActionCenter({ packId, bundleCost, priceInr }: PackActionCenterProps) {
+export function PackActionCenter({ packId, bundleCost, priceInr, priceUsd }: PackActionCenterProps) {
+    const [currency, setCurrency] = useState<'INR' | 'USD'>('INR')
+    
+    React.useEffect(() => {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+        if (!tz.includes('Asia/Kolkata') && !tz.includes('Asia/Calcutta')) {
+            setCurrency('USD')
+        }
+    }, [])
+
     const { unlockedIds, isLoading } = useVault()
     const isFullPackUnlocked = unlockedIds.has(packId)
 
@@ -31,19 +42,28 @@ export function PackActionCenter({ packId, bundleCost, priceInr }: PackActionCen
     }
 
     return (
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 relative">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 relative">
             <div className="flex flex-col gap-3">
                 <BulkUnlockButton packId={packId} cost={bundleCost} />
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">PAY_WITH_CREDITS</span>
+                <div className="flex items-center justify-center gap-2 opacity-30">
+                    <div className="h-[1px] w-4 bg-white/20" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] italic">PAY_WITH_CREDITS</span>
+                    <div className="h-[1px] w-4 bg-white/20" />
+                </div>
             </div>
             <div className="flex flex-col gap-3">
                 <SubscribeButton 
                     planId={packId} 
-                    planName={`BUY_NOW: ₹${priceInr}`} 
+                    planName={currency === 'INR' ? `BUY_NOW: ₹${priceInr}` : `BUY_NOW: $${priceUsd || Math.round(priceInr/80)}`} 
                     mode="sample_pack"
                     variant="white"
+                    currency={currency}
                 />
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] italic text-center">INSTANT_DELIVERY</span>
+                <div className="flex items-center justify-center gap-2 opacity-30">
+                    <div className="h-[1px] w-4 bg-white/20" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] italic">INSTANT_DELIVERY</span>
+                    <div className="h-[1px] w-4 bg-white/20" />
+                </div>
             </div>
         </div>
     )

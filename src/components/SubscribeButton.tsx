@@ -76,7 +76,7 @@ export function SubscribeButton({
       onClick={handleSubscribe}
       disabled={disabled}
       className={`
-        relative ${fullWidth ? 'w-full' : ''} py-4 lg:py-5 rounded-xl lg:rounded-2xl text-center text-[10px] lg:text-sm font-black uppercase tracking-widest transition-all overflow-hidden group
+        relative ${fullWidth ? 'w-full' : ''} h-12 lg:h-14 rounded-sm text-center text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all overflow-hidden group whitespace-nowrap px-4
         ${variant === 'neon' || isFeatured
           ? 'bg-studio-neon text-black hover:shadow-[0_0_30px_rgba(166,226,46,0.4)] hover:scale-[1.02]' 
           : variant === 'white'
