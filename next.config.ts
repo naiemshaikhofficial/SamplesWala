@@ -54,8 +54,8 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    cpus: 1,
-    staticGenerationMaxConcurrency: 1,
+    cpus: 2,
+    staticGenerationMaxConcurrency: 2,
   },
 };
 
