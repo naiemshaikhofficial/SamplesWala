@@ -6,7 +6,7 @@ import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSof
 import { Loader2, Sparkles } from 'lucide-react'
 import Script from 'next/script'
 import { useNotify } from '@/components/ui/NotificationProvider'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/AuthProvider'
 import PayPalCheckout from './payment/PayPalCheckout'
 import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
 
@@ -44,12 +44,11 @@ export function SubscribeButton({
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const { showAuthGate, showToast } = useNotify()
-  const supabase = createClient()
+  const { user } = useAuth()
 
   const handleSubscribe = async () => {
     // 🧬 AUTH CHECK
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    if (!user) {
         showAuthGate()
         return
     }

@@ -4,16 +4,16 @@ import { Zap } from 'lucide-react'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useNotify } from '@/components/ui/NotificationProvider'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 export function CreditCounter() {
+  const { user } = useAuth()
   const [data, setData] = useState<{ credits: number, plan: string } | null>(null)
   const supabase = createClient()
   const { showTopUpModal } = useNotify()
-
+  
   const syncState = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user;
       if (!user) return
 
       // 📀 FETCH INTEGRATED STATE (Credits + Active Subscription from User Node)
@@ -36,15 +36,13 @@ export function CreditCounter() {
     } catch (err) {
       console.error("[CREDIT_SYNC_CRITICAL]", err)
     }
-  }, [supabase])
+  }, [supabase, user])
 
   useEffect(() => {
     let isMounted = true;
     let activeChannel: any = null;
 
     const setupRealtime = async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        const user = session?.user;
         if (!user || !isMounted) return
 
         syncState()
@@ -81,7 +79,7 @@ export function CreditCounter() {
         if (activeChannel) supabase.removeChannel(activeChannel) 
         window.removeEventListener('refresh-credits', onManualRefresh);
     }
-  }, [supabase, syncState])
+  }, [supabase, syncState, user])
 
   if (!data || data.plan === 'FREE') return null
 

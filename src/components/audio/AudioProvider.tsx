@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useRef, useEffect, useCallb
 import { generatePreviewToken } from '@/app/packs/[slug]/actions'
 import { getCachedAudio, cacheAudio } from '@/lib/audio/cache'
 import { getVibeSuggestions } from '@/app/api/vibe/actions'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { User } from '@supabase/supabase-js'
 
 type AudioMetadata = { 
     id: string, 
@@ -40,7 +42,7 @@ type AudioContextType = {
   vibeSuggestions: any[]
   next: () => void
   prev: () => void
-  user: any | null
+  user: User | null
   registerSignals: (signals: Record<string, string>) => void
 }
 
@@ -58,7 +60,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [spectrum, setSpectrum] = useState<number[]>(new Array(40).fill(0))
   const [isLooping, setIsLooping] = useState(false)
   const [volume, setVolumeState] = useState(1.0)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   
   // 🎵 PLAYLIST_STATE :: Managed via ref-sync for instant navigation access
   const [playlist, setPlaylistState] = useState<AudioMetadata[]>([])
@@ -72,7 +74,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const watermarkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   
   const userVolumeRef = useRef(1.0)
-  const userRef = useRef<any>(null)
+  const userRef = useRef<User | null>(null)
   const playlistRef = useRef<AudioMetadata[]>([])
 
   useEffect(() => {
@@ -112,49 +114,12 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       });
   }, []);
 
+  const { user: authUser } = useAuth();
+
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // 🛡️ AUTH_SINGLETON_CHECK :: Ensure we only attach one listener
-    const { createClient } = require('@/lib/supabase/client');
-    const supabase = createClient();
-    
-    let isMounted = true;
-
-    async function initSession() {
-        const { data } = await supabase.auth.getSession();
-        if (isMounted) {
-            const currentUser = data.session?.user || null;
-            setUser(currentUser);
-            userRef.current = currentUser;
-        }
-    }
-
-    initSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event: any, session: any) => {
-        if (!isMounted) return;
-        
-        const currentUser = session?.user ?? null;
-        
-        // 🛑 PREVENT_REDUNDANT_STATE_UPDATES
-        if (userRef.current?.id === currentUser?.id && event !== 'SIGNED_OUT') return;
-
-        setUser(currentUser);
-        userRef.current = currentUser;
-
-        if (event === 'SIGNED_OUT') {
-            stop();
-            setPlaylist([]);
-            window.location.reload(); 
-        }
-    });
-
-    return () => {
-        isMounted = false;
-        authListener.subscription.unsubscribe();
-    }
-  }, []);
+    setUser(authUser);
+    userRef.current = authUser;
+  }, [authUser]);
 
   const pause = useCallback(() => { audioRef.current?.pause(); }, []);
 

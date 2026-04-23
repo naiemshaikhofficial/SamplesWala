@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, memo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import useSWR, { useSWRConfig } from 'swr'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 type VaultContextType = {
   unlockedIds: Set<string>
@@ -30,9 +31,10 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   // 🧬 STABLE_CLIENT_NODE: Memoize the singleton for dependency tracking
   const supabase = React.useMemo(() => createClient(), [])
   
+  const { user } = useAuth()
   const { mutate: globalMutate } = useSWRConfig()
   const [localUnlocked, setLocalUnlocked] = useState<Set<string>>(new Set())
-  const [sessionUser, setSessionUser] = useState<string | null>(null)
+  const sessionUser = user?.id || null;
   
   // 🧬 PERSISTENCE_CACHE_KEY
   const getCacheKey = React.useCallback((userId: string) => `studio_vault_cache_${userId}`, []);
@@ -68,18 +70,10 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const setup = async () => {
-      // 🛡️ SECURITY_CHECK: Get session once and stop if no user
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!mounted) return;
+    const setupRealtime = async () => {
+      if (!user) return;
 
-      if (!session?.user) {
-        setSessionUser(null)
-        return
-      }
-
-      const userId = session.user.id
-      setSessionUser(userId)
+      const userId = user.id
 
       // 📥 LOAD_PERSISTENCE (Offline-First Start)
       try {
@@ -113,7 +107,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         .subscribe()
     }
 
-    setup()
+    setupRealtime()
     
     return () => { 
       mounted = false;
@@ -122,7 +116,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         channelRef.current = null
       }
     }
-  }, [supabase, globalMutate, getCacheKey])
+  }, [supabase, globalMutate, getCacheKey, user])
 
   // 🧬 SWR_VAULT_FETCH: Use an array key including userId for stability and separation
   const { data: vaultData, isLoading } = useSWR(sessionUser ? ['user_vault', sessionUser] : null, async ([_, userId]) => {

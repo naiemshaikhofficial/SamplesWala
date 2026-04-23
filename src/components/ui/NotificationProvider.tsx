@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, CheckCircle2, AlertTriangle, Info, Bell, ShieldAlert, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/AuthProvider'
 import Script from 'next/script'
 import { redeemCoupon, createTopUpOrder, verifyPayment } from '@/app/actions/commerce'
 
@@ -236,6 +237,7 @@ import { useRouter } from 'next/navigation'
 // 🎰 CREDIT TOP-UP TERMINAL (1:1 INR MODEL)
 function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
     const router = useRouter()
+    const { user } = useAuth()
     const [amount, setAmount] = useState<number>(50)
     const [coupon, setCoupon] = useState('')
     const [isRedeeming, setIsRedeeming] = useState(false)
@@ -255,8 +257,6 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     useEffect(() => {
         const fetchBilling = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession()
-                const user = session?.user;
                 if (!user) return
 
                 // 🧬 LAYER_1: Local Edge Cache Check (Speed Priority)
@@ -311,8 +311,6 @@ function TopUpModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
         }
         setLoading(true)
         try {
-            const { data: { session } } = await supabase.auth.getSession()
-            const user = session?.user;
             if (!user) {
                 showToast("UNAUTHORIZED: PLEASE LOGIN AGAIN", "error")
                 return

@@ -5,8 +5,8 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import { createPayPalOrder, capturePayPalOrder } from '@/app/subscription/actions'
 import { useRouter } from 'next/navigation'
 import { useNotify } from '@/components/ui/NotificationProvider'
+import { useAuth } from '@/components/providers/AuthProvider'
 import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
-import { createClient } from '@/lib/supabase/client'
 
 interface PayPalCheckoutProps {
     itemId: string
@@ -18,6 +18,7 @@ interface PayPalCheckoutProps {
 export default function PayPalCheckout({ itemId, itemType, planName, onSuccess }: PayPalCheckoutProps) {
     const router = useRouter()
     const { showToast } = useNotify()
+    const { user } = useAuth()
 
     const initialOptions = {
         clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
@@ -53,12 +54,10 @@ export default function PayPalCheckout({ itemId, itemType, planName, onSuccess }
                                 showToast(`${planName} linked to your node via PayPal.`, 'success')
                                 
                                 // 🌠 Trigger Trustpilot Invitation Signal
-                                const supabase = createClient()
-                                const { data: { session } } = await supabase.auth.getSession()
-                                if (session?.user) {
+                                if (user) {
                                     triggerTrustpilotInvitation(
-                                        session.user.email!,
-                                        session.user.user_metadata?.full_name || 'Producer',
+                                        user.email!,
+                                        user.user_metadata?.full_name || 'Producer',
                                         data.orderID
                                     )
                                 }

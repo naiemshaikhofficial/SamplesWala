@@ -5,7 +5,7 @@ import { SubscribeButton } from '@/components/SubscribeButton'
 
 export async function SubscriptionFeature() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   
   // Fetch only the relevant plans for quick access
   const { data: plans } = await supabase
@@ -14,10 +14,10 @@ export async function SubscriptionFeature() {
     .in('name', ['Professional', 'Producer'])
     .order('price_inr', { ascending: true })
 
-  const { data: activeSub } = session ? await supabase
+  const { data: activeSub } = user ? await supabase
     .from('user_accounts')
     .select('*, subscription_plans(*)')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .single() : { data: null }
 
   const hasActiveSub = !!activeSub?.plan_id

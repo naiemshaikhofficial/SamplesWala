@@ -4,33 +4,23 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Music, User, Activity, Play, Pause, Square, Circle, Cpu, Layers, Disc, Settings as SettingsIcon, HelpCircle } from 'lucide-react'
-import { CurrencyToggle } from '@/components/CurrencyToggle'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
-import { useEffect, useState, Suspense } from 'react'
+import { Suspense } from 'react'
 import { useAudio } from '@/components/audio/AudioProvider'
 import { useSidebar } from './SidebarContext'
-import { Menu } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 export function Header() {
   const pathname = usePathname()
   const isAdmin = pathname?.includes('/admin')
-  const { isOpen, toggle } = useSidebar()
+  const { user } = useAuth()
+  const { isOpen } = useSidebar()
   
   if (isAdmin) return null;
   
-  const [user, setUser] = useState<any>(null)
-  const supabase = createClient()
   const { isPlaying, activeId, activeMetadata, currentTime, play, pause } = useAudio()
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user || null)
-    }
-    getUser()
-  }, [])
 
   // Format time MM:SS:CC
   const formatTime = (time: number) => {

@@ -15,8 +15,15 @@ export const SectionReveal = forwardRef<HTMLDivElement, SectionRevealProps>(
     const [isVisible, setIsVisible] = useState(false)
     const internalRef = useRef<HTMLDivElement>(null)
 
-    // @ts-ignore
-    useImperativeHandle(ref, () => internalRef.current)
+    // Sync the forwarded ref with our internal ref
+    useEffect(() => {
+      if (!ref) return
+      if (typeof ref === 'function') {
+        ref(internalRef.current)
+      } else {
+        (ref as any).current = internalRef.current
+      }
+    }, [ref])
 
     useEffect(() => {
       const observer = new IntersectionObserver(entries => {

@@ -11,6 +11,7 @@ import {
 import { SignalMeter } from '@/components/ui/DAWVisualizer'
 import { useSidebar } from './SidebarContext'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 const iconMap: any = {
   'melodies': <Music className="w-3 h-3" />,
@@ -37,58 +38,10 @@ export function Sidebar() {
   const currentSearch = searchParams.get('q') || '';
   
   const { isOpen, toggle } = useSidebar();
+  const { user } = useAuth();
   const [searchVal, setSearchVal] = useState(currentSearch);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const [creditCount, setCreditCount] = useState<number | null>(null);
   const supabase = createClient();
-
-  // 🛡️ AUTH_SIGNAL & CREDIT TELEMETRY
-  useEffect(() => {
-    const fetchCredits = async (uid: string) => {
-        const { data } = await supabase.from('user_accounts').select('credits').eq('user_id', uid).single();
-        if (data) setCreditCount(data.credits);
-    }
-
-    const checkUser = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        if (currentUser) fetchCredits(currentUser.id);
-    }
-    checkUser();
-
-    // Live Credit Mirroring (Scoped to this user only)
-    // Live Credit Mirroring (Scoped to this user only)
-    const channelId = `sidebar-cdts-${user?.id || 'anon'}-${Math.random().toString(36).substring(7)}`;
-    const accountSubscription = supabase
-        .channel(channelId)
-        .on(
-            'postgres_changes', 
-            { 
-                event: 'UPDATE', 
-                schema: 'public', 
-                table: 'user_accounts',
-                filter: user ? `user_id=eq.${user.id}` : undefined 
-            }, 
-            (payload: any) => {
-                setCreditCount(payload.new.credits);
-            }
-        )
-        .subscribe();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        if (currentUser) fetchCredits(currentUser.id);
-        else setCreditCount(null);
-    });
-
-    return () => {
-        authListener.subscription.unsubscribe();
-        supabase.removeChannel(accountSubscription);
-    }
-  }, [supabase]); // ⚡ FIXED: Removed user?.id dependency to prevent infinite DB loops
 
   // Fetch Categories from DB
   useEffect(() => {
