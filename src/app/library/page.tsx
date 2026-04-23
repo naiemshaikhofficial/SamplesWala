@@ -10,8 +10,33 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
+interface VaultItem {
+  id: string
+  user_id: string
+  item_id: string
+  item_type: 'sample' | 'pack'
+  added_at: string
+}
+
+interface Sample {
+  id: string
+  name: string
+  audio_url: string
+}
+
+interface Pack {
+  id: string
+  name: string
+  cover_url: string
+}
+
+interface EnrichedVaultItem extends VaultItem {
+  display_name: string
+  cover: string | null
+}
+
 export default function LibraryPage() {
-    const [vaultItems, setVaultItems] = useState<any[]>([])
+    const [vaultItems, setVaultItems] = useState<EnrichedVaultItem[]>([])
     const [stats, setStats] = useState({ sounds: 0, packs: 0 })
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
@@ -34,26 +59,26 @@ export default function LibraryPage() {
             }
 
             // 2. Resolve Names (Join Logic)
-            const sampleIds = items.filter(v => v.item_type === 'sample').map(v => v.item_id)
-            const packIds = items.filter(v => v.item_type === 'pack').map(v => v.item_id)
+            const sampleIds = (items as VaultItem[]).filter((v: VaultItem) => v.item_type === 'sample').map((v: VaultItem) => v.item_id)
+            const packIds = (items as VaultItem[]).filter((v: VaultItem) => v.item_type === 'pack').map((v: VaultItem) => v.item_id)
 
             const [ { data: samples }, { data: packs } ] = await Promise.all([
                 supabase.from('samples').select('id, name, audio_url').in('id', sampleIds),
                 supabase.from('sample_packs').select('id, name, cover_url').in('id', packIds)
             ])
 
-            const enriched = items.map(v => ({
+            const enriched: EnrichedVaultItem[] = (items as VaultItem[]).map((v: VaultItem) => ({
                 ...v,
                 display_name: v.item_type === 'sample' 
-                    ? samples?.find(s => s.id === v.item_id)?.name || 'Unknown Sample'
-                    : packs?.find(p => p.id === v.item_id)?.name || 'Unknown Pack',
-                cover: v.item_type === 'sample' ? null : packs?.find(p => p.id === v.item_id)?.cover_url
+                    ? (samples as Sample[] | null)?.find((s: Sample) => s.id === v.item_id)?.name || 'Unknown Sample'
+                    : (packs as Pack[] | null)?.find((p: Pack) => p.id === v.item_id)?.name || 'Unknown Pack',
+                cover: v.item_type === 'sample' ? null : (packs as Pack[] | null)?.find((p: Pack) => p.id === v.item_id)?.cover_url || null
             }))
 
             setVaultItems(enriched)
             setStats({
-                sounds: items.filter(v => v.item_type === 'sample').length,
-                packs: items.filter(v => v.item_type === 'pack').length
+                sounds: (items as VaultItem[]).filter((v: VaultItem) => v.item_type === 'sample').length,
+                packs: (items as VaultItem[]).filter((v: VaultItem) => v.item_type === 'pack').length
             })
             setLoading(false)
         }
