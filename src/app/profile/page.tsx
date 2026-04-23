@@ -23,8 +23,8 @@ export default async function ProfilePage() {
         { count: unlockedCount }
     ] = await Promise.all([
         supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle(),
-        supabase.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('unlocked_samples').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+        supabase.from('credit_orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('user_vault').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
     ])
 
     const totalCredits = account?.credits ?? 0
@@ -191,15 +191,15 @@ export default async function ProfilePage() {
                                                 </div>
                                                 <div>
                                                     <h4 className="text-[12px] font-black uppercase tracking-widest text-white/60 group-hover:text-white transition-colors flex items-center gap-2">
-                                                        {purchase.item_name} <span className="text-[8px] bg-studio-neon/10 px-2 text-studio-neon rounded-full">SUCCESS</span>
+                                                        CREDIT PACK TOPUP <span className="text-[8px] bg-studio-neon/10 px-2 text-studio-neon rounded-full">{purchase.status}</span>
                                                     </h4>
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/10 italic">{new Date(purchase.created_at).toLocaleDateString()} // ID: {purchase.id.slice(0,6).toUpperCase()}</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/10 italic">{new Date(purchase.created_at).toLocaleDateString()} // ID: {purchase.order_id?.slice(0,10).toUpperCase() || purchase.id.slice(0,6).toUpperCase()}</span>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-[14px] font-black text-white italic tracking-tighter shadow-studio-neon">₹{purchase.amount}</div>
+                                                <div className="text-[14px] font-black text-white italic tracking-tighter shadow-studio-neon">₹{purchase.amount_inr}</div>
                                                 <span className="text-[9px] font-black uppercase tracking-widest text-studio-neon brightness-150 flex items-center gap-2 justify-end">
-                                                   <div className="h-1 w-1 bg-studio-neon rounded-full animate-ping" /> SAFE PAYMENT
+                                                   <div className="h-1 w-1 bg-studio-neon rounded-full animate-ping" /> {purchase.credits_awarded} CREDITS
                                                 </span>
                                             </div>
                                         </div>

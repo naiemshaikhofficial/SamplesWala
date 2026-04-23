@@ -63,7 +63,7 @@ export default async function AdminDashboard() {
     supabase.from('sample_packs').select('*', { count: 'exact', head: true }),
     supabase.from('samples').select('*', { count: 'exact', head: true }),
     supabase.from('samples').select('*', { count: 'exact', head: true }).eq('ai_is_processed', false),
-    supabase.from('purchases').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(5),
+    supabase.from('credit_orders').select('*').order('created_at', { ascending: false }).limit(5),
     supabase.from('sample_packs').select('*').order('created_at', { ascending: false }).limit(10),
     supabase.from('profiles').select('*, user_accounts(credits)').limit(50),
     supabase.from('ai_signal_logs').select('*, samples(name)').order('created_at', { ascending: false }).limit(20)

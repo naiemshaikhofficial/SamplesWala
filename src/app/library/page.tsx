@@ -11,16 +11,53 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 export default function LibraryPage() {
+    const [vaultItems, setVaultItems] = useState<any[]>([])
     const [stats, setStats] = useState({ sounds: 0, packs: 0 })
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
 
     useEffect(() => {
-        async function fetchLibraryStats() {
+        async function fetchLibrary() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return setLoading(false)
+
+            // 1. Fetch Vault Items
+            const { data: items, error } = await supabase
+                .from('user_vault')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('added_at', { ascending: false })
+
+            if (error || !items) {
+                setLoading(false)
+                return
+            }
+
+            // 2. Resolve Names (Join Logic)
+            const sampleIds = items.filter(v => v.item_type === 'sample').map(v => v.item_id)
+            const packIds = items.filter(v => v.item_type === 'pack').map(v => v.item_id)
+
+            const [ { data: samples }, { data: packs } ] = await Promise.all([
+                supabase.from('samples').select('id, name, audio_url').in('id', sampleIds),
+                supabase.from('sample_packs').select('id, name, cover_url').in('id', packIds)
+            ])
+
+            const enriched = items.map(v => ({
+                ...v,
+                display_name: v.item_type === 'sample' 
+                    ? samples?.find(s => s.id === v.item_id)?.name || 'Unknown Sample'
+                    : packs?.find(p => p.id === v.item_id)?.name || 'Unknown Pack',
+                cover: v.item_type === 'sample' ? null : packs?.find(p => p.id === v.item_id)?.cover_url
+            }))
+
+            setVaultItems(enriched)
+            setStats({
+                sounds: items.filter(v => v.item_type === 'sample').length,
+                packs: items.filter(v => v.item_type === 'pack').length
+            })
             setLoading(false)
-            // Placeholder: Abhi ye 0 sounds/packs dikhayega until user additions
         }
-        fetchLibraryStats()
+        fetchLibrary()
     }, [supabase])
 
     if (loading) return (
@@ -76,27 +113,60 @@ export default function LibraryPage() {
                     </div>
                 </div>
 
-                {/* 🗄️ EMPTY_VAULT_UI (Simple & User Friendly) */}
-                <div className="w-full aspect-[21/9] md:aspect-[3/1] bg-black/30 border-2 border-dashed border-white/5 rounded-lg flex flex-center items-center justify-center p-12 text-center group hover:border-white/10 transition-colors">
-                    <div className="max-w-md space-y-8">
-                        <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-8 text-white/20 group-hover:text-studio-neon group-hover:border-studio-neon/30 transition-all duration-500 scale-110">
-                            <DownloadCloud size={32} />
-                        </div>
-                        
-                        <div className="space-y-4">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter text-white italic">
-                                Your library is empty
-                            </h2>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 leading-relaxed max-w-xs mx-auto italic">
-                                START EXPLORING OUR SOUND CATALOG TO LOAD YOUR LIBRARY.
-                            </p>
-                        </div>
-
-                        <Link href="/browse" className="inline-flex items-center gap-4 px-8 py-4 bg-studio-neon text-black text-[10px] font-black uppercase tracking-[0.3em] italic rounded-sm hover:translate-y-[-2px] hover:shadow-[0_10px_40px_rgba(180,255,0,0.2)] transition-all">
-                            STARTS EXPLORING <ArrowLeft size={12} className="rotate-180" />
-                        </Link>
+                {/* 🗄️ VAULT_CONTENT */}
+                {vaultItems.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {vaultItems.map((item) => (
+                            <div key={item.id} className="p-6 bg-black/40 border border-white/5 group hover:border-studio-neon transition-all flex items-center justify-between shadow-2xl">
+                                <div className="flex items-center gap-6 overflow-hidden">
+                                    <div className="h-16 w-16 bg-studio-grey flex-shrink-0 relative overflow-hidden border border-white/10">
+                                        {item.cover ? (
+                                            <img src={item.cover} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-white/10 group-hover:text-studio-neon transition-colors">
+                                                {item.item_type === 'sample' ? <FileAudio size={24} /> : <Package size={24} />}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h3 className="text-[12px] font-black uppercase tracking-widest text-white/60 group-hover:text-white truncate">
+                                            {item.display_name}
+                                        </h3>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-white/10 italic">
+                                            {item.item_type.toUpperCase()} // UNLOCKED: {new Date(item.added_at).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex gap-4">
+                                    <button className="h-10 w-10 flex items-center justify-center bg-white/5 border border-white/5 text-white/20 hover:bg-studio-neon hover:text-black hover:border-studio-neon transition-all">
+                                        <DownloadCloud size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                </div>
+                ) : (
+                    <div className="w-full aspect-[21/9] md:aspect-[3/1] bg-black/30 border-2 border-dashed border-white/5 rounded-lg flex flex-center items-center justify-center p-12 text-center group hover:border-white/10 transition-colors">
+                        <div className="max-w-md space-y-8">
+                            <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-8 text-white/20 group-hover:text-studio-neon group-hover:border-studio-neon/30 transition-all duration-500 scale-110">
+                                <DownloadCloud size={32} />
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h2 className="text-2xl font-black uppercase tracking-tighter text-white italic">
+                                    Your library is empty
+                                </h2>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 leading-relaxed max-w-xs mx-auto italic">
+                                    START EXPLORING OUR SOUND CATALOG TO LOAD YOUR LIBRARY.
+                                </p>
+                            </div>
+
+                            <Link href="/browse" className="inline-flex items-center gap-4 px-8 py-4 bg-studio-neon text-black text-[10px] font-black uppercase tracking-[0.3em] italic rounded-sm hover:translate-y-[-2px] hover:shadow-[0_10px_40px_rgba(180,255,0,0.2)] transition-all">
+                                STARTS EXPLORING <ArrowLeft size={12} className="rotate-180" />
+                            </Link>
+                        </div>
+                    </div>
+                )}
 
                 {/* 🔗 QUICK_ACTIONS */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 pt-12 border-t border-white/5">
