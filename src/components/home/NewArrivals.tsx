@@ -40,7 +40,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                         </h2>
                     </div>
                 </div>
-                <Link href="/browse?sort=newest" className="group flex items-center gap-4 px-8 py-4 md:px-10 md:py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden self-start">
+                <Link href="/browse?sort=newest" prefetch={false} className="group flex items-center gap-4 px-8 py-4 md:px-10 md:py-5 bg-black border-2 border-white/5 hover:border-studio-neon transition-all relative overflow-hidden self-start">
                     <span className="text-[10px] md:text-[11px] font-black uppercase tracking-widest relative z-10">View All Packs</span>
                     <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-2 transition-transform" />
                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -68,7 +68,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                     </div>
                                 </div>
                                 
-                                <Link href={`/packs/${pack.slug}`} className="block p-3 md:p-4 bg-black/40 hover:bg-black transition-all flex-1">
+                                <Link href={`/packs/${pack.slug}`} prefetch={false} className="block p-3 md:p-4 bg-black/40 hover:bg-black transition-all flex-1">
                                     <div className="aspect-square relative overflow-hidden mb-4 border border-white/5 bg-black/20">
                                         {pack.cover_url ? (
                                             <Image 

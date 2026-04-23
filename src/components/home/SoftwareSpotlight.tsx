@@ -40,7 +40,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
                     </div>
                 </div>
                 
-                <Link href="/software" className="group flex items-center gap-6 px-10 py-5 bg-black border border-white/10 hover:border-studio-neon transition-all relative overflow-hidden self-start">
+                <Link href="/software" prefetch={false} className="group flex items-center gap-6 px-10 py-5 bg-black border border-white/10 hover:border-studio-neon transition-all relative overflow-hidden self-start">
                     <span className="text-[10px] md:text-[12px] font-black uppercase tracking-widest relative z-10">EXPLORE ALL SOFTWARE</span>
                     <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-2 transition-transform" />
                     <div className="absolute inset-0 bg-studio-neon/5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -70,7 +70,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
 
                         <div className="flex flex-col md:flex-row h-full">
                             {/* Visual Port */}
-                            <Link href={`/software/${soft.slug}`} className="block w-full md:w-1/2 aspect-square relative bg-studio-charcoal group-hover:brightness-110 transition-all overflow-hidden border-b-2 md:border-b-0 md:border-r-2 border-black">
+                            <Link href={`/software/${soft.slug}`} prefetch={false} className="block w-full md:w-1/2 aspect-square relative bg-studio-charcoal group-hover:brightness-110 transition-all overflow-hidden border-b-2 md:border-b-0 md:border-r-2 border-black">
                                 {soft.cover_url ? (
                                     <Image 
                                         src={soft.cover_url} 
@@ -93,7 +93,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
                             {/* Data Port */}
                             <div className="w-full md:w-1/2 p-10 flex flex-col justify-start bg-studio-charcoal/40">
                                 <div>
-                                    <Link href={`/software/${soft.slug}`}>
+                                    <Link href={`/software/${soft.slug}`} prefetch={false}>
                                         <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white mb-6 group-hover:text-studio-neon transition-colors leading-none cursor-pointer">
                                             {soft.name}
                                         </h3>
@@ -121,6 +121,7 @@ export function SoftwareSpotlight({ products }: { products: SoftwareProduct[] })
                                     </div>
                                     <Link 
                                         href={`/software/${soft.slug}`}
+                                        prefetch={false}
                                         className="w-full h-14 flex items-center justify-center bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] hover:bg-studio-neon transition-all gap-3 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                                     >
                                         PURCHASE NOW <ArrowRight size={14} />

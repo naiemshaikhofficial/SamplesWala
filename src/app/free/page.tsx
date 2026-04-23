@@ -11,6 +11,7 @@ import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { createClient } from '@/lib/supabase/server'
+import { Suspense } from 'react'
 
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 
@@ -140,11 +141,13 @@ export default async function FreeSamplesPage({
                       <PremiumPaywall />
                   ) : (
                       <>
-                          <SampleList 
-                              samples={freeSamples} 
-                              packName="Free Collection" 
-                              coverUrl={null} 
-                          />
+                          <Suspense fallback={<div className="h-screen w-full bg-black/20 animate-pulse" />}>
+                              <SampleList 
+                                  samples={freeSamples} 
+                                  packName="Free Collection" 
+                                  coverUrl={null} 
+                              />
+                          </Suspense>
 
                           <div className="mt-20">
                               <Pagination 

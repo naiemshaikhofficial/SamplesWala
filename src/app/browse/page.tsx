@@ -23,6 +23,7 @@ import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { Cable } from 'lucide-react'
 import { Metadata } from 'next'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
+import { Suspense } from 'react'
 
 export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
 
@@ -233,7 +234,9 @@ export default async function BrowsePage({
         
         {/* 🎛️ Search Filters (Col 1) */}
         <div className="lg:col-span-1">
-            <SidebarFilters categories={categories} />
+            <Suspense fallback={<div className="h-screen w-80 bg-[#0d0d0d] animate-pulse" />}>
+                <SidebarFilters categories={categories} />
+            </Suspense>
         </div>
 
         {/* 🎧 SOUND_GRID (Col 2-4) */}
@@ -313,12 +316,14 @@ export default async function BrowsePage({
                         <PremiumPaywall />
                     ) : (
                         <>
-                            <SampleList 
-                                samples={samples} 
-                                packName="Browse Results" 
-                                coverUrl={null} 
-                                totalCount={count}
-                            />
+                            <Suspense fallback={<div className="h-screen w-full bg-black/60 animate-pulse" />}>
+                                <SampleList 
+                                    samples={samples} 
+                                    packName="Browse Results" 
+                                    coverUrl={null} 
+                                    totalCount={count}
+                                />
+                            </Suspense>
 
                             {!hasNoResults && (
                                 <div className="mt-20">

@@ -128,7 +128,9 @@ export default async function Home() {
                 </div>
                 
                 <SectionErrorBoundary sectionName="New Arrivals">
-                    <NewArrivals packs={latestPacksData.data || []} />
+                    <Suspense fallback={<div className="h-96 w-full bg-studio-grey animate-pulse" />}>
+                        <NewArrivals packs={latestPacksData.data || []} />
+                    </Suspense>
                 </SectionErrorBoundary>
             </div>
         </section>
@@ -175,7 +177,9 @@ export default async function Home() {
         <section id="fresh-sounds" className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
             <div className="max-w-7xl mx-auto">
                 <SectionErrorBoundary sectionName="Fresh Signals">
-                    <FreshSounds samples={enrichedFreshSounds} />
+                    <Suspense fallback={<div className="h-96 w-full bg-black animate-pulse" />}>
+                        <FreshSounds samples={enrichedFreshSounds} />
+                    </Suspense>
                 </SectionErrorBoundary>
             </div>
         </section>
@@ -185,7 +189,9 @@ export default async function Home() {
 
         {/* 🛠️ SOFTWARE SPOTLIGHT */}
         <SectionErrorBoundary sectionName="Software Matrix">
-            <SoftwareSpotlight products={softwareData.data || []} />
+            <Suspense fallback={<div className="h-96 w-full bg-studio-charcoal animate-pulse" />}>
+                <SoftwareSpotlight products={softwareData.data || []} />
+            </Suspense>
         </SectionErrorBoundary>
 
         {/* 🎚️ MIXER MATRIX (FX RACK) - FORCED ROW ON MOBILE */}
@@ -256,7 +262,9 @@ export default async function Home() {
             </div>
             <div className="max-w-7xl mx-auto px-4 md:px-20 relative">
                 <SectionErrorBoundary sectionName="Trending Charts">
-                    <TopSounds samples={enrichedTopSamples} />
+                    <Suspense fallback={<div className="h-[600px] w-full bg-black animate-pulse" />}>
+                        <TopSounds samples={enrichedTopSamples} />
+                    </Suspense>
                 </SectionErrorBoundary>
             </div>
         </section>

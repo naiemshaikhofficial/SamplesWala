@@ -72,6 +72,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                 <div className="flex items-center gap-8 bg-black/60 p-4 md:p-6 border border-white/5 backdrop-blur-md">
                     <Link 
                         href="/browse?type=samples&sort=newest" 
+                        prefetch={false}
                         className="group flex items-center gap-4 text-[11px] font-black uppercase tracking-widest hover:text-studio-neon transition-all"
                     >
                         Browse All

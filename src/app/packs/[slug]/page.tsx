@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { Suspense } from 'react'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
@@ -407,16 +408,18 @@ export default async function PackPage({
                 </div>
             </div>
 
-            <SampleList 
-                samples={samples || []} 
-                packName={pack.name} 
-                coverUrl={pack.cover_url} 
-                packId={pack.id} 
-                totalCount={allArtifacts.length}
-                loopsCount={loops + melodies}
-                oneShotsCount={oneShots}
-                presetsCount={presets}
-            />
+            <Suspense fallback={<div className="h-screen w-full bg-black/20 animate-pulse" />}>
+                <SampleList 
+                    samples={samples || []} 
+                    packName={pack.name} 
+                    coverUrl={pack.cover_url} 
+                    packId={pack.id} 
+                    totalCount={allArtifacts.length}
+                    loopsCount={loops + melodies}
+                    oneShotsCount={oneShots}
+                    presetsCount={presets}
+                />
+            </Suspense>
             
             {samples && samples.length > 0 && (
                 <div className="mt-12">
