@@ -24,9 +24,13 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('currency', c)
   }
 
-  const format = (inr: number, usd: number) => {
-    if (currency === 'INR') return '₹' + inr.toLocaleString()
-    return '$' + usd.toFixed(2)
+  const format = (inr: number | null | undefined, usd: number | null | undefined) => {
+    if (currency === 'INR') {
+      const val = inr ?? 0
+      return '₹' + val.toLocaleString()
+    }
+    const val = usd ?? 0
+    return '$' + val.toFixed(2)
   }
 
   return (
