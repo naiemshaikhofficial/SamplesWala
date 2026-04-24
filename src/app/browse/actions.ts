@@ -267,7 +267,7 @@ export async function unlockSampleBatch(sampleIds: string[]) {
       .eq('user_id', user.id)
 
   // 🧬 CACHE_INVALIDATION: Clear user status cache so the UI updates immediately
-  revalidateTag('browse')
+  revalidateTag('browse', 'default')
   
   return { 
       success: true, 

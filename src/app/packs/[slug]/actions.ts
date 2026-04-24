@@ -52,7 +52,7 @@ export async function unlockSample(sampleId: string) {
         return { success: false, error: error.message }
     }
 
-    revalidateTag('browse')
+    revalidateTag('browse', 'default')
     return { success: true }
 }
 
@@ -131,6 +131,6 @@ export async function unlockFullPack(packId: string) {
         })
     }
 
-    revalidateTag('browse')
+    revalidateTag('browse', 'default')
     return { success: true }
 }

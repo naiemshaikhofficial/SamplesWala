@@ -431,7 +431,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
     revalidatePath('/pricing')
     revalidatePath('/browse')
     revalidatePath('/packs/[slug]', 'page')
-    revalidateTag('browse')
+    revalidateTag('browse', 'default')
 
     return { success: true }
 }
@@ -484,7 +484,7 @@ export async function cancelSubscription() {
     revalidatePath('/')
     revalidatePath('/pricing')
     revalidatePath('/profile')
-    revalidateTag('browse')
+    revalidateTag('browse', 'default')
     return { success: true }
 }
 
@@ -619,6 +619,6 @@ export async function capturePayPalOrder(orderId: string, itemId: string, itemTy
     });
 
     revalidatePath('/');
-    revalidateTag('browse')
+    revalidateTag('browse', 'default')
     return { success: true };
 }
