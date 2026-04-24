@@ -309,14 +309,20 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                                                     planName={`${item.name} (${billingCycle})`} 
                                                     priceInr={finalPrice} 
                                                     interval={billingCycle}
-                                                    onSuccess={async () => { await saveAddress(); router.push('/browse') }} 
+                                                    onSuccess={async () => { 
+                                                        await saveAddress(); 
+                                                        router.push(`/subscription/success?mode=${mode}&itemId=${item.id}&cycle=${billingCycle}`) 
+                                                    }} 
                                                 />
                                             ) : (
                                                 <PayPalCheckout 
                                                     itemId={item.id} 
                                                     itemType={mode as any} 
                                                     planName={`${item.name} (${billingCycle})`} 
-                                                    onSuccess={async () => { await saveAddress(); router.push('/browse') }} 
+                                                    onSuccess={async () => { 
+                                                        await saveAddress(); 
+                                                        router.push(`/subscription/success?mode=${mode}&itemId=${item.id}&cycle=${billingCycle}`) 
+                                                    }} 
                                                 />
                                             )}
                                         </div>
