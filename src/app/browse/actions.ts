@@ -310,7 +310,21 @@ export async function getBrowseData(filters: {
             .select('subscription_status')
             .eq('user_id', user.id)
             .maybeSingle()
+        
         isSubscribed = account?.subscription_status === 'ACTIVE'
+
+        // 🧪 PACK_OWNERSHIP_BYPASS: If not subscribed, check if user owns the specific pack
+        if (!isSubscribed && filters.packId) {
+            const { data: vaultPack } = await supabase
+                .from('user_vault')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('item_id', filters.packId)
+                .eq('item_type', 'pack')
+                .maybeSingle()
+            
+            if (vaultPack) isSubscribed = true
+        }
     }
 
     // 🛡️ SECURITY LAYER: Validate Parameters Server-Side
