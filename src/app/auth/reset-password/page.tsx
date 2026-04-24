@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, ShieldCheck, Lock, Loader2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Sparkles, ShieldCheck, Lock, Loader2, AlertCircle } from 'lucide-react'
 import { updatePassword } from '../actions'
 
 export default function ResetPasswordPage() {
@@ -15,6 +15,21 @@ export default function ResetPasswordPage() {
     setError(null)
     
     const formData = new FormData(e.currentTarget)
+    const password = formData.get('password') as string
+    const confirmPassword = formData.get('confirmPassword') as string
+
+    if (password !== confirmPassword) {
+        setError("Passwords do not match. Please try again.")
+        setIsPending(false)
+        return
+    }
+
+    if (password.length < 8) {
+        setError("Password must be at least 8 characters long.")
+        setIsPending(false)
+        return
+    }
+
     try {
         const result = await updatePassword(formData)
         if (result?.error) {
@@ -30,8 +45,8 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-[#020202] text-white flex flex-col relative overflow-hidden">
       {/* Dynamic Background Glows */}
-      <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-emerald-500/10 blur-[180px] rounded-full animate-pulse" />
-      <div className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-yellow-500/10 blur-[180px] rounded-full animate-pulse delay-1000" />
+      <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-studio-neon/5 blur-[180px] rounded-full animate-pulse" />
+      <div className="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-studio-yellow/5 blur-[180px] rounded-full animate-pulse delay-1000" />
 
       <Link href="/auth/login" className="absolute top-12 left-12 inline-flex items-center text-sm text-white/40 hover:text-white transition-all group z-50">
         <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" /> Back to Login
@@ -62,15 +77,29 @@ export default function ResetPasswordPage() {
                     {error}
                 </div>
             )}
-            <div className="relative group">
-               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-studio-neon transition-colors" />
-               <input 
-                 name="password"
-                 type="password" 
-                 placeholder="Enter New Password" 
-                 className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/10 rounded-2xl focus:border-studio-neon focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20 text-white font-bold"
-                 required
-               />
+            
+            <div className="space-y-4">
+                <div className="relative group">
+                    <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-studio-neon transition-colors" />
+                    <input 
+                        name="password"
+                        type="password" 
+                        placeholder="Choose New Password" 
+                        className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/10 rounded-2xl focus:border-studio-neon focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20 text-white font-bold"
+                        required
+                    />
+                </div>
+
+                <div className="relative group">
+                    <ShieldCheck className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-studio-neon transition-colors" />
+                    <input 
+                        name="confirmPassword"
+                        type="password" 
+                        placeholder="Confirm New Password" 
+                        className="w-full pl-14 pr-6 py-5 bg-white/[0.02] border border-white/10 rounded-2xl focus:border-studio-neon focus:bg-white/[0.04] transition-all outline-none text-sm placeholder:text-white/20 text-white font-bold"
+                        required
+                    />
+                </div>
             </div>
 
             <button disabled={isPending} className="w-full py-5 bg-studio-neon text-black font-black uppercase tracking-widest text-sm rounded-2xl flex items-center justify-center gap-3 hover:shadow-[0_0_40px_rgba(166,226,46,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3 overflow-hidden group">

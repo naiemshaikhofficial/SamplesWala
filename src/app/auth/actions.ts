@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -40,6 +41,10 @@ export async function signup(formData: FormData) {
     return { error: 'Only @gmail.com emails are allowed to maintain high-quality producer signal.' }
   }
 
+  // Use current origin if available, or fallback to env
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://sampleswala.com'
+  const nextPath = encodeURIComponent('/auth/verify-success')
+
   const { error } = await supabase.auth.signUp({ 
     email, 
     password,
@@ -47,7 +52,7 @@ export async function signup(formData: FormData) {
         data: {
             full_name: name
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/verify-success`
+        emailRedirectTo: `${siteUrl}/auth/callback?next=${nextPath}`
     }
   })
 
@@ -63,14 +68,23 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
-  redirect('/')
+redirect('/')
 }
 
 export async function forgotPassword(formData: FormData) {
   const supabase = await createClient()
   const email = formData.get('email') as string
+  
+  // Use current origin if available, or fallback to env
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://sampleswala.com'
+  const nextPath = encodeURIComponent('/auth/reset-password')
+  
+  // Set a temporary cookie to remember intent (expires in 10 mins)
+  const cookieStore = await cookies()
+  cookieStore.set('reset_flow', 'true', { maxAge: 600, path: '/' })
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
+    redirectTo: `${siteUrl}/auth/callback?next=${nextPath}`,
   })
 
   if (error) return { error: error.message }

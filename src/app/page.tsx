@@ -17,6 +17,8 @@ import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
 import { Suspense } from 'react'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const revalidate = 86400; // ⚡ NUCLEAR_STABILITY: 24h cache (Admin can clear manually)
 
@@ -54,7 +56,23 @@ const searchboxSchema = {
   }
 }
 
-export default async function Home() {
+export default async function Home(props: { 
+  searchParams: Promise<{ code?: string }> 
+}) {
+  const searchParams = await props.searchParams;
+  const code = searchParams.code;
+  
+  if (code) {
+    const cookieStore = await cookies();
+    const isResetFlow = cookieStore.get('reset_flow')?.value === 'true';
+    
+    if (isResetFlow) {
+      redirect(`/auth/callback?code=${code}&next=/auth/reset-password`);
+    } else {
+      redirect(`/auth/callback?code=${code}`);
+    }
+  }
+
   // 🚀 CACHED_SIGNAL_ACQUISITION: Fetch from Edge Cache
   const { latestPacks, freshSounds, topSamples, software } = await getHomePageData()
 
