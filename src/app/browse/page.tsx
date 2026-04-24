@@ -1,6 +1,6 @@
 
 import { createClient } from '@/lib/supabase/server'
-import { getFilteredPacks, getFilteredSamples, getAllCategories } from './actions'
+import { getFilteredPacks, getFilteredSamples, getAllCategories, getBrowseData } from './actions'
 import Link from 'next/link'
 import { 
   Search, Music, Zap, Disc, ArrowRight, Play, Download, Waves, Radio, 
@@ -98,52 +98,29 @@ export default async function BrowsePage({
   
   const page = (params.page as string) || '1'
   // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  let isSubscribed = false
-
-  if (user) {
-    const { data: account } = await supabase
-        .from('user_accounts')
-        .select('subscription_status')
-        .eq('user_id', user.id)
-        .maybeSingle()
-    
-    isSubscribed = account?.subscription_status === 'ACTIVE'
-  }
-
   const pageVal = parseInt(page)
   const pageSize = 20
-  const sort = params.sort || (!isSubscribed ? 'popular' : 'newest')
   
-  // 🚀 PARALLEL_SIGNAL_ACQUISITION
-  const [categories, packs, samplesBatch] = await Promise.all([
-    getAllCategories(),
-    getFilteredPacks({ 
-       query: params.q, 
-       category: params.category, 
-       filter: params.filter, 
-    }),
-    getFilteredSamples({ 
-       query: params.q, 
-       category: params.category, 
-       type: params.type,
-       filter: params.filter,
-       bpm_min: params.bpm_min ? parseInt(params.bpm_min) : undefined,
-       bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
-       key: params.key,
-       limit: pageSize.toString(),
-       page: page,
-       sort: sort
-    })
-  ])
+  // 🚀 CONSOLIDATED_STUDIO_FETCH: All-in-one signal acquisition
+  const browseData = await getBrowseData({
+      query: params.q,
+      category: params.category,
+      type: params.type,
+      bpm_min: params.bpm_min ? parseInt(params.bpm_min) : undefined,
+      bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
+      key: params.key,
+      sort: params.sort,
+      page: pageVal,
+      limit: pageSize,
+      filter: params.filter,
+      genre: params.genre as string,
+      tag: params.tag as string
+  })
 
-  const { samples: rawSamples, count } = samplesBatch;
-
-  const isRestricted = !isSubscribed && (pageVal > 1 || !!params.q || !!params.sort);
+  const { samples: rawSamples, count, categories, packs, isSubscribed, isRestricted } = browseData;
 
   // 🧬 SIGNAL_INJECTION
-  const samples = rawSamples.map((s: any) => ({
+  const samples = (rawSamples || []).map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))

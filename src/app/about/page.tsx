@@ -12,10 +12,6 @@ import {
   Compass, 
   ArrowRight, 
   Globe, 
-  Instagram, 
-  Twitter, 
-  Youtube,
-  Linkedin,
   ShieldCheck,
   ChevronRight
 } from 'lucide-react'

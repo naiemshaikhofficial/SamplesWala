@@ -14,7 +14,7 @@ import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
 import { PackActionCenter } from '@/components/audio/PackActionCenter'
-import { getRelatedPacks, getFilteredSamples } from '@/app/browse/actions'
+import { getRelatedPacks, getFilteredSamples, getBrowseData } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { Pagination } from '@/components/layout/Pagination'
@@ -150,64 +150,34 @@ export default async function PackPage({
     notFound();
   }
 
-  // Fetch category separately if ID exists
-  let categoryData = null;
-  if (pack.category_id) {
-    const { data: cat } = await adminClient
-        .from('categories')
-        .select('name, id')
-        .eq('id', pack.category_id)
-        .single();
-    categoryData = cat;
-  }
+  // 🚀 CONSOLIDATED_STUDIO_FETCH: Fetch samples, categories, and related packs in one unified signal
+  const browseData = await getBrowseData({
+      packId: pack.id,
+      query: search,
+      page: pageVal,
+      limit: pageSize,
+      sort: sParams.sort as string
+  })
 
-  // Inject category into pack object for UI compatibility
+  const { samples: rawSamples, count, packs: relatedPacks, isSubscribed, isRestricted, categories } = browseData;
+  const categoryData = categories.find((c: any) => c.id === pack.category_id);
+  
   const enrichedPack = { ...pack, categories: categoryData };
   const genreBase = categoryData?.name || 'Indian'
   const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   const videoId = getYouTubeId(enrichedPack.video_url);
 
-  // Fetch all artifacts for counting
+  // Fetch all artifacts for counting (since current batch is only 20)
+  // We can optimize this later if needed by adding stats to the RPC
   const { data: allSamples } = await adminClient
     .from('artifact_registry')
     .select('bpm, key, type, credit_cost')
     .eq('pack_id', pack.id)
-  
-  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  let isSubscribed = false
-
-  if (user) {
-    const { data: account } = await supabase
-        .from('user_accounts')
-        .select('subscription_status')
-        .eq('user_id', user.id)
-        .maybeSingle()
-    
-    isSubscribed = account?.subscription_status === 'ACTIVE'
-  }
-
-  const isRestricted = !isSubscribed && (pageVal > 1 || !!search || !!sParams.sort);
-
-  const sort = sParams.sort || (!isSubscribed ? 'popular' : 'newest')
-
-  const { samples: rawSamples, count } = await getFilteredSamples({ 
-    packId: pack.id,
-    limit: pageSize.toString(),
-    page: page,
-    query: search, // 🔎 USE 'query' AS PER INTERFACE
-    sort: sort // 🎚️ PASS SORT TO GLOBAL DB QUERY
-  })
 
   const samples = rawSamples.map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
-  
-  // Handled relation locally if joined query failed
-  const categoryId = pack.category_id;
-  const relatedPacks = categoryId ? await getRelatedPacks(pack.id, categoryId) : [];
   
   const allArtifacts = allSamples || []
   const melodies = allArtifacts.filter((s: any) => s.bpm && s.key).length || 0

@@ -262,3 +262,85 @@ export async function unlockSampleBatch(sampleIds: string[]) {
       cost: totalCost 
   }
 }
+
+export async function getBrowseData(filters: {
+    query?: string;
+    category?: string;
+    type?: string;
+    bpm_min?: number;
+    bpm_max?: number;
+    key?: string;
+    sort?: string;
+    page?: number;
+    limit?: number;
+    packId?: string;
+    genre?: string;
+    tag?: string;
+    filter?: string;
+}) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    let isSubscribed = false
+    if (user) {
+        const { data: account } = await supabase
+            .from('user_accounts')
+            .select('subscription_status')
+            .eq('user_id', user.id)
+            .maybeSingle()
+        isSubscribed = account?.subscription_status === 'ACTIVE'
+    }
+
+    // 🛡️ SECURITY LAYER: Validate Parameters Server-Side
+    const pageVal = filters.page || 1
+    const isPremiumAttempt = (pageVal > 1) || !!filters.query || (filters.sort && filters.sort !== 'popular') || !!filters.bpm_min || !!filters.bpm_max || !!filters.key || !!filters.genre || !!filters.tag || (filters.filter && filters.filter !== 'all')
+    
+    // If not subscribed and attempting premium features, force basic parameters
+    const finalFilters = (!isSubscribed && isPremiumAttempt) ? {
+        ...filters,
+        query: undefined,
+        sort: 'popular',
+        page: 1,
+        bpm_min: undefined,
+        bpm_max: undefined,
+        key: undefined,
+        genre: undefined,
+        tag: undefined,
+        filter: undefined
+    } : filters
+
+    const adminClient = getAdminClient()
+    const { data, error } = await adminClient.rpc('get_studio_browse_data', {
+        p_query: finalFilters.query || null,
+        p_category_id: (finalFilters.category && finalFilters.category !== 'all' && finalFilters.category !== '') ? finalFilters.category : null,
+        p_type: finalFilters.type || null,
+        p_bpm_min: finalFilters.bpm_min || null,
+        p_bpm_max: finalFilters.bpm_max || null,
+        p_key: finalFilters.key || null,
+        p_sort: finalFilters.sort || 'popular',
+        p_page: finalFilters.page || 1,
+        p_page_size: finalFilters.limit || 20,
+        p_is_subscribed: isSubscribed,
+        p_pack_id: finalFilters.packId || null,
+        p_genre: finalFilters.genre || null,
+        p_tag: finalFilters.tag || null,
+        p_filter: (finalFilters.filter && finalFilters.filter !== 'all') ? finalFilters.filter : null
+    })
+
+    if (error) {
+        console.error('[BROWSE_RPC_ERROR]', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            filters: finalFilters
+        })
+        throw new Error("Failed to fetch library data")
+    }
+
+    return {
+        ...data,
+        packs: data.context_packs,
+        isSubscribed,
+        isRestricted: !isSubscribed && isPremiumAttempt
+    }
+}
