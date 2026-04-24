@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useRef } from 'react'
 import { SectionReveal } from '@/components/ui/SectionReveal'
 import { Music2, Plus, Layers, ArrowRight } from 'lucide-react'
+import { PriceDisplay } from '@/components/PriceDisplay'
 
 export function NewArrivals({ packs }: { packs: any[] }) {
   const containerRef = useRef(null)
@@ -35,7 +36,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="h-10 md:h-14 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
-                        <h2 className="text-4xl md:text-8xl font-black uppercase tracking-tighter leading-none italic">
+                        <h2 className="text-4xl md:text-8xl font-black uppercase tracking-tighter leading-none italic studio-glow">
                             NEW<span className="text-studio-neon"> PACKS</span>
                         </h2>
                     </div>
@@ -96,7 +97,7 @@ export function NewArrivals({ packs }: { packs: any[] }) {
                                                 </span>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-lg md:text-xl font-black text-white tracking-tighter italic">₹{pack.price_inr}</span>
+                                                <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} className="text-lg md:text-xl font-black text-white tracking-tighter italic" />
                                                 <div className="h-8 w-8 flex items-center justify-center rounded-sm bg-studio-neon text-black opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <Plus className="w-5 h-5" />
                                                 </div>

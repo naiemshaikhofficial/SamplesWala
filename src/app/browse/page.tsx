@@ -292,7 +292,7 @@ export default async function BrowsePage({
                                     </h3>
                                     
                                     <div className="flex items-center justify-between border-t border-white/5 pt-6">
-                                        <PriceDisplay inr={pack.price_inr} usd={pack.price_usd} className="text-[11px] font-black tracking-widest" />
+                                            {/* 🧬 SILENCE_SIGNAL: Price removed per user request */}
                                         <div className="text-[8px] font-black uppercase tracking-widest text-white/20 italic group-hover:text-studio-yellow transition-colors">
                                             VIEW DETAILS
                                         </div>

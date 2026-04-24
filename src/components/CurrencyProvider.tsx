@@ -25,6 +25,8 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   }
 
   const format = (inr: number | null | undefined, usd: number | null | undefined) => {
+    if (!inr && !usd) return ''; // 🧬 SILENCE_SIGNAL: Don't show if zero or null
+    
     if (currency === 'INR') {
       const val = inr ?? 0
       return '₹' + val.toLocaleString()
