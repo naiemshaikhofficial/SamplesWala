@@ -82,11 +82,11 @@ function LoginForm() {
                     <div className="relative mb-6">
                         <div className="absolute -inset-4 bg-studio-yellow/5 blur-2xl rounded-full" />
                         <div className="w-20 h-20 bg-black border-2 border-studio-yellow/20 flex items-center justify-center relative transform rotate-45 shadow-[0_0_30px_rgba(234,179,8,0.05)]">
-                           <Key className="h-8 w-8 text-studio-yellow -rotate-45" />
+                           <LogIn className="h-8 w-8 text-studio-yellow -rotate-45" />
                         </div>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter italic leading-none text-center">
-                        Welcome<br /><span className="text-studio-yellow shadow-studio-neon">Back</span>
+                        Welcome<br /><span className="text-studio-yellow shadow-studio-neon text-white">Back</span>
                     </h1>
                 </div>
 
@@ -101,7 +101,7 @@ function LoginForm() {
                             },
                         })
                     }}
-                    className="w-full flex items-center justify-center gap-4 py-5 bg-white/2 border-2 border-white/5 hover:bg-white/5 hover:border-white/10 transition-all font-black uppercase tracking-[0.2em] text-[10px] mb-8 group"
+                    className="w-full flex items-center justify-center gap-4 py-5 bg-white text-black hover:bg-studio-yellow transition-all font-black uppercase tracking-[0.2em] text-[10px] mb-8 group"
                 >
                     <svg className="w-4 h-4 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
                         <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -135,8 +135,8 @@ function LoginForm() {
                             <input 
                                 name="email"
                                 type="email" 
-                                placeholder="Enter your email" 
-                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                placeholder="name@email.com" 
+                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5 text-white"
                                 required
                             />
                         </div>
@@ -149,8 +149,8 @@ function LoginForm() {
                             <input 
                                 name="password"
                                 type="password" 
-                                placeholder="Enter your password" 
-                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5"
+                                placeholder="Your password" 
+                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5 text-white"
                                 required
                             />
                         </div>

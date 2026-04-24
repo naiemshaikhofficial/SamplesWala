@@ -260,7 +260,7 @@ function SignupForm() {
                     {/* Name */}
                     <div className="space-y-2">
                         <div className="flex justify-between items-end ml-1">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">NAME</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Full Name</label>
                             {name && (
                                 <span className={`text-[8px] font-black uppercase tracking-widest ${nameIsClean ? 'text-studio-neon' : 'text-red-500'}`}>
                                     {nameIsClean ? '[ OK ]' : '[ BLOCKED ]'}
@@ -274,8 +274,8 @@ function SignupForm() {
                                 type="text" 
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="YOUR FULL NAME" 
-                                className={`w-full pl-14 pr-6 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 ${name && !nameIsClean ? 'border-red-500/40 bg-red-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
+                                placeholder="Your Name" 
+                                className={`w-full pl-14 pr-6 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 text-white ${name && !nameIsClean ? 'border-red-500/40 bg-red-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
                                 required
                             />
                         </div>
@@ -284,7 +284,7 @@ function SignupForm() {
                     {/* Email */}
                     <div className="space-y-2">
                         <div className="flex justify-between items-end ml-1">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">EMAIL</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Email Address</label>
                             {email && (
                                 <span className={`text-[8px] font-black uppercase tracking-widest ${isValidEmail ? 'text-studio-neon' : 'text-orange-500'}`}>
                                     {isValidEmail ? '[ OK ]' : '[ GMAIL REQ ]'}
@@ -298,8 +298,8 @@ function SignupForm() {
                                 type="email" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="EMAIL@GMAIL.COM" 
-                                className={`w-full pl-14 pr-6 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 ${email && !isValidEmail ? 'border-orange-500/40 bg-orange-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
+                                placeholder="yourname@gmail.com" 
+                                className={`w-full pl-14 pr-6 py-5 bg-black/40 border-2 rounded-none transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 text-white ${email && !isValidEmail ? 'border-orange-500/40 bg-orange-500/5' : 'border-white/5 focus:border-studio-neon focus:bg-studio-neon/5'}`}
                                 required
                             />
                         </div>
@@ -308,7 +308,7 @@ function SignupForm() {
                     {/* Password */}
                     <div className="space-y-3">
                         <div className="flex justify-between items-end ml-1">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">PASSWORD</label>
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Create Password</label>
                             {password && (
                                 <span className={`text-[8px] font-black uppercase tracking-widest ${pwdStrength >= 3 ? 'text-studio-neon' : 'text-white/40'}`}>
                                     {strengthLabel}
@@ -322,8 +322,8 @@ function SignupForm() {
                                 type={showPassword ? "text" : "password"} 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="CREATE PASSWORD" 
-                                className="w-full hide-password-toggle pl-14 pr-14 py-5 bg-black/40 border-2 border-white/5 rounded-none focus:border-studio-neon focus:bg-studio-neon/5 transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10"
+                                placeholder="Create a password" 
+                                className="w-full hide-password-toggle pl-14 pr-14 py-5 bg-black/40 border-2 border-white/5 rounded-none focus:border-studio-neon focus:bg-studio-neon/5 transition-all outline-none text-[12px] font-black uppercase tracking-[0.1em] placeholder:text-white/10 text-white"
                                 required
                                 minLength={6}
                             />
