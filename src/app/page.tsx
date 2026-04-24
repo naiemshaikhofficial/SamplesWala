@@ -19,6 +19,7 @@ import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 
 export const revalidate = 86400; // ⚡ NUCLEAR_STABILITY: 24h cache (Admin can clear manually)
 
@@ -63,14 +64,21 @@ export default async function Home(props: {
   const code = searchParams.code;
   
   if (code) {
-    const cookieStore = await cookies();
-    const isResetFlow = cookieStore.get('reset_flow')?.value === 'true';
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
     
-    if (isResetFlow) {
-      redirect(`/auth/callback?code=${code}&next=/auth/reset-password`);
-    } else {
-      redirect(`/auth/callback?code=${code}`);
+    if (!error) {
+      const cookieStore = await cookies();
+      const isResetFlow = cookieStore.get('reset_flow')?.value === 'true';
+      
+      if (isResetFlow) {
+        redirect('/auth/reset-password');
+      } else {
+        redirect('/browse');
+      }
     }
+    // If error, we'll just let the page load normally or we could redirect to login
+    // But direct exchange is much more robust than the double-redirect.
   }
 
   // 🚀 CACHED_SIGNAL_ACQUISITION: Fetch from Edge Cache
