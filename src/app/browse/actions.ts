@@ -5,7 +5,9 @@ import { getAdminClient } from '@/lib/supabase/admin'
 import { unstable_cache } from 'next/cache'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
-export const getAllCategories = unstable_cache(
+import { cache } from 'react'
+
+export const getAllCategories = cache(unstable_cache(
   async () => {
     const adminClient = getAdminClient()
     const { data, error } = await adminClient.from('categories').select('*').order('name')
@@ -16,8 +18,8 @@ export const getAllCategories = unstable_cache(
     return data
   },
   ['global-categories-cache'],
-  { revalidate: 3600 }
-)
+  { revalidate: 86400 } // Align with 24h cycle
+))
 
 export async function getFilteredPacks(filters: { query?: string, category?: string, filter?: string }) {
   const adminClient = getAdminClient()
@@ -272,7 +274,7 @@ const getPublicBrowseData = unstable_cache(
         return data
     },
     ['public-browse-data'],
-    { revalidate: 3600, tags: ['browse'] }
+    { revalidate: 86400, tags: ['browse'] }
 )
 
 export async function getBrowseData(filters: {

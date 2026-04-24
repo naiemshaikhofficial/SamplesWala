@@ -21,6 +21,19 @@ import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
+import { cache } from 'react'
+
+// 🧬 DEDUPLICATION_ENGINE: Prevents redundant Supabase hits across generateMetadata and Page
+const getCachedPack = cache(async (slug: string) => {
+  const adminClient = getAdminClient()
+  const { data, error } = await adminClient
+    .from('sample_packs')
+    .select('*, categories(name), samples(bpm, key)')
+    .eq('slug', slug)
+    .single()
+  return { data, error }
+})
+
 export const revalidate = 86400; // Cache for 24 hours (Aggressive Vercel Optimization)
 
 // 🚀 SSG_OPTIMIZATION: Pre-render top 50 packs to save Supabase usage
@@ -38,26 +51,10 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const adminClient = getAdminClient()
   const { slug } = await params
-  
-  let { data: pack, error } = await adminClient
-    .from('sample_packs')
-    .select('name, description, cover_url, categories(name), samples(bpm, key)')
-    .eq('slug', slug)
-    .single()
+  const { data: pack, error } = await getCachedPack(slug)
 
-  // 🛡️ SEO_FALLBACK: If join fails, fetch basic pack data to prevent "Pack Not Found"
-  if (!pack || error) {
-    const { data: fallback } = await adminClient
-      .from('sample_packs')
-      .select('name, description, cover_url')
-      .eq('slug', slug)
-      .single()
-    pack = fallback as any;
-  }
-
-  if (!pack) return { title: 'Pack Not Found | Samples Wala' }
+  if (!pack || error) return { title: 'Pack Not Found | Samples Wala' }
 
   // Extract metadata samples for keywords
   const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
@@ -144,25 +141,18 @@ export default async function PackPage({
   params: Promise<{ slug: string }>,
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
-  const adminClient = getAdminClient()
   const { slug } = await params
+  const { data: pack, error } = await getCachedPack(slug)
+
+  if (error || !pack) {
+    notFound();
+  }
+
   const sParams = await searchParams
   const page = (sParams.page as string) || '1'
   const search = (sParams.search as string) || '' // 🔎 READ SEARCH QUERY
   const pageVal = parseInt(page)
   const pageSize = 20
-  
-  // 🎹 STABILITY_FETCH: Fetch pack first, then category separately to avoid schema cache issues
-  let { data: pack, error } = await adminClient
-    .from('sample_packs')
-    .select('*')
-    .eq('slug', slug)
-    .single()
-
-  if (error || !pack) {
-    if (error) console.error(`[PACK_FETCH_ERROR] Slug: ${slug}`, error.message);
-    notFound();
-  }
 
   // 🚀 CONSOLIDATED_STUDIO_FETCH: Fetch samples, categories, and related packs in one unified signal
   const browseData = await getBrowseData({
