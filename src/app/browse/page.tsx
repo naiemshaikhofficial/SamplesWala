@@ -97,8 +97,24 @@ export default async function BrowsePage({
   const params = await (searchParams as any)
   
   const page = (params.page as string) || '1'
+  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let isSubscribed = false
+
+  if (user) {
+    const { data: account } = await supabase
+        .from('user_accounts')
+        .select('subscription_status')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    
+    isSubscribed = account?.subscription_status === 'ACTIVE'
+  }
+
   const pageVal = parseInt(page)
   const pageSize = 20
+  const sort = params.sort || (!isSubscribed ? 'popular' : 'newest')
   
   // 🚀 PARALLEL_SIGNAL_ACQUISITION
   const [categories, packs, samplesBatch] = await Promise.all([
@@ -117,28 +133,14 @@ export default async function BrowsePage({
        bpm_max: params.bpm_max ? parseInt(params.bpm_max) : undefined,
        key: params.key,
        limit: pageSize.toString(),
-       page: page
+       page: page,
+       sort: sort
     })
   ])
 
   const { samples: rawSamples, count } = samplesBatch;
 
-  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  let isSubscribed = false
-
-  if (user) {
-    const { data: account } = await supabase
-        .from('user_accounts')
-        .select('subscription_status')
-        .eq('user_id', user.id)
-        .maybeSingle()
-    
-    isSubscribed = account?.subscription_status === 'ACTIVE'
-  }
-
-  const isRestricted = pageVal > 1 && !isSubscribed;
+  const isRestricted = !isSubscribed && (pageVal > 1 || !!params.q || !!params.sort);
 
   // 🧬 SIGNAL_INJECTION
   const samples = rawSamples.map((s: any) => ({
@@ -312,10 +314,14 @@ export default async function BrowsePage({
                         </h2>
                     </div>
                     
-                    {isRestricted ? (
-                        <PremiumPaywall />
-                    ) : (
-                        <>
+                    <div className="relative min-h-[400px]">
+                        {isRestricted && (
+                            <div className="absolute inset-0 z-[100] flex items-start justify-center p-4 md:p-12 md:pt-24 bg-black/40 backdrop-blur-sm">
+                                <PremiumPaywall totalSamples={count} />
+                            </div>
+                        )}
+                        
+                        <div className={isRestricted ? "blur-xl grayscale pointer-events-none select-none opacity-50 transition-all duration-1000" : ""}>
                             <Suspense fallback={<div className="h-screen w-full bg-black/60 animate-pulse" />}>
                                 <SampleList 
                                     samples={samples} 
@@ -325,7 +331,14 @@ export default async function BrowsePage({
                                 />
                             </Suspense>
 
-                            {!hasNoResults && (
+                            {/* 🎯 SPLICE_STYLE_INLINE_WALL: Show at bottom of Page 1 if more results exist */}
+                            {!isSubscribed && pageVal === 1 && (count ?? 0) > pageSize && (
+                                <div className="mt-12 py-12 border-t border-white/5 flex flex-col items-center">
+                                    <PremiumPaywall totalSamples={(count ?? 0) - pageSize} />
+                                </div>
+                            )}
+
+                            {!hasNoResults && (isSubscribed || pageVal > 1) && (
                                 <div className="mt-20">
                                     <Pagination 
                                         currentPage={pageVal} 
@@ -336,8 +349,8 @@ export default async function BrowsePage({
                                     />
                                 </div>
                             )}
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </div>
             )}
 

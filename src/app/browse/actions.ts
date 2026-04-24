@@ -94,7 +94,7 @@ export async function getFilteredSamples(filters: {
   const from = (pageVal - 1) * limitVal
   const to = from + limitVal - 1
   
-  let queryBuilder = adminClient.from('artifact_registry').select('id, name, audio_url, bpm, key, credit_cost, pack_id, type, created_at, pack_name, pack_category_id, pack_cover_url', { count: 'exact' })
+  let queryBuilder = adminClient.from('artifact_registry').select('id, name, audio_url, bpm, key, credit_cost, pack_id, type, created_at, pack_name, pack_category_id, pack_cover_url, popularity_score', { count: 'exact' })
   
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
   if (cleanQuery) {
@@ -142,6 +142,10 @@ export async function getFilteredSamples(filters: {
   let isAsc = false;
 
   switch(filters.sort) {
+    case 'popular':
+        sortCol = 'popularity_score';
+        isAsc = false;
+        break;
     case 'name':
         sortCol = 'name';
         isAsc = true;
@@ -167,7 +171,7 @@ export async function getFilteredSamples(filters: {
   let { data, error, count } = await queryBuilder.range(from, to)
   
   if (error) {
-    console.error('[BROWSE_ACTION_ERROR_SAMPLES]', error);
+    console.error('[BROWSE_ACTION_ERROR_SAMPLES]', error.message, error.code, error.details);
     return { samples: [], count: 0 };
   }
 

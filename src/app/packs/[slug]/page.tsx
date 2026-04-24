@@ -18,6 +18,7 @@ import { getRelatedPacks, getFilteredSamples } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { Pagination } from '@/components/layout/Pagination'
+import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
@@ -134,7 +135,6 @@ export default async function PackPage({
   const sParams = await searchParams
   const page = (sParams.page as string) || '1'
   const search = (sParams.search as string) || '' // 🔎 READ SEARCH QUERY
-  const sort = (sParams.sort as string) || 'newest' // 🎚️ READ SORT PARAM
   const pageVal = parseInt(page)
   const pageSize = 20
   
@@ -173,6 +173,25 @@ export default async function PackPage({
     .select('bpm, key, type, credit_cost')
     .eq('pack_id', pack.id)
   
+  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  let isSubscribed = false
+
+  if (user) {
+    const { data: account } = await supabase
+        .from('user_accounts')
+        .select('subscription_status')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    
+    isSubscribed = account?.subscription_status === 'ACTIVE'
+  }
+
+  const isRestricted = !isSubscribed && (pageVal > 1 || !!search || !!sParams.sort);
+
+  const sort = sParams.sort || (!isSubscribed ? 'popular' : 'newest')
+
   const { samples: rawSamples, count } = await getFilteredSamples({ 
     packId: pack.id,
     limit: pageSize.toString(),
@@ -408,30 +427,47 @@ export default async function PackPage({
                 </div>
             </div>
 
-            <Suspense fallback={<div className="h-screen w-full bg-black/20 animate-pulse" />}>
-                <SampleList 
-                    samples={samples || []} 
-                    packName={pack.name} 
-                    coverUrl={pack.cover_url} 
-                    packId={pack.id} 
-                    totalCount={allArtifacts.length}
-                    loopsCount={loops + melodies}
-                    oneShotsCount={oneShots}
-                    presetsCount={presets}
-                />
-            </Suspense>
-            
-            {samples && samples.length > 0 && (
-                <div className="mt-12">
-                    <Pagination 
-                        currentPage={pageVal} 
-                        totalCount={count ?? 0} 
-                        pageSize={pageSize} 
-                        baseUrl={`/packs/${slug}`}
-                        searchParams={sParams}
-                    />
+            <div className="relative min-h-[400px]">
+                {isRestricted && (
+                    <div className="absolute inset-0 z-[100] flex items-start justify-center p-4 md:p-12 md:pt-24 bg-black/40 backdrop-blur-sm">
+                        <PremiumPaywall totalSamples={count} />
+                    </div>
+                )}
+                
+                <div className={isRestricted ? "blur-xl grayscale pointer-events-none select-none opacity-50 transition-all duration-1000" : ""}>
+                    <Suspense fallback={<div className="h-screen w-full bg-black/20 animate-pulse" />}>
+                        <SampleList 
+                            samples={samples || []} 
+                            packName={pack.name} 
+                            coverUrl={pack.cover_url} 
+                            packId={pack.id} 
+                            totalCount={allArtifacts.length}
+                            loopsCount={loops + melodies}
+                            oneShotsCount={oneShots}
+                            presetsCount={presets}
+                        />
+                    </Suspense>
+
+                    {/* 🎯 SPLICE_STYLE_INLINE_WALL: Show at bottom of Page 1 if more results exist */}
+                    {!isSubscribed && pageVal === 1 && (count ?? 0) > pageSize && (
+                        <div className="mt-12 py-12 border-t border-white/5 flex flex-col items-center">
+                            <PremiumPaywall totalSamples={(count ?? 0) - pageSize} />
+                        </div>
+                    )}
+                    
+                    {samples && samples.length > 0 && (isSubscribed || pageVal > 1) && (
+                        <div className="mt-12">
+                            <Pagination 
+                                currentPage={pageVal} 
+                                totalCount={count ?? 0} 
+                                pageSize={pageSize} 
+                                baseUrl={`/packs/${slug}`}
+                                searchParams={sParams}
+                            />
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
       </div>
 

@@ -152,6 +152,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                             onChange={(e: any) => setSortBy(e.target.value)}
                             className="w-full h-12 bg-black/40 border border-white/5 hover:border-white/10 focus:border-studio-neon/40 outline-none pl-11 pr-8 appearance-none text-[9px] font-black uppercase tracking-widest text-white/60 cursor-pointer rounded-sm"
                         >
+                            <option value="popular">Most Popular</option>
                             <option value="newest">Latest First</option>
                             <option value="name">Name (A-Z)</option>
                             <option value="bpm-high">BPM (150-70)</option>
