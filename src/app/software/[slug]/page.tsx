@@ -7,10 +7,11 @@ import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 
+import { getCachedSoftware } from '@/lib/software-actions'
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params
-    const supabase = await createClient()
-    const { data: soft } = await supabase.from('software_products').select('*').eq('slug', slug).single()
+    const { data: soft } = await getCachedSoftware(slug)
     
     if (!soft) return { title: 'Software Not Found | Samples Wala' }
 
@@ -70,12 +71,8 @@ export default async function SoftwareDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // 🛰️ SIGNAL ACQUISITION: Fetch Specific Software Component
-  const { data: soft, error } = await supabase
-    .from('software_products')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+  // 🛰️ SIGNAL ACQUISITION: Fetch from Cache
+  const { data: soft, error } = await getCachedSoftware(slug)
 
   if (error || !soft) {
       notFound()

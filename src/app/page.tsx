@@ -10,7 +10,7 @@ import { FreshSounds } from "@/components/home/FreshSounds";
 import { TopSounds } from "@/components/home/TopSounds";
 import { AdaptiveHero } from "@/components/home/AdaptiveHero";
 import { SoftwareSpotlight } from "@/components/home/SoftwareSpotlight";
-import { getTopPopularSounds } from "@/lib/supabase/admin";
+import { getHomePageData } from '@/lib/home-actions';
 import { generateAudioSignal, getDriveFileId } from "@/lib/audio/signal";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
@@ -18,7 +18,7 @@ import { Suspense } from 'react'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 
-export const revalidate = 300; // ⚡ DYNAMIC_RECOVERY_WINDOW: 5 MINUTES
+export const revalidate = 86400; // ⚡ NUCLEAR_STABILITY: 24h cache (Admin can clear manually)
 
 export const metadata = generateMetadata(pagesMeta.home);
 
@@ -55,23 +55,16 @@ const searchboxSchema = {
 }
 
 export default async function Home() {
-  const adminClient = getAdminClient()
-
-  // 🚀 PARALLEL_SIGNAL_ACQUISITION: Fetch everything at once
-  const [latestPacksData, freshSoundsData, topSamplesData, softwareData] = await Promise.all([
-    adminClient.from('sample_packs').select('id, name, slug, price_inr, cover_url, categories(name), samples(bpm, key)').order('created_at', { ascending: false }).limit(12),
-    adminClient.from('samples').select('id, name, audio_url, bpm, key, credit_cost, sample_packs(name, slug, cover_url)').order('created_at', { ascending: false }).limit(20),
-    getTopPopularSounds(20),
-    adminClient.from('software_products').select('id, name, slug, description, price_inr, cover_url, current_version').eq('is_active', true).order('created_at', { ascending: false }).limit(2)
-  ])
+  // 🚀 CACHED_SIGNAL_ACQUISITION: Fetch from Edge Cache
+  const { latestPacks, freshSounds, topSamples, software } = await getHomePageData()
 
   // 🧬 SIGNAL_PROCESSING
-  const enrichedFreshSounds = (freshSoundsData.data || []).map((s: any) => ({
+  const enrichedFreshSounds = (freshSounds || []).map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 
-  const enrichedTopSamples = (topSamplesData || []).map((s: any) => ({
+  const enrichedTopSamples = (topSamples || []).map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url || s.url), s.name)
   }))
@@ -129,7 +122,7 @@ export default async function Home() {
                 
                 <SectionErrorBoundary sectionName="New Arrivals">
                     <Suspense fallback={<div className="h-96 w-full bg-studio-grey animate-pulse" />}>
-                        <NewArrivals packs={latestPacksData.data || []} />
+                        <NewArrivals packs={latestPacks} />
                     </Suspense>
                 </SectionErrorBoundary>
             </div>
@@ -190,7 +183,7 @@ export default async function Home() {
         {/* 🛠️ SOFTWARE SPOTLIGHT */}
         <SectionErrorBoundary sectionName="Software Matrix">
             <Suspense fallback={<div className="h-96 w-full bg-studio-charcoal animate-pulse" />}>
-                <SoftwareSpotlight products={softwareData.data || []} />
+                <SoftwareSpotlight products={software} />
             </Suspense>
         </SectionErrorBoundary>
 
