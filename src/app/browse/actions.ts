@@ -397,6 +397,7 @@ export async function getBrowseData(filters: {
         p_filter: (finalFilters.filter && finalFilters.filter !== 'all') ? finalFilters.filter : null
     }
 
+    let data;
     // 🧬 CACHED_FETCH: Unified cache layer for all users
     try {
         // We use JSON.stringify(rpcParams) as part of the key to ensure uniqueness
