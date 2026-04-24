@@ -72,8 +72,6 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://api.razorpay.com" />
         <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
         <link rel="dns-prefetch" href="https://api.phonepe.com" />
-
-
         
         {/* 📝 Structured Data (Nuclear SEO) */}
         <JsonLdSchema />
@@ -95,6 +93,7 @@ export default async function RootLayout({
             "reviewCount": "2450"
           }
         }} />
+
         {/* ⭐ Trustpilot Integration */}
         <Script
           id="trustpilot-integration"

@@ -32,7 +32,7 @@ export async function generateStaticParams() {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  return (packs || []).map((pack) => ({
+  return (packs || []).map((pack: { slug: string }) => ({
     slug: pack.slug,
   }))
 }

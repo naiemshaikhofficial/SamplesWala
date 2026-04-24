@@ -8,9 +8,9 @@ import { revalidatePath, revalidateTag } from 'next/cache'
  */
 export async function clearGlobalCache() {
     // Clear all browse related data
-    revalidateTag('browse')
-    revalidateTag('global-categories-cache')
-    revalidateTag('public-browse-data')
+    revalidateTag('browse', 'default')
+    revalidateTag('global-categories-cache', 'default')
+    revalidateTag('public-browse-data', 'default')
     
     // Clear the main pages
     revalidatePath('/')
@@ -23,7 +23,7 @@ export async function clearGlobalCache() {
 
 export async function clearPackCache(slug: string) {
     revalidatePath(`/packs/${slug}`)
-    revalidateTag('browse') // To update pack listing stats if changed
+    revalidateTag('browse', 'default') // To update pack listing stats if changed
     console.log(`[CACHE_INVALIDATION] Cache cleared for pack: ${slug}`)
     return { success: true }
 }
