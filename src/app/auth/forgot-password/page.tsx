@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Key, Mail, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Key, Mail, Loader2, CheckCircle, AlertCircle, Info } from 'lucide-react'
 import { forgotPassword } from '../actions'
 
 export default function ForgotPasswordPage() {
@@ -102,11 +102,41 @@ export default function ForgotPasswordPage() {
             </form>
           )}
 
-          {/* Footer Info */}
-          <div className="mt-12 text-center">
-             <p className="text-[10px] uppercase font-black tracking-widest text-white/10 italic">
-                Check your junk/spam folder if the link doesn't arrive.
-             </p>
+          {/* Helper Section */}
+          <div className="mt-12 p-6 rounded-3xl bg-white/[0.02] border border-white/5 relative group overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Info className="h-20 w-20 text-white" />
+            </div>
+            
+            <div className="relative z-10 flex gap-4">
+              <div className="shrink-0">
+                <div className="p-2 rounded-lg bg-studio-neon/10 text-studio-neon">
+                  <Info size={16} />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 italic">
+                  How it works
+                </h4>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-white/30 leading-tight">
+                    <span className="text-studio-neon/40 mt-0.5">•</span>
+                    <span>Enter your email to receive a secure recovery link.</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-white/30 leading-tight">
+                    <span className="text-studio-neon/40 mt-0.5">•</span>
+                    <span>Click the link in your email to open the reset page.</span>
+                  </li>
+                  <li className="flex items-start gap-2 text-[11px] font-bold text-white/30 leading-tight">
+                    <span className="text-studio-neon/40 mt-0.5">•</span>
+                    <span>Create a new password and log back into your account.</span>
+                  </li>
+                </ul>
+                <p className="pt-2 text-[9px] uppercase font-black tracking-widest text-white/10 italic">
+                  Check your junk/spam folder if the link doesn't arrive.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

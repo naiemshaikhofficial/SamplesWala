@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, Info } from 'lucide-react'
 import { login } from '../actions'
 import { useSearchParams } from 'next/navigation'
 
@@ -157,7 +157,10 @@ function LoginForm() {
                     </div>
 
                     <div className="flex items-center justify-between px-1">
-                        <Link href="/auth/forgot-password" title="Recover Access" className="text-[9px] uppercase font-black tracking-widest text-white/20 hover:text-studio-yellow transition-colors border-b border-transparent hover:border-studio-yellow pb-0.5">Forgot Password?</Link>
+                        <Link href="/auth/forgot-password" title="Recover Access" className="text-[9px] uppercase font-black tracking-widest text-white/20 hover:text-studio-yellow transition-colors border-b border-transparent hover:border-studio-yellow pb-0.5 flex items-center gap-1.5">
+                            <Info size={10} className="text-studio-yellow/40" />
+                            Forgot Password?
+                        </Link>
                         <Link href="/auth/signup" className="text-[9px] uppercase font-black tracking-widest text-studio-yellow/60 hover:text-studio-yellow transition-colors flex items-center gap-2 border-b border-transparent hover:border-studio-yellow pb-0.5">
                             New here? Sign Up <Sparkles className="h-3 w-3" />
                         </Link>
