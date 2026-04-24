@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, Info } from 'lucide-react'
+import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, Info, Eye, EyeOff } from 'lucide-react'
 import { login } from '../actions'
 import { useSearchParams } from 'next/navigation'
 
@@ -24,6 +24,7 @@ function LoginForm() {
   
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [systemTime, setSystemTime] = useState('')
 
   useEffect(() => {
@@ -148,11 +149,18 @@ function LoginForm() {
                             <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/10 group-focus-within:text-studio-yellow transition-colors" />
                             <input 
                                 name="password"
-                                type="password" 
+                                type={showPassword ? 'text' : 'password'} 
                                 placeholder="Your password" 
-                                className="w-full pl-14 pr-6 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5 text-white"
+                                className="w-full pl-14 pr-14 py-5 bg-black border-2 border-white/5 rounded-none focus:border-studio-yellow focus:bg-studio-yellow/2 transition-all outline-none text-[11px] font-black uppercase tracking-widest placeholder:text-white/5 text-white"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-studio-yellow transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                            </button>
                         </div>
                     </div>
 
