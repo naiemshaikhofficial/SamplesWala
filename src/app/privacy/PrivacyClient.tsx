@@ -36,7 +36,7 @@ export default function PrivacyClient() {
             <div className="absolute top-10 left-10 hidden xl:flex flex-col gap-6 opacity-20">
                 <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em]">
                     <ShieldCheck size={14} className="text-studio-neon" />
-                    <span>PRIVACY_VAULT: PROTECTED</span>
+                    <span>PRIVACY POLICY</span>
                     <span className="text-white/20">::</span>
                     <span className="text-studio-neon animate-pulse">{systemTime}</span>
                 </div>
@@ -59,7 +59,7 @@ export default function PrivacyClient() {
                                 <div className="w-2.5 h-2.5 border border-white/20 rounded-none ml-2" />
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">DATA SAFETY PROTOCOL // v1.0</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">SAFETY GUIDELINES // v1.0</span>
                             </div>
                         </div>
 
@@ -137,7 +137,7 @@ export default function PrivacyClient() {
                         <div className="bg-black p-4 border-t-2 border-white/5 flex justify-between items-center px-8 text-[9px] font-black uppercase tracking-[0.4em] text-white/20">
                             <div className="flex items-center gap-4">
                                 <Activity size={14} className="text-studio-neon" />
-                                <span>SSL ENCRYPTION: ACTIVE // AES-256</span>
+                                <span>SECURE CONNECTION: ACTIVE</span>
                             </div>
                             <div className="hidden md:flex gap-6 opacity-30 items-center">
                                 <Disc className="w-4 h-4 text-white animate-spin-slow" />
@@ -149,7 +149,7 @@ export default function PrivacyClient() {
                     <div className="mt-8 flex justify-between items-center px-6 opacity-20 text-[9px] font-black uppercase tracking-[0.6em] italic">
                          <div className="flex items-center gap-4">
                             <Zap size={14} className="text-studio-neon" />
-                            <span>SAMPLES WALA PRIVACY TERMINAL</span>
+                             <span>SAMPLES WALA PRIVACY PORTAL</span>
                          </div>
                          <span>© 2026 // INDIA-GLOBAL</span>
                     </div>

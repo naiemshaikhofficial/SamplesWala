@@ -76,6 +76,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const userVolumeRef = useRef(1.0)
   const userRef = useRef<User | null>(null)
   const playlistRef = useRef<AudioMetadata[]>([])
+  const activeMetadataRef = useRef<AudioMetadata | null>(null)
+  const currentObjectUrlRef = useRef<string | null>(null)
+  const loadingTargetIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (activeId) {
@@ -126,10 +129,17 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const stop = useCallback(() => {
     if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = "";
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load(); // Force clear buffer
+    }
+    if (currentObjectUrlRef.current) {
+        URL.revokeObjectURL(currentObjectUrlRef.current);
+        currentObjectUrlRef.current = null;
     }
     setActiveId(null);
     setActiveMetadata(null);
+    activeMetadataRef.current = null;
+    loadingTargetIdRef.current = null;
     setCurrentTime(0);
     setSpectrum(new Array(40).fill(0));
     if (watermarkIntervalRef.current) clearInterval(watermarkIntervalRef.current);
@@ -193,9 +203,21 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         stopWatermark();
         watermarkIntervalRef.current = setInterval(() => {
             if (audio.paused) return;
+            
+            // 🛑 STOP_IF_UNLOCKED :: Kill watermark if user just purchased/unlocked the sample
+            if (activeMetadataRef.current?.isUnlocked) {
+                stopWatermark();
+                audio.volume = userVolumeRef.current;
+                return;
+            }
+
             const currentVol = userVolumeRef.current;
             audio.volume = currentVol * 0.2;
-            setTimeout(() => { if (audio.src) audio.volume = userVolumeRef.current; }, 400);
+            setTimeout(() => { 
+                if (audio.src && !activeMetadataRef.current?.isUnlocked) {
+                    audio.volume = userVolumeRef.current;
+                } 
+            }, 400);
         }, 8000);
     }
 
@@ -222,7 +244,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (ctxRef.current?.state === 'suspended') await ctxRef.current.resume();
         setIsPlaying(true);
         updateSpectrum();
-        if (!activeMetadata?.isUnlocked) {
+        if (!activeMetadataRef.current?.isUnlocked) {
             startWatermark();
         }
     };
@@ -235,6 +257,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         setIsPlaying(false); 
         setActiveId(null); 
         setActiveMetadata(null);
+        activeMetadataRef.current = null;
         setCurrentTime(0); 
         setSpectrum(new Array(40).fill(0));
         stopWatermark();
@@ -246,10 +269,19 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     audio.onloadstart = () => { if (audio.src) setIsLoading(true); }
     
     return () => { 
-        audio.pause(); 
+        // Note: Don't pause on effect cleanup because this effect should only run once
+        // Only cleanup if we are really destroying things
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
         stopWatermark();
+        if (currentObjectUrlRef.current) {
+            URL.revokeObjectURL(currentObjectUrlRef.current);
+        }
     }
+  }, []); // Run only once
+
+  // Sync metadata ref
+  useEffect(() => {
+    activeMetadataRef.current = activeMetadata;
   }, [activeMetadata]);
 
   const setVolume = useCallback((val: number) => {
@@ -286,6 +318,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     setDuration(0);
     setIsLoading(true);
     setActiveId(id);
+    loadingTargetIdRef.current = id; // Set target for race condition check
     if (metadata) setActiveMetadata(metadata);
 
     try {
@@ -316,11 +349,17 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
         const objectUrl = URL.createObjectURL(blob);
         
-        const revokeListener = () => {
+        // 🏁 RACE_CONDITION_CHECK :: Ensure we still want to play this specific ID
+        if (loadingTargetIdRef.current !== id) {
             URL.revokeObjectURL(objectUrl);
-            audioRef.current?.removeEventListener('loadedmetadata', revokeListener);
-        };
-        audioRef.current.addEventListener('loadedmetadata', revokeListener);
+            return;
+        }
+
+        // Revoke previous URL if any
+        if (currentObjectUrlRef.current) {
+            URL.revokeObjectURL(currentObjectUrlRef.current);
+        }
+        currentObjectUrlRef.current = objectUrl;
 
         audioRef.current.src = objectUrl;
         audioRef.current.volume = userVolumeRef.current;

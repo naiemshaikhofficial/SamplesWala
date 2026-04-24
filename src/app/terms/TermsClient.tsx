@@ -21,22 +21,22 @@ export default function TermsClient() {
 
     const registrySections = [
         {
-            t: '01 // PAYMENTS_&_BILLING',
+            t: '01 // PAYMENTS',
             title: 'Membership & Payments',
             d: 'BY SIGNING UP FOR A SUBSCRIPTION, YOU AGREE TO LET SAMPLES WALA CHARGE YOUR PAYMENT METHOD AUTOMATICALLY EVERY MONTH (OR YEAR). YOUR PLAN WILL RENEW UNLESS YOU CANCEL AT LEAST 24 HOURS BEFORE THE NEXT BILLING DATE. CREDITS HAVE NO CASH VALUE AND CAN ONLY BE USED ON OUR SITE.'
         },
         {
-            t: '02 // YOUR_RIGHTS',
+            t: '02 // OWNERSHIP',
             title: 'Sound Ownership',
             desc: 'ALL SOUNDS, DESIGNS, AND CODE ON THIS WEBSITE BELONG TO SAMPLES WALA. WHEN YOU SPEND CREDITS, WE GIVE YOU A PERMANENT LICENSE TO USE THOSE SOUNDS IN YOUR OWN MUSIC PROJECTS. YOU CANNOT RESELL THE INDIVIDUAL SOUNDS OR PACKS AS YOUR OWN WORK.'
         },
         {
-            t: '03 // ACCOUNT_RULES',
+            t: '03 // RULES',
             title: 'Account Rules',
             desc: 'WE RESERVE THE RIGHT TO CLOSE YOUR ACCOUNT IF YOU TRY TO HACK OUR SYSTEM, BYPASS SECURITY, OR DISTRIBUTE OUR SOUNDS ILLEGALLY. BE RESPECTFUL AND USE THE PLATFORM AS INTENDED.'
         },
         {
-            t: '04 // OUR_RESPONSIBILITY',
+            t: '04 // LIABILITY',
             title: 'Limitation of Liability',
             desc: 'SAMPLES WALA IS NOT RESPONSIBLE IF OUR SOUNDS CAUSE ANY ISSUES WITH YOUR COMPUTER OR PROJECTS. YOU USE OUR SERVICE AT YOUR OWN RISK. WE DO OUR BEST TO PROVIDE TOP-QUALITY SIGNALS, BUT WE CANNOT GUARANTEE 100% UPTIME.'
         }
@@ -52,7 +52,7 @@ export default function TermsClient() {
             <div className="absolute top-10 left-10 hidden xl:flex flex-col gap-6 opacity-20">
                 <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em]">
                     <Activity size={14} className="text-studio-neon" />
-                    <span>LEGAL_VAULT: TERMS</span>
+                    <span>TERMS OF SERVICE</span>
                     <span className="text-white/20">::</span>
                     <span className="text-studio-neon animate-pulse">{systemTime}</span>
                 </div>
@@ -75,7 +75,7 @@ export default function TermsClient() {
                                 <div className="w-2.5 h-2.5 border border-white/20 rounded-none ml-2" />
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">LEGAL RULES // v2.6</span>
+                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/30 italic">VERSION 2.6</span>
                             </div>
                         </div>
 
@@ -145,7 +145,7 @@ export default function TermsClient() {
                         <div className="bg-black p-4 border-t-2 border-white/5 flex justify-between items-center px-8 text-[9px] font-black uppercase tracking-[0.4em] text-white/20">
                             <div className="flex items-center gap-4">
                                 <Scale size={14} className="text-studio-neon" />
-                                <span>LEGAL LOCATION: MUMBAI, INDIA</span>
+                                <span>LOCATION: MUMBAI, INDIA</span>
                             </div>
                             <div className="hidden md:flex gap-6 opacity-30 items-center">
                                 <span>UPDATED: 16 APR 2026</span>
