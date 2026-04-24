@@ -445,6 +445,7 @@ export default async function PackPage({
                             loopsCount={loops + melodies}
                             oneShotsCount={oneShots}
                             presetsCount={presets}
+                            isSubscribed={isSubscribed}
                         />
                     </Suspense>
 

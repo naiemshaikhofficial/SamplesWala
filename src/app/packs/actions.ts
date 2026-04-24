@@ -15,18 +15,22 @@ export async function getSecureDownloadUrl(targetId: string, isIndividualSample:
   const admin = getAdminClient();
 
   if (isIndividualSample) {
-    // 🛡️ SUB-PROTOCOL: Sample owner check
-    const { data: sampleRecord } = await admin.from('user_vault')
-        .select('id').eq('item_id', targetId).eq('item_type', 'sample').eq('user_id', user.id).maybeSingle()
+    // 🛡️ SUB-PROTOCOL: Free Artifact Check (Instant Authorization)
+    const { data: sampleData } = await admin.from('samples').select('credit_cost, pack_id').eq('id', targetId).single();
     
-    if (sampleRecord) {
+    if (sampleData && sampleData.credit_cost === 0) {
         hasAccess = true;
     } else {
-        // 🔄 Fallback: Check if user owns parent pack
-        const { data: sampleInfo } = await admin.from('samples').select('pack_id').eq('id', targetId).single()
-        if (sampleInfo?.pack_id) {
+        // 🛡️ SUB-PROTOCOL: Sample owner check
+        const { data: sampleRecord } = await admin.from('user_vault')
+            .select('id').eq('item_id', targetId).eq('item_type', 'sample').eq('user_id', user.id).maybeSingle()
+        
+        if (sampleRecord) {
+            hasAccess = true;
+        } else if (sampleData?.pack_id) {
+            // 🔄 Fallback: Check if user owns parent pack
             const { data: packRecord } = await admin.from('user_vault')
-                .select('id').eq('item_id', sampleInfo.pack_id).eq('item_type', 'pack').eq('user_id', user.id).maybeSingle()
+                .select('id').eq('item_id', sampleData.pack_id).eq('item_type', 'pack').eq('user_id', user.id).maybeSingle()
             hasAccess = !!packRecord;
         }
     }

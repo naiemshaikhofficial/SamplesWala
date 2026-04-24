@@ -217,18 +217,40 @@ export default async function BrowsePage({
                 </h1>
             </div>
 
-            <form action="/browse" className="relative w-full max-w-2xl mt-8 lg:mt-0">
-                <div className="bg-studio-grey border-2 border-white/5 p-1 group focus-within:border-studio-neon transition-all relative">
-                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-studio-neon transition-colors" />
-                     <input 
-                        name="q"
-                        type="text" 
-                        placeholder="Search for sounds..." 
-                        defaultValue={params.q}
-                        className="w-full bg-black px-16 py-5 border-none focus:ring-0 uppercase font-black tracking-widest text-base shadow-inner focus:outline-none"
-                    />
-                </div>
-            </form>
+            <div className="relative w-full max-w-2xl mt-8 lg:mt-0">
+                {!isSubscribed ? (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md z-10 flex items-center justify-between px-8 border-2 border-white/5 group">
+                        <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded bg-studio-neon/10 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-studio-neon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-studio-neon/80 leading-none mb-1">Search Locked</span>
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-white/40 leading-none">Subscription Required</span>
+                            </div>
+                        </div>
+                        <Link 
+                            href="/subscription" 
+                            className="text-[10px] font-black bg-studio-neon text-black px-4 py-2 rounded-sm hover:bg-white transition-colors"
+                        >
+                            UPGRADE NOW
+                        </Link>
+                    </div>
+                ) : null}
+                <form action="/browse" className="relative">
+                    <div className="bg-studio-grey border-2 border-white/5 p-1 group focus-within:border-studio-neon transition-all relative">
+                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-white/20 group-focus-within:text-studio-neon transition-colors" />
+                         <input 
+                            name="q"
+                            type="text" 
+                            placeholder={isSubscribed ? "Search for sounds..." : "SEARCH LOCKED"} 
+                            defaultValue={params.q}
+                            disabled={!isSubscribed}
+                            className="w-full bg-black px-16 py-5 border-none focus:ring-0 uppercase font-black tracking-widest text-base shadow-inner focus:outline-none disabled:opacity-20"
+                        />
+                    </div>
+                </form>
+            </div>
         </div>
       </header>
 
@@ -237,7 +259,7 @@ export default async function BrowsePage({
         {/* 🎛️ Search Filters (Col 1) */}
         <div className="lg:col-span-1">
             <Suspense fallback={<div className="h-screen w-80 bg-[#0d0d0d] animate-pulse" />}>
-                <SidebarFilters categories={categories} />
+                <SidebarFilters categories={categories} isSubscribed={isSubscribed} />
             </Suspense>
         </div>
 
@@ -328,6 +350,7 @@ export default async function BrowsePage({
                                     packName="Browse Results" 
                                     coverUrl={null} 
                                     totalCount={count}
+                                    isSubscribed={isSubscribed}
                                 />
                             </Suspense>
 

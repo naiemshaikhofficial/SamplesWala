@@ -26,7 +26,7 @@ const genres = [
 
 const popularTags = ['Guitar', 'Bells', 'Synth', 'Bass', 'Vocal', 'Flute', 'Piano', 'Drum Kit', 'FX']
 
-export function SidebarFilters({ categories }: { categories: Category[] }) {
+export function SidebarFilters({ categories, isSubscribed = false }: { categories: Category[], isSubscribed?: boolean }) {
     const router = useRouter()
     const searchParams = useSearchParams()
     
@@ -137,7 +137,26 @@ export function SidebarFilters({ categories }: { categories: Category[] }) {
         </div>
     )
     const FilterSections = () => (
-        <div className="space-y-12 pb-24 md:pb-0">
+        <div className="relative space-y-12 pb-24 md:pb-0">
+            {!isSubscribed ? (
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-[4px] z-50 flex items-start justify-center pt-24 border-2 border-white/5 rounded-sm cursor-not-allowed">
+                    <div className="flex flex-col items-center gap-4 sticky top-[200px]">
+                        <div className="h-16 w-16 rounded bg-studio-neon/10 flex items-center justify-center border-2 border-studio-neon/20 shadow-[0_0_30px_rgba(166,226,46,0.1)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-studio-neon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </div>
+                        <div className="text-center">
+                            <span className="block text-[14px] font-black uppercase tracking-[0.4em] text-studio-neon italic mb-2">Filters Locked</span>
+                            <span className="block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-8">Subscription Required</span>
+                            <Link 
+                                href="/subscription" 
+                                className="inline-block text-[11px] font-black bg-studio-neon text-black px-8 py-4 rounded-sm hover:bg-white transition-all shadow-xl"
+                            >
+                                UNLOCK ALL FEATURES
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
             {/* KEY SIGNATURE */}
             <KeySelector />
 

@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, ChevronDown, ListFilter, X, Loader2 } from 'lucide-react'
+import { Search, ChevronDown, ListFilter, X, Loader2, Lock } from 'lucide-react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
 import { PlayButton } from './PlayButton'
@@ -30,9 +30,10 @@ type SampleListProps = {
     loopsCount?: number
     oneShotsCount?: number
     presetsCount?: number
+    isSubscribed?: boolean
 }
 
-export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount, presetsCount }: SampleListProps) {
+export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount, presetsCount, isSubscribed = false }: SampleListProps) {
     const { unlockedIds } = useVault()
     const router = useRouter()
     const pathname = usePathname()
@@ -105,6 +106,22 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
             <div className="flex flex-col xl:flex-row gap-4 w-full">
                 {/* 🔎 SEARCH BAR */}
                 <div className="flex-1 relative group">
+                    {!isSubscribed ? (
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-50 flex items-center justify-between px-4 border border-white/5 rounded-sm cursor-not-allowed group">
+                            <div className="flex items-center gap-3">
+                                <div className="h-6 w-6 rounded bg-studio-neon/10 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-studio-neon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </div>
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-studio-neon/80">Search Locked</span>
+                            </div>
+                            <Link 
+                                href="/subscription" 
+                                className="text-[8px] font-black bg-studio-neon text-black px-2 py-1 rounded-xs hover:bg-white transition-colors"
+                            >
+                                UPGRADE
+                            </Link>
+                        </div>
+                    ) : null}
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-studio-neon transition-colors">
                         {isPending ? <Loader2 size={14} className="animate-spin text-studio-neon" /> : <Search size={14} />}
                     </div>
@@ -112,10 +129,11 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="SEARCH SOUNDS..."
-                        className="w-full h-12 bg-black/40 border border-white/5 focus:border-studio-neon/40 focus:bg-black/60 outline-none px-12 text-[10px] font-black uppercase tracking-widest text-white placeholder:text-white/10 transition-all rounded-sm"
+                        placeholder={isSubscribed ? "SEARCH SOUNDS..." : "SEARCH LOCKED (PRO ONLY)"}
+                        disabled={!isSubscribed}
+                        className="w-full h-12 bg-black/40 border border-white/5 focus:border-studio-neon/40 focus:bg-black/60 outline-none px-12 text-[10px] font-black uppercase tracking-widest text-white placeholder:text-white/10 transition-all rounded-sm disabled:cursor-not-allowed disabled:opacity-50"
                     />
-                    {searchQuery && (
+                    {searchQuery && isSubscribed && (
                         <button 
                             onClick={() => setSearchQuery('')}
                             className="absolute inset-y-0 right-4 flex items-center text-white/20 hover:text-white transition-colors"
@@ -127,7 +145,15 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
 
                 <div className="flex flex-col md:flex-row gap-4 items-stretch">
                     {/* 🧬 TYPE FILTERS */}
-                    <div className="flex bg-black/40 border border-white/5 rounded-sm p-1 min-w-[300px]">
+                    <div className="relative flex bg-black/40 border border-white/5 rounded-sm p-1 min-w-[300px]">
+                        {!isSubscribed ? (
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-50 flex items-center justify-center cursor-not-allowed">
+                                <div className="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-studio-neon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-studio-neon/80">LOCKED</span>
+                                </div>
+                            </div>
+                        ) : null}
                         {[
                             { id: 'all', label: 'All', count: totalCount },
                             { id: 'loops', label: 'Loops', count: loopsCount },
@@ -136,8 +162,9 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                         ].map((t) => (
                             <button
                                 key={t.id}
-                                onClick={() => setFilter(t.id as any)}
-                                className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'}`}
+                                onClick={() => isSubscribed && setFilter(t.id as any)}
+                                disabled={!isSubscribed}
+                                className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'} disabled:opacity-20`}
                             >
                                 {t.label} <span className="text-[7px] opacity-40 ml-1">({t.count || 0})</span>
                             </button>
@@ -146,11 +173,20 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
 
                     {/* 🎚️ SORT MODULE */}
                     <div className="relative group min-w-[180px]">
+                        {!isSubscribed ? (
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-50 flex items-center justify-center border border-white/5 rounded-sm cursor-not-allowed">
+                                <div className="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-studio-neon"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-studio-neon/80">LOCKED</span>
+                                </div>
+                            </div>
+                        ) : null}
                         <ListFilter className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-hover:text-studio-neon pointer-events-none" />
                         <select 
                             value={sortBy}
                             onChange={(e: any) => setSortBy(e.target.value)}
-                            className="w-full h-12 bg-black/40 border border-white/5 hover:border-white/10 focus:border-studio-neon/40 outline-none pl-11 pr-8 appearance-none text-[9px] font-black uppercase tracking-widest text-white/60 cursor-pointer rounded-sm"
+                            disabled={!isSubscribed}
+                            className="w-full h-12 bg-black/40 border border-white/5 hover:border-white/10 focus:border-studio-neon/40 outline-none pl-11 pr-8 appearance-none text-[9px] font-black uppercase tracking-widest text-white/60 cursor-pointer rounded-sm disabled:opacity-20"
                         >
                             <option value="popular">Most Popular</option>
                             <option value="newest">Latest First</option>
@@ -203,9 +239,21 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                                     
                                     <div className="flex flex-col min-w-0">
                                         <Link href={`/samples/${sample.id}`}>
-                                            <span className={`text-[13px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
-                                                {sample.name}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[13px] md:text-[15px] font-black uppercase transition-colors truncate ${isActive ? 'text-studio-neon' : 'text-white/80 group-hover:text-studio-neon'}`}>
+                                                    {sample.name}
+                                                </span>
+                                                {!isSubscribed && sample.credit_cost && sample.credit_cost > 0 ? (
+                                                    <div className="flex items-center gap-1 bg-studio-neon/10 px-1 rounded-xs border border-studio-neon/20">
+                                                        <Lock size={8} className="text-studio-neon" />
+                                                        <span className="text-[7px] font-black text-studio-neon">PRO</span>
+                                                    </div>
+                                                ) : !isSubscribed && (sample.credit_cost === 0) ? (
+                                                    <div className="flex items-center gap-1 bg-white/10 px-1 rounded-xs border border-white/20">
+                                                        <span className="text-[7px] font-black text-white/60">FREE</span>
+                                                    </div>
+                                                ) : null}
+                                            </div>
                                         </Link>
                                         <div className="flex items-center gap-2 mt-0.5">
                                             {sample.type === 'preset' ? (

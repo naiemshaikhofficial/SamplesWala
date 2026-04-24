@@ -33,17 +33,33 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
             return
         }
 
-        // 🛡️ SUBSCRIPTION_ONLY_GATEway
-        if (!isUnlocked && !isSubscribed) {
+        // 📥 FREE_SIGNAL: Direct Download if creditCost is 0
+        if (creditCost === 0 || isUnlocked) {
+            setIsProcessing(true)
+            try {
+                showToast('Initiating Download...', 'success')
+                const secureUrl = await getSecureDownloadUrl(sampleId, true)
+                if (secureUrl) {
+                    window.location.assign(secureUrl)
+                }
+            } catch (err: any) {
+                showToast(err.message || "Download failed", "error")
+            } finally {
+                setIsProcessing(false)
+            }
+            return
+        }
+
+        // 🛡️ SUBSCRIPTION_ONLY_GATEway (Only for items with cost > 0)
+        if (!isSubscribed) {
             showToast("Active Studio Subscription Required To Unlock Sounds", "error")
-            // Small delay to let toast settle before redirect or opening pricing
             setTimeout(() => {
                 window.location.href = '/subscription';
             }, 1000);
             return
         }
 
-        if (!isUnlocked && !needsConfirm) {
+        if (!needsConfirm) {
             setNeedsConfirm(true)
             setTimeout(() => setNeedsConfirm(false), 3000)
             return
@@ -52,75 +68,43 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
         setIsProcessing(true)
 
         try {
-            if (!isUnlocked) {
-                // 💳 Flow 1: Unlock using credits (Only if subscribed)
-                setNeedsConfirm(false)
-                
-                // 🚀 ABSOLUTE_INSTANT_SIGNAL
-                unlockItem(sampleId) 
+            // 💳 Flow 1: Unlock using credits (Only if subscribed)
+            setNeedsConfirm(false)
+            
+            // 🚀 ABSOLUTE_INSTANT_SIGNAL
+            unlockItem(sampleId) 
+            updateMetadataUnlocked(sampleId)
+
+            const result = await unlockSample(sampleId)
+            
+            if (result.success) {
+                // Success! 🧬 FORCE-SYNC PROTOCOL
                 updateMetadataUnlocked(sampleId)
-
-                const result = await unlockSample(sampleId)
                 
-                if (result.success) {
-                    // Success! 🧬 FORCE-SYNC PROTOCOL
-                    updateMetadataUnlocked(sampleId)
-                    
-                    // Force-inject into SWR Cache
-                    mutate('user_vault', (current: any) => {
-                        const next = new Set(current?.ids instanceof Set ? current.ids : (current?.ids || []))
-                        next.add(sampleId)
-                        return { ...current, ids: next }
-                    }, false)
+                // Force-inject into SWR Cache
+                mutate('user_vault', (current: any) => {
+                    const next = new Set(current?.ids instanceof Set ? current.ids : (current?.ids || []))
+                    next.add(sampleId)
+                    return { ...current, ids: next }
+                }, false)
 
-                    showToast('Sound Unlocked!', 'success')
-                    window.dispatchEvent(new Event('refresh-credits'))
-                    mutate('user_vault')
-                } else {
-                    // 🩸 SOFT_FAIL_PROTOCOL: Handle returned errors without throwing
-                    if (result.error === 'INSUFFICIENT_FUNDS') {
-                        if (isSubscribed) {
-                            showToast("Insufficient credits. Opening top-up terminal...", "warning")
-                            showTopUpModal()
-                        } else {
-                            showToast("Active Studio Subscription Required", "error")
-                            window.location.href = '/subscription';
-                        }
-                        removeItem(sampleId)
-                        return
-                    }
-                    throw new Error(result.error || "Transaction failed")
-                }
+                showToast('Sound Unlocked!', 'success')
+                window.dispatchEvent(new Event('refresh-credits'))
+                mutate('user_vault')
             } else {
-                // 📥 Flow 2: Download unlocked sample via Secure Signal Bridge
-                showToast('Initiating Download...', 'success')
-                const secureUrl = await getSecureDownloadUrl(sampleId, true)
-                if (secureUrl) {
-                    window.location.assign(secureUrl)
+                // 🩸 SOFT_FAIL_PROTOCOL
+                if (result.error === 'INSUFFICIENT_FUNDS') {
+                    showToast("Insufficient credits. Opening top-up terminal...", "warning")
+                    showTopUpModal()
+                    removeItem(sampleId)
+                    return
                 }
+                throw new Error(result.error || "Transaction failed")
             }
         } catch (err: any) {
             // 🔄 GLOBAL_ROLLBACK
             console.error("[VAULT_ROLLBACK] Unlocking failed. Reverting local state.", err);
             removeItem(sampleId)
-            
-            const errMsg = err.message || ""
-            if (errMsg === 'Authentication required') {
-                showAuthGate()
-                return
-            }
-
-            if (errMsg.toLowerCase().includes('insufficient')) {
-                if (isSubscribed) {
-                    showToast("Insufficient credits. Opening top-up terminal...", "warning")
-                    showTopUpModal()
-                } else {
-                    showToast("Active Studio Subscription Required", "error")
-                    window.location.href = '/subscription';
-                }
-                return
-            }
-
             showToast(err.message || "Error", "error")
         } finally {
             setIsProcessing(false)
@@ -134,7 +118,7 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
             className={`
                 group relative flex items-center justify-center p-3 rounded-md transition-all duration-300 min-w-[70px]
                 ${variant === 'neon' ? 'h-14 px-8 text-sm' : 'h-10 px-4'}
-                ${isUnlocked 
+                ${isUnlocked || creditCost === 0
                     ? variant === 'neon' 
                         ? 'bg-white text-black font-black uppercase tracking-widest' 
                         : 'bg-white/5 hover:bg-studio-neon text-white hover:text-black border border-white/10' 
