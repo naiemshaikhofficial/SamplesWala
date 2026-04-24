@@ -19,7 +19,6 @@ import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
-import { createClient } from '@/lib/supabase/server';
 
 export const revalidate = 86400; // ⚡ NUCLEAR_STABILITY: 24h cache (Admin can clear manually)
 

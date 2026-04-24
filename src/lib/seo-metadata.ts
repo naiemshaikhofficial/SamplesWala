@@ -76,6 +76,10 @@ export function generateMetadata(params: SEOMetadataParams): Metadata {
         publisher: 'Samples Wala',
         category: 'Music',
         classification: 'Music Production, Audio Samples, Loops, Presets',
+        icons: {
+            icon: '/icon.png',
+            apple: '/site-identity.png',
+        },
     };
 }
 
