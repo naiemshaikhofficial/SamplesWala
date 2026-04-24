@@ -25,36 +25,7 @@ export const revalidate = 86400; // ⚡ NUCLEAR_STABILITY: 24h cache (Admin can 
 export const metadata = generateMetadata(pagesMeta.home);
 
 // 🧬 NUCLEAR_SEO: Home Page Identity Payloads
-const organizationSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Samples Wala",
-  "alternateName": "SamplesWala",
-  "url": "https://sampleswala.com",
-  "logo": "https://sampleswala.com/Logo.png",
-  "sameAs": [
-    "https://youtube.com/@SamplesWala",
-    "https://instagram.com/sampleswala"
-  ],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "email": "contact@sampleswala.com",
-    "contactType": "customer support"
-  }
-}
-
-const searchboxSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Samples Wala",
-  "alternateName": ["SamplesWala", "SamplesWala Official"],
-  "url": "https://sampleswala.com",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://sampleswala.com/browse?query={search_term_string}",
-    "query-input": "required name=search_term_string"
-  }
-}
+// redundant organizationSchema and searchboxSchema removed as they are handled in layout.tsx
 
 export default async function Home(props: { 
   searchParams: Promise<{ code?: string }> 
@@ -97,14 +68,7 @@ export default async function Home(props: {
   return (
     <main className="min-h-screen bg-black text-white selection:bg-studio-neon selection:text-black overflow-x-hidden font-mono relative w-full overflow-y-auto custom-scrollbar">
         {/* 🧬 NUCLEAR_SEO: Brand & Search Payloads */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(searchboxSchema) }}
-        />
+        {/* Handled globally in layout.tsx */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify({

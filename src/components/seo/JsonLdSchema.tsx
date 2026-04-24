@@ -292,7 +292,7 @@ const JsonLdSchema: React.FC<JsonLdProps> = ({ type, data }) => {
         '@type': 'WebSite',
         '@id': `${SITE_URL}/#website`,
         name: BRAND_NAME,
-        alternateName: ["SamplesWala", "SampleWala"],
+        alternateName: ["SamplesWala", "Sample Wala", "SamplesWala.com"],
         url: SITE_URL,
         potentialAction: {
             '@type': 'SearchAction',
