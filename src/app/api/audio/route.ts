@@ -180,10 +180,10 @@ export async function GET(req: NextRequest) {
         
         const response = NextResponse.redirect(redirectUrl);
         
-        // 🧬 CACHE_STRATEGY: 5 Minute Edge Cache, 1 Hour stale-while-revalidate
+        // 🧬 CACHE_STRATEGY: 1 Hour Edge Cache, 24 Hour stale-while-revalidate
         // This stops high-traffic loops from hitting the Next.js server for the same signal.
         if (!isDownload) {
-            response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+            response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
         } else {
             // Downloads should not be cached at the edge for security
             response.headers.set('Cache-Control', 'no-store, max-age=0');

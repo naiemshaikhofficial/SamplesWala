@@ -263,6 +263,18 @@ export async function unlockSampleBatch(sampleIds: string[]) {
   }
 }
 
+// 🚀 ANONYMOUS_BROWSE_CACHE: Cache public browsing results for 1 hour
+const getPublicBrowseData = unstable_cache(
+    async (rpcParams: any) => {
+        const adminClient = getAdminClient()
+        const { data, error } = await adminClient.rpc('get_studio_browse_data', rpcParams)
+        if (error) throw error
+        return data
+    },
+    ['public-browse-data'],
+    { revalidate: 3600, tags: ['browse'] }
+)
+
 export async function getBrowseData(filters: {
     query?: string;
     category?: string;
@@ -309,8 +321,7 @@ export async function getBrowseData(filters: {
         filter: undefined
     } : filters
 
-    const adminClient = getAdminClient()
-    const { data, error } = await adminClient.rpc('get_studio_browse_data', {
+    const rpcParams = {
         p_query: finalFilters.query || null,
         p_category_id: (finalFilters.category && finalFilters.category !== 'all' && finalFilters.category !== '') ? finalFilters.category : null,
         p_type: finalFilters.type || null,
@@ -325,16 +336,28 @@ export async function getBrowseData(filters: {
         p_genre: finalFilters.genre || null,
         p_tag: finalFilters.tag || null,
         p_filter: (finalFilters.filter && finalFilters.filter !== 'all') ? finalFilters.filter : null
-    })
+    }
 
-    if (error) {
-        console.error('[BROWSE_RPC_ERROR]', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            filters: finalFilters
-        })
-        throw new Error("Failed to fetch library data")
+    let data;
+    if (!user) {
+        // Use cached public data for guest users
+        try {
+            data = await getPublicBrowseData(rpcParams)
+        } catch (error: any) {
+            console.error('[BROWSE_CACHE_ERROR]', error)
+            const adminClient = getAdminClient()
+            const { data: fallbackData } = await adminClient.rpc('get_studio_browse_data', rpcParams)
+            data = fallbackData
+        }
+    } else {
+        // Live fetch for authenticated users (ensures personalized state)
+        const adminClient = getAdminClient()
+        const { data: liveData, error } = await adminClient.rpc('get_studio_browse_data', rpcParams)
+        if (error) {
+            console.error('[BROWSE_RPC_ERROR]', error)
+            throw new Error("Failed to fetch library data")
+        }
+        data = liveData
     }
 
     return {

@@ -14,6 +14,7 @@ import { MainLayoutWrapper } from '@/components/layout/MainLayoutWrapper'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 import JsonLdSchema from '@/components/seo/JsonLdSchema'
 import Script from 'next/script'
+import { getAllCategories } from './browse/actions'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,11 +34,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const categories = await getAllCategories()
+
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
       <head>
@@ -125,7 +128,7 @@ export default function RootLayout({
           <SignalScan />
           <div className="flex min-h-screen relative overflow-x-hidden">
             <Suspense fallback={null}>
-                <Sidebar />
+                <Sidebar initialCategories={categories} />
             </Suspense>
             <MainLayoutWrapper>
                {children}

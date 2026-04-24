@@ -23,7 +23,7 @@ const iconMap: any = {
   'one-shots': <Layers className="w-3 h-3" />,
 }
 
-export function Sidebar() {
+export function Sidebar({ initialCategories = [] }: { initialCategories?: any[] }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
   
@@ -40,17 +40,27 @@ export function Sidebar() {
   const { isOpen, toggle } = useSidebar();
   const { user } = useAuth();
   const [searchVal, setSearchVal] = useState(currentSearch);
-  const [dbCategories, setDbCategories] = useState<any[]>([]);
+  const [dbCategories, setDbCategories] = useState<any[]>(initialCategories);
   const supabase = createClient();
 
-  // Fetch Categories from DB
+  // 🧬 SYNC_CATEGORIES :: Keep local state in sync with server-passed props
   useEffect(() => {
-    const fetchCats = async () => {
-        const { data } = await supabase.from('categories').select('*').order('name');
-        if (data) setDbCategories(data);
+    if (initialCategories.length > 0) {
+        setDbCategories(initialCategories);
     }
-    fetchCats();
-  }, [supabase]);
+  }, [initialCategories]);
+
+  // Fetch Categories from DB (Fallback/Live Sync)
+  useEffect(() => {
+    // Only fetch if initialCategories were not provided
+    if (initialCategories.length === 0) {
+        const fetchCats = async () => {
+            const { data } = await supabase.from('categories').select('*').order('name');
+            if (data) setDbCategories(data);
+        }
+        fetchCats();
+    }
+  }, [supabase, initialCategories]);
 
     const inputRef = React.useRef<HTMLInputElement>(null);
 

@@ -25,7 +25,7 @@ import { Metadata } from 'next'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 import { Suspense } from 'react'
 
-export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
+export const revalidate = 86400; // Cache for 24 hours (Aggressive Vercel Optimization)
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<any> }): Promise<Metadata> {
   const params = await searchParams

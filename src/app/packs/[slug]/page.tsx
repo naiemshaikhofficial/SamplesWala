@@ -21,7 +21,21 @@ import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
-export const revalidate = 3600; // ⚡ CACHE_DURATION: 1 HOUR
+export const revalidate = 86400; // Cache for 24 hours (Aggressive Vercel Optimization)
+
+// 🚀 SSG_OPTIMIZATION: Pre-render top 50 packs to save Supabase usage
+export async function generateStaticParams() {
+  const adminClient = getAdminClient()
+  const { data: packs } = await adminClient
+    .from('sample_packs')
+    .select('slug')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  return (packs || []).map((pack) => ({
+    slug: pack.slug,
+  }))
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const adminClient = getAdminClient()
@@ -167,26 +181,18 @@ export default async function PackPage({
   const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   const videoId = getYouTubeId(enrichedPack.video_url);
 
-  // Fetch all artifacts for counting (since current batch is only 20)
-  // We can optimize this later if needed by adding stats to the RPC
-  const { data: allSamples } = await adminClient
-    .from('artifact_registry')
-    .select('bpm, key, type, credit_cost')
-    .eq('pack_id', pack.id)
-
   const samples = rawSamples.map((s: any) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
-  
-  const allArtifacts = allSamples || []
-  const melodies = allArtifacts.filter((s: any) => s.bpm && s.key).length || 0
-  const loops = allArtifacts.filter((s: any) => s.bpm && !s.key).length || 0
-  const oneShots = allArtifacts.filter((s: any) => !s.bpm && s.type !== 'preset').length || 0
-  const presets = allArtifacts.filter((s: any) => s.type === 'preset').length || 0
+
+  const melodies = pack.melody_count || 0
+  const loops = pack.loop_count || 0
+  const oneShots = pack.one_shot_count || 0
+  const presets = pack.preset_count || 0
   
   // 💹 Master Credit Summation Engine
-  const totalIndividualCredits = allArtifacts.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0) || 0
+  const totalIndividualCredits = pack.total_credits || 0
 
   // 🧪 DETECTION_PROTOCOL: IDENTIFY IF THIS IS A PREMIUM ARTIFACT (DRIVE / STEMS / MIDI)
   const hasPremiumArtifacts = pack.description?.toLowerCase().includes('stems') || 
@@ -411,7 +417,7 @@ export default async function PackPage({
                             packName={pack.name} 
                             coverUrl={pack.cover_url} 
                             packId={pack.id} 
-                            totalCount={allArtifacts.length}
+                            totalCount={count || 0}
                             loopsCount={loops + melodies}
                             oneShotsCount={oneShots}
                             presetsCount={presets}

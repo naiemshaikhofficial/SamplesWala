@@ -6,7 +6,6 @@ import { useAudio } from './AudioProvider'
 export function Waveform({ id, active }: { id: string; active?: boolean }) {
   const { activeId, isPlaying, spectrum, currentTime, duration, seek } = useAudio()
   const isActive = activeId === id
-  const progress = isActive ? (currentTime / duration) * 100 : 0
   
   // 🧬 Master DAW Seed for Realistic Bar Distribution
   const [staticBars] = useState<number[]>(() => {
@@ -28,7 +27,8 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
     })
   })
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  // 🚀 PERFORMANCE_SHIELD: Prevent non-active waveforms from doing anything during playback
+  const progress = isActive ? (currentTime / duration) * 100 : 0
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isActive) return;
@@ -38,9 +38,26 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
     seek(percentage * duration);
   }
 
+  // 🔥 VIRTUALIZATION_HINT: If not active, render a static simplified version
+  if (!isActive) {
+      return (
+          <div className="relative h-14 w-full flex items-center justify-center gap-[2px] overflow-hidden select-none bg-black/40 border border-white/[0.03] rounded-sm group px-4">
+              <div className="absolute inset-0 pointer-events-none opacity-[0.05] scanline-bg z-20" />
+              <div className="flex items-center justify-center gap-[2px] w-full h-full opacity-30 grayscale group-hover:grayscale-0 transition-all duration-500">
+                  {staticBars.map((baseHeight, i) => i % 4 === 0 && (
+                      <div 
+                        key={i}
+                        className="w-[2px] bg-white/20 rounded-full"
+                        style={{ height: `${baseHeight}%` }}
+                      />
+                  ))}
+              </div>
+          </div>
+      )
+  }
+
   return (
     <div 
-      ref={containerRef}
       onClick={handleSeek}
       className={`relative h-14 w-full flex items-center justify-center gap-[2px] overflow-hidden select-none group cursor-pointer transition-all duration-700 rounded-sm bg-black/40 border border-white/[0.03] active:bg-black/60`}
     >
@@ -48,7 +65,7 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       <div className="absolute inset-0 pointer-events-none opacity-[0.05] scanline-bg z-20" />
       
       {/* 🔋 ACTIVE GLOW AURA */}
-      {isActive && isPlaying && (
+      {isPlaying && (
           <div 
             className="absolute inset-y-0 left-0 bg-[#a6e22e]/[0.05] blur-xl pointer-events-none transition-all duration-300"
             style={{ width: `${progress.toFixed(2)}%` }}
@@ -58,16 +75,13 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       {/* 🎧 SOUND_CLOUD: Optimized Bar Rendering */}
       <div className="relative z-10 flex items-center justify-center gap-[2px] w-full h-full px-4">
         {staticBars.map((baseHeight, i) => {
-            // 🚀 PERFORMANCE_MODE: Render fewer bars for non-active components to save DOM nodes
-            if (!isActive && i % 2 !== 0) return null;
-
             const barPos = (i / staticBars.length) * 100;
             const isPast = barPos < progress;
             
             let realTimeHeight = baseHeight;
             let pulseFactor = 1;
             
-            if (isActive && isPlaying && spectrum) {
+            if (isPlaying && spectrum) {
                 const energy = spectrum[i % 40] || 0;
                 realTimeHeight = Math.max(baseHeight, energy * 250); 
                 pulseFactor = 1 + energy * 0.5;
@@ -82,10 +96,9 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
                   backgroundColor: isPast 
                     ? '#a6e22e' 
                     : 'rgba(255,255,255,0.1)',
-                  boxShadow: (isPast && isActive && isPlaying) ? '0 0 10px rgba(166,226,46,0.3)' : 'none',
+                  boxShadow: (isPast && isPlaying) ? '0 0 10px rgba(166,226,46,0.3)' : 'none',
                   transform: `scaleY(${pulseFactor.toFixed(2)})`,
                   opacity: isPast ? 1 : 0.3,
-                  // Disable pointer events on individual bars to speed up paint
                   pointerEvents: 'none'
                 }}
               />
@@ -94,12 +107,10 @@ export function Waveform({ id, active }: { id: string; active?: boolean }) {
       </div>
 
       {/* 🔭 PROGRESS MARKER: Surgical precision line */}
-      {isActive && (
-          <div 
-            className="absolute top-0 bottom-0 w-[1px] bg-[#a6e22e] z-30 shadow-[0_0_10px_#a6e22e]"
-            style={{ left: `${progress.toFixed(2)}%` }}
-          />
-      )}
+      <div 
+        className="absolute top-0 bottom-0 w-[1px] bg-[#a6e22e] z-30 shadow-[0_0_10px_#a6e22e]"
+        style={{ left: `${progress.toFixed(2)}%` }}
+      />
     </div>
   )
 }
