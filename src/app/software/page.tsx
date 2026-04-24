@@ -139,7 +139,7 @@ export default async function SoftwareHub() {
                                         </div>
                                     </div>
 
-                                    <p className="text-sm md:text-base font-black uppercase tracking-widest text-white/40 leading-loose mb-12 max-w-xl italic">
+                                    <p className="text-sm md:text-base font-black uppercase tracking-widest text-white/40 leading-loose mb-12 max-w-xl italic whitespace-pre-wrap">
                                         {soft.description}
                                     </p>
 

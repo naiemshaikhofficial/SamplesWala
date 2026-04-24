@@ -1061,7 +1061,7 @@ export default function AdminDashboardClient({
                                     </div>
                                 </div>
                                 <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-2 truncate relative z-10 pointer-events-none">{pack.name}</h3>
-                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-10 line-clamp-2 relative z-10 pointer-events-none">{pack.description}</p>
+                                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-10 line-clamp-2 relative z-10 pointer-events-none whitespace-pre-wrap">{pack.description}</p>
                                 
                                 <div className="flex gap-2 mt-auto relative z-10">
                                     <button 

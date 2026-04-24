@@ -255,7 +255,7 @@ export default async function SoftwareDetailPage({
                     <h2 className="text-5xl md:text-[5rem] lg:text-[5.5rem] font-black uppercase italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/30 leading-[0.85] pb-4 drop-shadow-2xl">
                         {soft.name}
                     </h2>
-                    <p className="text-base md:text-lg font-medium text-white/60 leading-relaxed max-w-3xl font-sans tracking-wide">
+                    <p className="text-base md:text-lg font-medium text-white/60 leading-relaxed max-w-3xl font-sans tracking-wide whitespace-pre-wrap">
                         {soft.long_description || soft.description}
                     </p>
                 </div>

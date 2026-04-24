@@ -116,7 +116,7 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
 
                                 <div className="space-y-2 mb-10 text-left">
                                     <h3 className="text-3xl font-black uppercase tracking-tighter text-white">{plan.name} Plan</h3>
-                                    <p className="text-[11px] font-bold text-white/20 italic tracking-widest uppercase">{plan.description || "High-fidelity audio signal access."}</p>
+                                    <p className="text-[11px] font-bold text-white/20 italic tracking-widest uppercase whitespace-pre-wrap">{plan.description || "High-fidelity audio signal access."}</p>
                                 </div>
 
                                 <div className="text-left mb-10">

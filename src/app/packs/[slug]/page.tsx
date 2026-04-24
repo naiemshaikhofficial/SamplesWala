@@ -349,7 +349,7 @@ export default async function PackPage({
                     <Disc className="h-3 w-3 text-white/20 animate-spin-slow" />
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product Details</span>
                  </div>
-                 <p className="text-[11px] text-white/40 leading-relaxed font-bold italic mb-4">
+                 <p className="text-[11px] text-white/40 leading-relaxed font-bold italic mb-4 whitespace-pre-wrap">
                     {enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
                  </p>
                  {enrichedPack.total_contents_summary && (
