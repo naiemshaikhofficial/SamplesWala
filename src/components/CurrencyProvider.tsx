@@ -6,7 +6,7 @@ type Currency = 'INR' | 'USD'
 type CurrencyContextType = {
   currency: Currency
   setCurrency: (c: Currency) => void
-  format: (inr: number, usd: number) => string
+  format: (inr: number | null | undefined, usd: number | null | undefined) => string
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined)
