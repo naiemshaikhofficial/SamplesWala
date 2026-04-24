@@ -32,7 +32,11 @@ export async function getFilteredPacks(filters: { query?: string, category?: str
   }
   
   if (filters.category) {
-    queryBuilder = queryBuilder.eq('category_id', filters.category)
+    const categories = await getAllCategories()
+    const category = categories.find((c: any) => c.slug === filters.category || c.id === filters.category)
+    if (category) {
+      queryBuilder = queryBuilder.eq('category_id', category.id)
+    }
   }
 
   // 🎹 ENHANCED STUDIO CONSOLE FILTERS
@@ -104,7 +108,11 @@ export async function getFilteredSamples(filters: {
   }
 
   if (filters.category) {
-      queryBuilder = queryBuilder.eq('pack_category_id', filters.category)
+    const categories = await getAllCategories()
+    const category = categories.find((c: any) => c.slug === filters.category || c.id === filters.category)
+    if (category) {
+      queryBuilder = queryBuilder.eq('pack_category_id', category.id)
+    }
   }
   
   if (filters.tag) {
@@ -323,9 +331,17 @@ export async function getBrowseData(filters: {
         filter: undefined
     } : filters
 
+    // 🧬 SLUG_RESOLVER: Convert URL slugs (e.g. 'hip-hop') to UUIDs for the database
+    let resolvedCategoryId = null
+    if (finalFilters.category && finalFilters.category !== 'all' && finalFilters.category !== '') {
+        const categories = await getAllCategories()
+        const category = categories.find((c: any) => c.slug === finalFilters.category || c.id === finalFilters.category)
+        resolvedCategoryId = category?.id || null
+    }
+
     const rpcParams = {
         p_query: finalFilters.query || null,
-        p_category_id: (finalFilters.category && finalFilters.category !== 'all' && finalFilters.category !== '') ? finalFilters.category : null,
+        p_category_id: resolvedCategoryId,
         p_type: finalFilters.type || null,
         p_bpm_min: finalFilters.bpm_min || null,
         p_bpm_max: finalFilters.bpm_max || null,

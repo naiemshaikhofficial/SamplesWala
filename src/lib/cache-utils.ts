@@ -11,6 +11,8 @@ export async function clearGlobalCache() {
     revalidateTag('browse', 'default')
     revalidateTag('global-categories-cache', 'default')
     revalidateTag('public-browse-data', 'default')
+    revalidateTag('home', 'default')
+    revalidateTag('software', 'default')
     
     // Clear the main pages
     revalidatePath('/')
