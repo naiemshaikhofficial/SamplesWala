@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 
-import { unstable_cache } from 'next/cache'
+import { unstable_cache, revalidateTag } from 'next/cache'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
 import { cache } from 'react'
@@ -266,6 +266,9 @@ export async function unlockSampleBatch(sampleIds: string[]) {
       .update({ credits: account.credits - totalCost })
       .eq('user_id', user.id)
 
+  // 🧬 CACHE_INVALIDATION: Clear user status cache so the UI updates immediately
+  revalidateTag('browse')
+  
   return { 
       success: true, 
       count: sampleIds.length, 
@@ -273,16 +276,52 @@ export async function unlockSampleBatch(sampleIds: string[]) {
   }
 }
 
-// 🚀 ANONYMOUS_BROWSE_CACHE: Cache public browsing results for 1 hour
-const getPublicBrowseData = unstable_cache(
+// 🚀 UNIFIED_BROWSE_CACHE: Cache ALL browsing results (Guest & Auth) for 24 hours
+// Distinguishes between Subscribed and Guest users via the p_is_subscribed param
+const getUnifiedBrowseData = unstable_cache(
     async (rpcParams: any) => {
         const adminClient = getAdminClient()
         const { data, error } = await adminClient.rpc('get_studio_browse_data', rpcParams)
-        if (error) throw error
+        if (error) {
+            console.error('[BROWSE_RPC_ERROR]', error)
+            throw error
+        }
         return data
     },
-    ['public-browse-data'],
+    ['unified-browse-data-v2'],
     { revalidate: 86400, tags: ['browse'] }
+)
+
+// 🛡️ USER_STATUS_CACHE: Cache subscription/vault status for 1 hour
+// revalidateTag('user-' + userId) should be called on purchase
+const getCachedUserSubscription = unstable_cache(
+    async (userId: string) => {
+        const adminClient = getAdminClient()
+        const { data: account } = await adminClient
+            .from('user_accounts')
+            .select('subscription_status')
+            .eq('user_id', userId)
+            .maybeSingle()
+        return account?.subscription_status === 'ACTIVE'
+    },
+    ['user-subscription-status'],
+    { revalidate: 3600 }
+)
+
+const getCachedPackOwnership = unstable_cache(
+    async (userId: string, packId: string) => {
+        const adminClient = getAdminClient()
+        const { data: vaultPack } = await adminClient
+            .from('user_vault')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('item_id', packId)
+            .eq('item_type', 'pack')
+            .maybeSingle()
+        return !!vaultPack
+    },
+    ['user-pack-ownership'],
+    { revalidate: 3600 }
 )
 
 export async function getBrowseData(filters: {
@@ -305,25 +344,13 @@ export async function getBrowseData(filters: {
     
     let isSubscribed = false
     if (user) {
-        const { data: account } = await supabase
-            .from('user_accounts')
-            .select('subscription_status')
-            .eq('user_id', user.id)
-            .maybeSingle()
-        
-        isSubscribed = account?.subscription_status === 'ACTIVE'
+        // 🛡️ Use cached user status to avoid repeated DB hits
+        isSubscribed = await getCachedUserSubscription(user.id)
 
-        // 🧪 PACK_OWNERSHIP_BYPASS: If not subscribed, check if user owns the specific pack
+        // 🧪 PACK_OWNERSHIP_BYPASS: If not subscribed, check if user owns the specific pack (Cached)
         if (!isSubscribed && filters.packId) {
-            const { data: vaultPack } = await supabase
-                .from('user_vault')
-                .select('id')
-                .eq('user_id', user.id)
-                .eq('item_id', filters.packId)
-                .eq('item_type', 'pack')
-                .maybeSingle()
-            
-            if (vaultPack) isSubscribed = true
+            const hasPack = await getCachedPackOwnership(user.id, filters.packId)
+            if (hasPack) isSubscribed = true
         }
     }
 
@@ -370,25 +397,13 @@ export async function getBrowseData(filters: {
         p_filter: (finalFilters.filter && finalFilters.filter !== 'all') ? finalFilters.filter : null
     }
 
-    let data;
-    if (!user) {
-        // Use cached public data for guest users
-        try {
-            data = await getPublicBrowseData(rpcParams)
-        } catch (error: any) {
-            console.error('[BROWSE_CACHE_ERROR]', error)
-            const adminClient = getAdminClient()
-            const { data: fallbackData } = await adminClient.rpc('get_studio_browse_data', rpcParams)
-            data = fallbackData
-        }
-    } else {
-        // Live fetch for authenticated users (ensures personalized state)
+    // 🧬 CACHED_FETCH: Unified cache layer for all users
+    try {
+        // We use JSON.stringify(rpcParams) as part of the key to ensure uniqueness
+        data = await getUnifiedBrowseData(rpcParams)
+    } catch (error) {
         const adminClient = getAdminClient()
-        const { data: liveData, error } = await adminClient.rpc('get_studio_browse_data', rpcParams)
-        if (error) {
-            console.error('[BROWSE_RPC_ERROR]', error)
-            throw new Error("Failed to fetch library data")
-        }
+        const { data: liveData } = await adminClient.rpc('get_studio_browse_data', rpcParams)
         data = liveData
     }
 

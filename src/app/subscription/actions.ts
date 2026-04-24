@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
@@ -431,6 +431,7 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
     revalidatePath('/pricing')
     revalidatePath('/browse')
     revalidatePath('/packs/[slug]', 'page')
+    revalidateTag('browse')
 
     return { success: true }
 }
@@ -483,6 +484,7 @@ export async function cancelSubscription() {
     revalidatePath('/')
     revalidatePath('/pricing')
     revalidatePath('/profile')
+    revalidateTag('browse')
     return { success: true }
 }
 
@@ -617,5 +619,6 @@ export async function capturePayPalOrder(orderId: string, itemId: string, itemTy
     });
 
     revalidatePath('/');
+    revalidateTag('browse')
     return { success: true };
 }

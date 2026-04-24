@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import jwt from 'jsonwebtoken'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 const JWT_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-secret-key'
 
@@ -52,6 +52,7 @@ export async function unlockSample(sampleId: string) {
         return { success: false, error: error.message }
     }
 
+    revalidateTag('browse')
     return { success: true }
 }
 
@@ -130,5 +131,6 @@ export async function unlockFullPack(packId: string) {
         })
     }
 
+    revalidateTag('browse')
     return { success: true }
 }
