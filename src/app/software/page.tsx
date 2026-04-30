@@ -24,7 +24,7 @@ const getCachedProducts = unstable_cache(
     return data || []
   },
   ['software-products-catalog'],
-  { revalidate: 86400 }
+  { revalidate: 604800 }
 )
 
 export default async function SoftwareHub() {

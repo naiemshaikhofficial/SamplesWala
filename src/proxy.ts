@@ -60,33 +60,38 @@ export async function proxy(request: NextRequest) {
   }
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+  const isApi = pathname.startsWith('/api');
+  const isSensitive = SENSITIVE_PATHS.some(p => pathname.startsWith(p));
 
-  // 🛡️ 1. RATE LIMITING (Basic Edge implementation)
-  const now = Date.now();
-  const limitKey = `${ip}:${pathname.startsWith('/api') ? 'api' : 'web'}`;
-  const entry = rateLimitStore.get(limitKey) || { count: 0, reset: now + 60000 };
+  // 🛡️ 1. SELECTIVE RATE LIMITING
+  // Only apply strict rate limiting to API and sensitive sectors to save CPU on public traffic.
+  if (isApi || isSensitive) {
+    const now = Date.now();
+    const limitKey = `${ip}:${isSensitive ? 'sensitive' : 'api'}`;
+    const entry = rateLimitStore.get(limitKey) || { count: 0, reset: now + 60000 };
 
-  if (now > entry.reset) {
-    entry.count = 1;
-    entry.reset = now + 60000;
-  } else {
-    entry.count++;
-  }
-  rateLimitStore.set(limitKey, entry);
+    if (now > entry.reset) {
+      entry.count = 1;
+      entry.reset = now + 60000;
+    } else {
+      entry.count++;
+    }
+    rateLimitStore.set(limitKey, entry);
 
-  if (entry.count > (SENSITIVE_PATHS.some(p => pathname.startsWith(p)) ? 20 : 100)) {
-    return new NextResponse(JSON.stringify({ error: "High traffic detected. Please slow down." }), {
-      status: 429,
-      headers: { 'Content-Type': 'application/json', 'Retry-After': '60' }
-    });
+    if (entry.count > (isSensitive ? 20 : 100)) {
+      return new NextResponse(JSON.stringify({ error: "Rate limit exceeded." }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 
   // 🤖 2. BOT SHIELD (Allow Google, Block Scrapers)
   const ua = request.headers.get('user-agent') || '';
-  const isSuspicious = /bot|spider|crawl|scraper|curl|wget|python|libwww|headless/i.test(ua) && 
-                      !/googlebot|bingbot|yandexbot|duckduckbot/i.test(ua);
+  const isBot = /bot|spider|crawl|scraper|curl|wget|python|libwww|headless/i.test(ua);
+  const isGoodBot = /googlebot|bingbot|yandexbot|duckduckbot/i.test(ua);
 
-  if (isSuspicious && pathname.startsWith('/api')) {
+  if (isBot && !isGoodBot && isApi) {
     return new NextResponse("Automated access restricted.", { status: 403 });
   }
 
@@ -96,48 +101,45 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // 🧪 Supabase Auth Client
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-        },
-      },
-    }
-  );
-
   // 🛡️ SECURITY_GATE: Identify secured sectors
   const isProtectedRoute = pathname.startsWith('/library') || pathname.startsWith('/settings');
   const isAdminRoute = pathname.startsWith('/admin');
   const isAuthCallback = pathname.startsWith('/auth/callback');
 
-  // 🧪 AUTH_SIGNAL_OPTIMIZATION
-  // Only call getUser if we are entering a protected route or handling a login callback.
-  // This drastically reduces /user calls on high-traffic public pages (Home, Browse, etc.)
-  let user = null;
+  // 🧪 AUTH_SIGNAL_OPTIMIZATION: Defer client creation to ONLY secured routes.
+  // This saves massive resources on public traffic (99% of requests).
   if (isProtectedRoute || isAdminRoute || isAuthCallback) {
-      const { data } = await supabase.auth.getUser();
-      user = data.user;
-  }
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return request.cookies.getAll() },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+            response = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+          },
+        },
+      }
+    );
 
-  if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
+    const { data } = await supabase.auth.getUser();
+    const user = data.user;
 
-  if (isAdminRoute) {
-     if (!user) return NextResponse.redirect(new URL('/auth/login', request.url));
-     
-     const userEmail = user.email?.toLowerCase() || '';
-     const role = user.app_metadata?.role || user.user_metadata?.role;
-     const isAuthorized = role === 'admin' || userEmail === 'naiemshaikh@gmail.com' || userEmail.includes('naiem');
+    if (isProtectedRoute && !user) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
 
-     if (!isAuthorized) return NextResponse.redirect(new URL('/browse', request.url));
+    if (isAdminRoute) {
+      if (!user) return NextResponse.redirect(new URL('/auth/login', request.url));
+      
+      const userEmail = user.email?.toLowerCase() || '';
+      const role = user.app_metadata?.role || user.user_metadata?.role;
+      const isAuthorized = role === 'admin' || userEmail === 'naiemshaikh@gmail.com' || userEmail.includes('naiem');
+
+      if (!isAuthorized) return NextResponse.redirect(new URL('/browse', request.url));
+    }
   }
 
   // 🏛️ NUCLEAR SEO & SECURITY HEADERS (Offloaded to Edge)

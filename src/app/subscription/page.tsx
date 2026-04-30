@@ -22,7 +22,7 @@ const getCachedPricingData = unstable_cache(
     return { plans: plans || [], packs: packs || [] }
   },
   ['pricing-plans-packs'],
-  { revalidate: 86400 }
+  { revalidate: 604800 }
 )
 
 export default async function PricingPage() {
