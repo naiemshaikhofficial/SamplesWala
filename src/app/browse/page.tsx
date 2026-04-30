@@ -1,33 +1,52 @@
 
-import { createClient } from '@/lib/supabase/server'
-import { getFilteredPacks, getFilteredSamples, getAllCategories, getBrowseData } from './actions'
+import { getBrowseData } from './actions'
 import Link from 'next/link'
-import { 
-  Search, Music, Zap, Disc, ArrowRight, Play, Download, Waves, Radio, 
-  Volume2, Mic2, Settings2, Sparkles, Filter, Activity, Cpu, Layout, 
-  Maximize2, MoveVertical, Timer, Terminal, Layers, Monitor, SlidersHorizontal, 
-  Keyboard, X, Minus, Square, Folder, Database, HardDrive, Cpu as CpuIcon, 
-  Cloud, Save, Key, UserCheck, FileJson 
-} from 'lucide-react'
+import { Search, Zap, Cpu, Layers, Monitor } from 'lucide-react'
 import Image from 'next/image'
-import { PriceDisplay } from '@/components/PriceDisplay'
-import { PlayButton } from '@/components/audio/PlayButton'
-import { DownloadButton } from '@/components/audio/DownloadButton'
-import { Waveform } from '@/components/audio/Waveform'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 
 import { SidebarFilters } from '@/components/browse/SidebarFilters'
 import { SampleList } from '@/components/audio/SampleList'
 import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
-import { Cable } from 'lucide-react'
 import { Metadata } from 'next'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 import { Suspense } from 'react'
 
-export const revalidate = 86400; // Cache for 24 hours (Aggressive Vercel Optimization)
+interface BrowseSearchParams {
+  [key: string]: string | string[] | undefined
+  q?: string
+  category?: string
+  type?: string
+  filter?: string
+  bpm_min?: string
+  bpm_max?: string
+  key?: string
+  sort?: string
+  page?: string
+  genre?: string
+  tag?: string
+}
 
-export async function generateMetadata({ searchParams }: { searchParams: Promise<any> }): Promise<Metadata> {
+interface BrowsePack {
+  id: string
+  name: string
+  slug: string
+  cover_url?: string
+  category?: { name: string }
+  sample_count?: number
+}
+
+interface BrowseSample {
+  id: string
+  name: string
+  audio_url: string
+  [key: string]: unknown
+}
+
+export const revalidate = 604800; // ⚡ 1 WEEK STATIC CACHE
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<BrowseSearchParams> }): Promise<Metadata> {
   const params = await searchParams
   const q = params.q
   const category = params.category
@@ -35,7 +54,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   
   let title = 'Sounds Library | Samples Wala'
   let description = 'Browse our massive library of premium royalty-free samples, drum kits, and loops. Filter by BPM, Key, and Genre to find your perfect sound.'
-  const domain = 'https://sampleswala.com'
+
 
   if (q) {
     title = `Download "${q}" Samples & Loops | Samples Wala`
@@ -53,7 +72,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     'sample packs', 'drum kits', 'wav loops', 'royalty free samples',
     'music production sounds', 'FL Studio packs', 'Ableton samples',
     q, category, type
-  ].filter(Boolean)
+  ].filter((k): k is string => Boolean(k))
 
   // 📡 CANONICAL_GENERATOR: Consolidate permutations to avoid GSC "Currently Not Indexed"
   const cParams = new URLSearchParams()
@@ -84,17 +103,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: { 
-    q?: string; 
-    category?: string; 
-    type?: string; 
-    filter?: string;
-    bpm_min?: string;
-    bpm_max?: string;
-    key?: string;
-  }
+  searchParams: Promise<BrowseSearchParams>
 }) {
-  const params = await (searchParams as any)
+  const params = await searchParams
   
   const page = (params.page as string) || '1'
   // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
@@ -120,14 +131,14 @@ export default async function BrowsePage({
   const { samples: rawSamples, count, categories, packs, isSubscribed, isRestricted } = browseData;
 
   // 🧬 SIGNAL_INJECTION
-  const samples = (rawSamples || []).map((s: any) => ({
+  const samples = (rawSamples || []).map((s: BrowseSample) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 
   const hasNoResults = (!packs || packs.length === 0) && (!samples || samples.length === 0);
 
-  const musicalKeys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  // musicalKeys removed — handled by SidebarFilters component
 
   const isNewAssets = params.sort === 'newest';
   const isTrending = params.filter === 'trending';
@@ -157,7 +168,7 @@ export default async function BrowsePage({
             "url": "https://sampleswala.com/browse",
             "mainEntity": {
               "@type": "ItemList",
-              "itemListElement": (packs || []).map((p: any, i: number) => ({
+              "itemListElement": (packs || []).map((p: BrowsePack, i: number) => ({
                 "@type": "ListItem",
                 "position": i + 1,
                 "url": `https://sampleswala.com/packs/${p.slug}`
@@ -258,7 +269,7 @@ export default async function BrowsePage({
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-10">
-                        {packs.map((pack: any) => (
+                        {packs.map((pack: BrowsePack) => (
                             <div key={pack.id} className="group flex flex-col">
                                 <Link href={`/packs/${pack.slug}`}>
                                     <div className="aspect-square relative overflow-hidden studio-panel bg-studio-grey border-2 border-white/10 shadow-2xl group mb-8">

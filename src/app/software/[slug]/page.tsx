@@ -1,13 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
-import { Cpu, Sparkles, Zap, ShieldCheck, Download, Activity, Layers, Disc, Music, ArrowRight, ArrowLeft } from 'lucide-react'
+import { Cpu, Zap, Activity, Layers, Disc, Music, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { SubscribeButton } from '@/components/SubscribeButton'
+import Image from 'next/image'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
+import { getAdminClient } from '@/lib/supabase/admin'
 
 import { getCachedSoftware } from '@/lib/software-actions'
+import { SoftwareDetailActions } from '@/components/software/SoftwareActionPanel'
+
+export const revalidate = 604800; // ⚡ 1 WEEK STATIC CACHE
+
+export async function generateStaticParams() {
+  const adminClient = getAdminClient()
+  const { data } = await adminClient
+    .from('software_products')
+    .select('slug')
+    .eq('is_active', true)
+  return (data || []).map((s: { slug: string }) => ({ slug: s.slug }))
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const { slug } = await params
@@ -68,8 +80,6 @@ export default async function SoftwareDetailPage({
     params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
   
   // 🛰️ SIGNAL ACQUISITION: Fetch from Cache
   const { data: soft, error } = await getCachedSoftware(slug)
@@ -78,12 +88,7 @@ export default async function SoftwareDetailPage({
       notFound()
   }
 
-  // 🔐 LICENSE VERIFICATION: Check what the user owns
-  const { data: order } = user 
-    ? await supabase.from('software_orders').select('*').eq('user_id', user.id).eq('software_name', soft.name).eq('status', 'complete').maybeSingle()
-    : { data: null }
-
-  const isOwned = !!order
+  // 🧬 OWNERSHIP: Handled client-side via SoftwareActionPanel
 
   return (
     <div className="min-h-screen bg-studio-charcoal text-white pt-24 md:pt-32 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
@@ -180,7 +185,7 @@ export default async function SoftwareDetailPage({
                 <div className="relative aspect-square bg-[#000] border-2 border-white/5 rounded-xl shadow-2xl overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10 opacity-60" />
                     {soft.cover_url ? (
-                        <img src={soft.cover_url} alt={soft.name} className="w-full h-full object-contain lg:object-center object-top p-8 lg:p-12 opacity-80 group-hover:scale-[1.02] group-hover:opacity-100 transition-all duration-700" />
+                        <Image src={soft.cover_url} alt={soft.name} fill className="object-contain lg:object-center object-top p-8 lg:p-12 opacity-80 group-hover:scale-[1.02] group-hover:opacity-100 transition-all duration-700" sizes="(max-width: 1024px) 100vw, 33vw" />
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-20 bg-studio-charcoal/50">
                             <div className="relative">
@@ -198,45 +203,15 @@ export default async function SoftwareDetailPage({
                     </div>
                 </div>
 
-                {/* Purchase Panel */}
+                {/* Purchase Panel — Client-side ownership check */}
                 <div className="bg-[#111] border border-white/5 p-8 rounded-xl flex flex-col gap-6 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                    {isOwned ? (
-                        <div className="w-full space-y-6">
-                            <div className="flex items-center gap-3 text-studio-neon mb-4">
-                                <ShieldCheck size={18} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Licensed Version</span>
-                            </div>
-                            <div className="flex flex-col gap-4 w-full">
-                                {soft.download_url_win && (
-                                    <a href={soft.download_url_win} className="h-14 flex items-center justify-center bg-white text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-studio-neon hover:scale-[1.02] active:scale-95 transition-all gap-4 shadow-[0_0_20px_rgba(255,255,255,0.1)] rounded-sm">
-                                        <svg viewBox="0 0 88 88" className="w-5 h-5 fill-current"><path d="M0 12.402l35.687-4.86.016 34.423-35.67.203zm35.67 33.529l.028 34.453L0 75.44v-31.51zm4.326-39.04L87.314 0v41.26l-47.318.376zm47.318 39.897L87.31 88l-47.315-6.52v-34.71z"/></svg>
-                                        Download for Windows
-                                    </a>
-                                )}
-                                {soft.download_url_mac && (
-                                    <a href={soft.download_url_mac} className="h-14 flex items-center justify-center bg-black border-2 border-white/20 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:border-studio-neon hover:text-black hover:scale-[1.02] active:scale-95 transition-all gap-4 shadow-[0_0_20px_rgba(255,255,255,0.05)] rounded-sm">
-                                        <svg viewBox="0 0 384 512" className="w-5 h-5 fill-current"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-                                        Download for Mac
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center gap-8 w-full">
-                            <div className="flex flex-col items-center">
-                                <span className="text-5xl lg:text-5xl font-black italic tracking-tighter text-white drop-shadow-lg">₹{soft.price_inr}</span>
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 italic">ONE-TIME PAYMENT</span>
-                            </div>
-                            <div className="w-full">
-                                <SubscribeButton 
-                                    planId={soft.id} 
-                                    planName={`PURCHASE ${soft.name.toUpperCase()}`} 
-                                    mode="software"
-                                    isFeatured={true}
-                                />
-                            </div>
-                        </div>
-                    )}
+                    <SoftwareDetailActions
+                        softwareName={soft.name}
+                        softwareId={soft.id}
+                        priceInr={soft.price_inr}
+                        downloadUrlWin={soft.download_url_win}
+                        downloadUrlMac={soft.download_url_mac}
+                    />
                 </div>
             </div>
 
@@ -345,9 +320,11 @@ export default async function SoftwareDetailPage({
                         <div className="flex flex-col gap-12">
                             {soft.screenshots.map((img: string, idx: number) => (
                                 <div key={idx} className="w-full border border-white/5 bg-[#0a0a0a] rounded-xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.5)] relative">
-                                    <img 
+                                    <Image 
                                         src={img} 
                                         alt={`${soft.name} Screenshot ${idx + 1}`} 
+                                        width={1200}
+                                        height={675}
                                         className="w-full h-auto object-contain" 
                                         loading="lazy"
                                     />

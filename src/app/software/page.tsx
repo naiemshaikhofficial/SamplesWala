@@ -1,18 +1,18 @@
 import { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { Cpu, Sparkles, ShieldCheck, Activity, Layers, Disc } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { SubscribeButton } from '@/components/SubscribeButton'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 import { unstable_cache } from 'next/cache'
+import { SoftwareActionPanel, SoftwarePriceTag } from '@/components/software/SoftwareActionPanel'
 
 export const metadata: Metadata = generateMetadata(pagesMeta.software);
+export const revalidate = 604800; // ⚡ 1 WEEK STATIC CACHE
 
-// 🧬 CACHED_PRODUCTS: Public catalog data cached for 24h
+// 🧬 CACHED_PRODUCTS: Public catalog data cached for 1 week
 const getCachedProducts = unstable_cache(
   async () => {
     const adminClient = getAdminClient()
@@ -29,16 +29,6 @@ const getCachedProducts = unstable_cache(
 
 export default async function SoftwareHub() {
   const products = await getCachedProducts()
-  
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // 🔐 LICENSE VERIFICATION: Check what the user owns
-  const { data: orders } = user 
-    ? await supabase.from('software_orders').select('software_name').eq('user_id', user.id).eq('status', 'complete')
-    : { data: [] }
-
-  const ownedSoftwares = new Set(orders?.map(o => o.software_name) || [])
 
   return (
     <div className="min-h-screen bg-studio-charcoal text-white pt-24 md:pt-32 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
@@ -104,7 +94,6 @@ export default async function SoftwareHub() {
         {/* 🛠️ SOFTWARE LISTING GRID */}
         <div className="space-y-32">
             {products?.map((soft: { id: string, name: string, description: string, current_version: string, price_inr: number, cover_url?: string, download_url_win?: string, download_url_mac?: string, slug: string }) => {
-                const isOwned = ownedSoftwares.has(soft.name)
                 
                 return (
                     <div key={soft.id} className="group relative bg-[#111] border-4 border-black shadow-2xl overflow-hidden rounded-sm hover:border-white/5 transition-all">
@@ -182,47 +171,15 @@ export default async function SoftwareHub() {
                                 </div>
 
                                 <div className="flex flex-col md:flex-row items-center gap-8 border-t-2 border-black pt-12">
-                                    {!isOwned && (
-                                        <div className="flex flex-col">
-                                            <span className="text-5xl font-black italic tracking-tighter text-white">₹{soft.price_inr}</span>
-                                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/20 italic">ONE-TIME LICENSE</span>
-                                        </div>
-                                    )}
+                                    <SoftwarePriceTag softwareName={soft.name} priceInr={soft.price_inr} />
                                     
-                                    <div className="w-full md:flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {isOwned ? (
-                                            <>
-                                                {soft.download_url_win && (
-                                                    <a 
-                                                        href={soft.download_url_win} 
-                                                        className="h-16 flex items-center justify-center bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-studio-neon transition-all gap-3 shadow-xl"
-                                                    >
-                                                        <svg viewBox="0 0 88 88" className="w-4 h-4 fill-current"><path d="M0 12.402l35.687-4.86.016 34.423-35.67.203zm35.67 33.529l.028 34.453L0 75.44v-31.51zm4.326-39.04L87.314 0v41.26l-47.318.376zm47.318 39.897L87.31 88l-47.315-6.52v-34.71z"/></svg>
-                                                        Windows
-                                                    </a>
-                                                )}
-                                                {soft.download_url_mac && (
-                                                    <a 
-                                                        href={soft.download_url_mac} 
-                                                        className="h-16 flex items-center justify-center bg-black border-2 border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:border-studio-neon transition-all gap-3 shadow-xl"
-                                                    >
-                                                        <svg viewBox="0 0 384 512" className="w-4 h-4 fill-current"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
-                                                        Apple
-                                                    </a>
-                                                )}
-                                            </>
-
-                                        ) : (
-                                            <div className="sm:col-span-2">
-                                                <SubscribeButton 
-                                                    planId={soft.id} 
-                                                    planName={`PURCHASE ${soft.name.toUpperCase()}`} 
-                                                    mode="software"
-                                                    isFeatured={true}
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
+                                    <SoftwareActionPanel 
+                                        softwareName={soft.name}
+                                        softwareId={soft.id}
+                                        priceInr={soft.price_inr}
+                                        downloadUrlWin={soft.download_url_win}
+                                        downloadUrlMac={soft.download_url_mac}
+                                    />
                                 </div>
                             </div>
 

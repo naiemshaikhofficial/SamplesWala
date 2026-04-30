@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { ShieldCheck, Activity, Settings2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -25,18 +24,13 @@ const getCachedPricingData = unstable_cache(
   { revalidate: 604800 }
 )
 
+export const revalidate = 604800; // ⚡ 1 WEEK STATIC CACHE
+
 export default async function PricingPage() {
   const { plans, packs } = await getCachedPricingData()
   
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  // 📀 User-specific subscription check (only if logged in)
-  const { data: activeSub } = user 
-    ? await supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle() 
-    : { data: null }
-
-  const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
+  // 🧬 FULLY STATIC: User subscription check moved to PricingClientView (client-side)
+  // This eliminates getUser() calls on every visit, enabling ISR caching.
 
   return (
     <div className="min-h-screen bg-studio-charcoal text-white pt-16 md:pt-20 pb-24 relative overflow-hidden font-mono selection:bg-studio-neon selection:text-black">
@@ -51,7 +45,7 @@ export default async function PricingPage() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center max-w-4xl mx-auto mb-8 md:mb-12 px-4">
           <div className="inline-flex items-center gap-3 px-3 py-1.5 rounded-sm bg-black border border-white/5 text-[8px] md:text-[9px] font-black uppercase tracking-[0.3em] text-studio-neon mb-4 md:mb-6 animate-pulse">
-            <Activity size={10} /> {activeSub ? `SUBSCRIPTION : ${currentPlanName.toUpperCase()}` : 'CHOOSE YOUR PLAN'}
+            <Activity size={10} /> CHOOSE YOUR PLAN
           </div>
           <h1 className="text-4xl md:text-8xl font-black tracking-tighter uppercase italic mb-4 leading-[0.8] mix-blend-difference">
             SIMPLE <span className="text-studio-neon">PRICING</span>
@@ -61,12 +55,12 @@ export default async function PricingPage() {
           </p>
         </div>
 
-        {/* 🛡️ INTERACTIVE PRICING HUB */}
+        {/* 🛡️ INTERACTIVE PRICING HUB — Client component handles auth internally */}
         <PricingClientView 
             plans={plans || []} 
             packs={packs || []} 
-            activeSub={activeSub} 
-            user={user} 
+            activeSub={null} 
+            user={null} 
         />
 
         <div className="mt-48 grid grid-cols-1 md:grid-cols-2 gap-12 border-t-8 border-black pt-24">
