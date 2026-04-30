@@ -1,9 +1,8 @@
 
 import { Metadata } from 'next'
 import { getAdminClient } from '@/lib/supabase/admin'
-import { getFilteredSamples } from '@/app/browse/actions'
 import Link from 'next/link'
-import { Gift, Zap, ArrowRight, Music, Download } from 'lucide-react'
+import { Gift, Zap, ArrowRight, Music } from 'lucide-react'
 import { SampleList } from '@/components/audio/SampleList'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
@@ -15,7 +14,7 @@ import { Suspense } from 'react'
 
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 
-export const metadata = generateMetadata(pagesMeta.free);
+export const metadata: Metadata = generateMetadata(pagesMeta.free);
 
 export default async function FreeSamplesPage({
     searchParams
@@ -40,24 +39,28 @@ export default async function FreeSamplesPage({
     .range(from, to)
 
   // 🧬 SIGNAL_INJECTION
-  const freeSamples = rawSamples?.map((s: any) => ({
+  const freeSamples = rawSamples?.map((s: { id: string, audio_url: string, name: string }) => ({
       ...s,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 
-  // 🛡️ AUTH_SIGNAL: Verify Subscription for Deep Browsing (Page > 1)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // 🛡️ AUTH_SIGNAL: Only check subscription for deep browsing (Page > 1)
+  // Page 1 is always public — skipping auth saves a Supabase call for 90%+ of visitors
   let isSubscribed = false
 
-  if (user) {
-    const { data: account } = await supabase
-        .from('user_accounts')
-        .select('subscription_status')
-        .eq('user_id', user.id)
-        .maybeSingle()
-    
-    isSubscribed = account?.subscription_status === 'ACTIVE'
+  if (pageVal > 1) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      const { data: account } = await supabase
+          .from('user_accounts')
+          .select('subscription_status')
+          .eq('user_id', user.id)
+          .maybeSingle()
+      
+      isSubscribed = account?.subscription_status === 'ACTIVE'
+    }
   }
 
   const isRestricted = pageVal > 1 && !isSubscribed;
@@ -76,7 +79,7 @@ export default async function FreeSamplesPage({
                   "url": "https://sampleswala.com/free",
                   "mainEntity": {
                       "@type": "ItemList",
-                      "itemListElement": (freeSamples || []).map((s: any, i: number) => ({
+                      "itemListElement": (freeSamples || []).map((s: { id: string, name: string }, i: number) => ({
                           "@type": "ListItem",
                           "position": i + 1,
                           "url": `https://sampleswala.com/samples/${s.id}`,

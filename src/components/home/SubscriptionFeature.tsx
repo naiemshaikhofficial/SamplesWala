@@ -1,26 +1,28 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { SubscribeButton } from '@/components/SubscribeButton'
+import { unstable_cache } from 'next/cache'
+
+// 🧬 CACHED_PLANS: Reused across all ISR renders (24h cache)
+const getCachedPlans = unstable_cache(
+  async () => {
+    const adminClient = getAdminClient()
+    const { data } = await adminClient
+      .from('subscription_plans')
+      .select('*')
+      .in('name', ['Professional', 'Producer'])
+      .order('price_inr', { ascending: true })
+    return data || []
+  },
+  ['home-subscription-plans'],
+  { revalidate: 86400 }
+)
 
 export async function SubscriptionFeature() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  // Fetch only the relevant plans for quick access
-  const { data: plans } = await supabase
-    .from('subscription_plans')
-    .select('*')
-    .in('name', ['Professional', 'Producer'])
-    .order('price_inr', { ascending: true })
-
-  const { data: activeSub } = user ? await supabase
-    .from('user_accounts')
-    .select('*, subscription_plans(*)')
-    .eq('user_id', user.id)
-    .single() : { data: null }
-
-  const hasActiveSub = !!activeSub?.plan_id
+  const plans = await getCachedPlans()
+  // Note: User subscription status is handled client-side via VaultProvider/AuthProvider
+  const hasActiveSub = false
 
   return (
     <section className="relative py-24 md:py-32 bg-black overflow-hidden border-y-4 border-white/5">
@@ -48,7 +50,7 @@ export async function SubscriptionFeature() {
             {/* Direct Plan Selection */}
             {!hasActiveSub ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {plans?.map((plan) => (
+                {plans?.map((plan: { id: string, name: string, credits_per_month: number, price_inr: number }) => (
                   <div key={plan.id} className="p-6 bg-studio-grey border border-white/10 flex flex-col gap-6 hover:border-white/20 transition-all rounded-2xl">
                     <div className="space-y-1">
                        <h4 className="text-xl font-black uppercase italic tracking-tighter text-white">{plan.name}</h4>

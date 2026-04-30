@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // ============================================================================
@@ -8,6 +8,33 @@ import { NextResponse, type NextRequest } from 'next/server'
 const rateLimitStore = new Map<string, { count: number; reset: number }>();
 
 const SENSITIVE_PATHS = ['/api/auth', '/api/payment', '/admin'];
+
+// 🧬 PRE-COMPUTED CSP: Built once at cold start, reused for every request
+let _cachedCSP: string | null = null;
+function getStaticCSP(): string {
+  if (_cachedCSP) return _cachedCSP;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const connectSrc = [
+    "'self'", supabaseUrl, "https://*.supabase.co", "wss://*.supabase.co",
+    "https://*.workers.dev", "https://drive.google.com",
+    "https://*.trustpilot.com", "https://*.razorpay.com",
+    "https://www.paypal.com", "https://*.paypal.com"
+  ].filter(Boolean).join(' ');
+  const scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' https://*.razorpay.com https://*.trustpilot.com https://widget.trustpilot.com https://www.paypal.com https://*.paypalobjects.com";
+  const frameSrc = "'self' https://*.razorpay.com https://*.trustpilot.com https://api-m.sandbox.paypal.com https://www.paypal.com https://*.paypal.com";
+  _cachedCSP = [
+    "default-src 'self'",
+    `script-src ${scriptSrc}`,
+    `connect-src ${connectSrc}`,
+    "img-src 'self' data: https: https://*.trustpilot.com https://*.razorpay.com https://*.paypalobjects.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "media-src 'self' blob: data: https://*.supabase.co https://*.workers.dev",
+    `frame-src ${frameSrc}`,
+    "frame-ancestors 'none'"
+  ].join('; ');
+  return _cachedCSP;
+}
 
 /** 
  * NEXT_SAMPLESWALA_V5 RELIANCE PROXY (NUCLEAR UPGRADE)
@@ -119,60 +146,15 @@ export async function proxy(request: NextRequest) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("Content-Security-Policy", "upgrade-insecure-requests;"); // Basic Policy, specific one below
+  // CSP set below via getStaticCSP()
 
   // API No-Index Protection
   if (pathname.startsWith("/api")) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
-  // Content Security Policy (Nuclear Optimized)
-  const connectSrc = [
-    "'self'", 
-    process.env.NEXT_PUBLIC_SUPABASE_URL, 
-    "https://*.supabase.co",
-    "wss://*.supabase.co", // Allow Supabase Realtime (WebSockets)
-    "https://*.workers.dev", 
-    "https://drive.google.com",
-    "https://*.trustpilot.com", // Trustpilot API & Analytics
-    "https://*.razorpay.com",    // Razorpay Metrics & API
-    "https://www.paypal.com",    // PayPal API
-    "https://*.paypal.com"
-  ].filter(Boolean);
-
-  const scriptSrc = [
-    "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
-    "https://*.razorpay.com",       // Razorpay Scripts (cdn, checkout)
-    "https://*.trustpilot.com",      // Trustpilot Scripts
-    "https://widget.trustpilot.com",
-    "https://www.paypal.com",       // PayPal Scripts
-    "https://*.paypalobjects.com"   // PayPal Static Assets
-  ];
-
-  const frameSrc = [
-    "'self'",
-    "https://*.razorpay.com",       // Razorpay Checkout Frame
-    "https://*.trustpilot.com",      // Trustpilot Widgets
-    "https://api-m.sandbox.paypal.com",
-    "https://www.paypal.com",
-    "https://*.paypal.com"          // PayPal Checkout Frames
-  ];
-
-  const csp = [
-    "default-src 'self'",
-    `script-src ${scriptSrc.join(' ')}`,
-    `connect-src ${connectSrc.join(' ')}`,
-    "img-src 'self' data: https: https://*.trustpilot.com https://*.razorpay.com https://*.paypalobjects.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "media-src 'self' blob: data: https://*.supabase.co https://*.workers.dev",
-    `frame-src ${frameSrc.join(' ')}`,
-    "frame-ancestors 'none'"
-  ].join('; ');
-
-  response.headers.set("Content-Security-Policy", csp);
+  // Content Security Policy (Pre-computed at cold start)
+  response.headers.set("Content-Security-Policy", getStaticCSP());
 
   return response;
 }
@@ -181,6 +163,6 @@ export default proxy;
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|wav|m4a|ogg|flac|PNG|JPG|JPEG|MP3|WAV|M4A)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|Logo\\.png|robots\\.txt|sitemap|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|wav|m4a|ogg|flac|ico|css|js|woff2?|ttf|json|xml|txt|webmanifest|PNG|JPG|JPEG|MP3|WAV|M4A)$).*)',
   ],
 }

@@ -1,23 +1,40 @@
+import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { getAdminClient } from '@/lib/supabase/admin'
 import { ShieldCheck, Activity, Settings2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import PricingClientView from './PricingClientView'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
+import { unstable_cache } from 'next/cache'
 
-export const metadata = generateMetadata(pagesMeta.pricing);
+export const metadata: Metadata = generateMetadata(pagesMeta.pricing);
+
+// 🧬 CACHED_PRICING: Public catalog data cached for 24h
+const getCachedPricingData = unstable_cache(
+  async () => {
+    const adminClient = getAdminClient()
+    const [{ data: plans }, { data: packs }] = await Promise.all([
+      adminClient.from('subscription_plans').select('*').order('price_inr', { ascending: true }),
+      adminClient.from('credit_packs').select('*').order('credits', { ascending: true })
+    ])
+    return { plans: plans || [], packs: packs || [] }
+  },
+  ['pricing-plans-packs'],
+  { revalidate: 86400 }
+)
 
 export default async function PricingPage() {
+  const { plans, packs } = await getCachedPricingData()
+  
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
-  // 📀 High-Fidelity Data Extraction with Fallbacks
-  const [{ data: activeSub }, { data: plans }, { data: packs }] = await Promise.all([
-    user ? supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle() : { data: null },
-    supabase.from('subscription_plans').select('*').order('price_inr', { ascending: true }),
-    supabase.from('credit_packs').select('*').order('credits', { ascending: true })
-  ])
+  // 📀 User-specific subscription check (only if logged in)
+  const { data: activeSub } = user 
+    ? await supabase.from('user_accounts').select('*, subscription_plans(*)').eq('user_id', user.id).maybeSingle() 
+    : { data: null }
 
   const currentPlanName = activeSub?.subscription_plans?.name || 'Free'
 

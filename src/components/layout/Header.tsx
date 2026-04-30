@@ -1,9 +1,8 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Music, User, Activity, Play, Pause, Square, Circle, Cpu, Layers, Disc, Settings as SettingsIcon, HelpCircle } from 'lucide-react'
+import { User, Activity, Play, Pause, Disc, Settings as SettingsIcon, HelpCircle } from 'lucide-react'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
 import { Suspense } from 'react'
@@ -17,10 +16,9 @@ export function Header() {
   const isAdmin = pathname?.includes('/admin')
   const { user } = useAuth()
   const { isOpen } = useSidebar()
+  const { isPlaying, activeId, activeMetadata, currentTime, pause } = useAudio()
   
   if (isAdmin) return null;
-  
-  const { isPlaying, activeId, activeMetadata, currentTime, play, pause } = useAudio()
 
   // Format time MM:SS:CC
   const formatTime = (time: number) => {
@@ -43,11 +41,11 @@ export function Header() {
               { label: 'Subscription', href: '/subscription' },
               { label: 'Library', href: '/library' },
               { label: 'Account', href: '/profile' }
-            ].map((item: any) => (
+            ].map((item) => (
                 <Link 
                   key={item.label} 
                   href={item.href} 
-                  prefetch={true}
+                  prefetch={false}
                   className="hover:text-studio-neon cursor-pointer transition-colors flex items-center gap-2 group relative" 
                   title={item.label}
                 >

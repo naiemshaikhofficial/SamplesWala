@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+
 import { getAdminClient } from '@/lib/supabase/admin'
 import Link from "next/link";
 import { 
@@ -17,8 +17,7 @@ import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
 import { Suspense } from 'react'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+
 
 export const revalidate = 86400; // ⚡ NUCLEAR_STABILITY: 24h cache (Admin can clear manually)
 
@@ -27,29 +26,7 @@ export const metadata = generateMetadata(pagesMeta.home);
 // 🧬 NUCLEAR_SEO: Home Page Identity Payloads
 // redundant organizationSchema and searchboxSchema removed as they are handled in layout.tsx
 
-export default async function Home(props: { 
-  searchParams: Promise<{ code?: string }> 
-}) {
-  const searchParams = await props.searchParams;
-  const code = searchParams.code;
-  
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (!error) {
-      const cookieStore = await cookies();
-      const isResetFlow = cookieStore.get('reset_flow')?.value === 'true';
-      
-      if (isResetFlow) {
-        redirect('/auth/reset-password');
-      } else {
-        redirect('/browse');
-      }
-    }
-    // If error, we'll just let the page load normally or we could redirect to login
-    // But direct exchange is much more robust than the double-redirect.
-  }
+export default async function Home() {
 
   // 🚀 CACHED_SIGNAL_ACQUISITION: Fetch from Edge Cache
   const { latestPacks, freshSounds, topSamples, software } = await getHomePageData()

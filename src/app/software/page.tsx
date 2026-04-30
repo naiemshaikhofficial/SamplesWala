@@ -1,23 +1,37 @@
+import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { Cpu, Sparkles, Zap, ShieldCheck, Download, ExternalLink, Activity, Layers, Disc, Music, ArrowRight } from 'lucide-react'
+import { getAdminClient } from '@/lib/supabase/admin'
+import { Cpu, Sparkles, ShieldCheck, Activity, Layers, Disc } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { SubscribeButton } from '@/components/SubscribeButton'
 import React from 'react'
 import { MasterLight, ScanlineOverlay } from '@/components/ui/MasterLight'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
+import { unstable_cache } from 'next/cache'
 
-export const metadata = generateMetadata(pagesMeta.software);
+export const metadata: Metadata = generateMetadata(pagesMeta.software);
+
+// 🧬 CACHED_PRODUCTS: Public catalog data cached for 24h
+const getCachedProducts = unstable_cache(
+  async () => {
+    const adminClient = getAdminClient()
+    const { data } = await adminClient
+      .from('software_products')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+    return data || []
+  },
+  ['software-products-catalog'],
+  { revalidate: 86400 }
+)
 
 export default async function SoftwareHub() {
+  const products = await getCachedProducts()
+  
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
-  // 🛰️ SIGNAL ACQUISITION: Fetch All Software Products
-  const { data: products } = await supabase
-    .from('software_products')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
 
   // 🔐 LICENSE VERIFICATION: Check what the user owns
   const { data: orders } = user 
@@ -51,7 +65,7 @@ export default async function SoftwareHub() {
         </div>
 
         {/* 📝 GLOBAL_SOFTWARE_SCHEMA (JSON-LD) */}
-        {products?.map((soft) => (
+        {products?.map((soft: { id: string, name: string, price_inr: number, video_url?: string, thumbnail_url?: string, cover_url?: string, created_at: string }) => (
             <script
                 key={`schema-${soft.id}`}
                 type="application/ld+json"
@@ -89,7 +103,7 @@ export default async function SoftwareHub() {
 
         {/* 🛠️ SOFTWARE LISTING GRID */}
         <div className="space-y-32">
-            {products?.map((soft) => {
+            {products?.map((soft: { id: string, name: string, description: string, current_version: string, price_inr: number, cover_url?: string, download_url_win?: string, download_url_mac?: string, slug: string }) => {
                 const isOwned = ownedSoftwares.has(soft.name)
                 
                 return (
@@ -100,7 +114,13 @@ export default async function SoftwareHub() {
                             {/* 1. VISUAL_RACK (Left Side) */}
                             <div className="relative aspect-video lg:aspect-auto bg-black border-r-4 border-black group-hover:brightness-110 transition-all overflow-hidden">
                                 {soft.cover_url ? (
-                                    <img src={soft.cover_url} alt={soft.name} className="w-full h-full object-cover opacity-80" />
+                                    <Image 
+                                        src={soft.cover_url} 
+                                        alt={soft.name} 
+                                        width={800}
+                                        height={450}
+                                        className="w-full h-full object-cover opacity-80" 
+                                    />
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-20 bg-studio-charcoal/50">
                                         <div className="relative">
