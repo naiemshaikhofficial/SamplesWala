@@ -33,7 +33,7 @@ export function AuthProvider({
       setIsLoading(false)
     }
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (!isMounted) return
 
       if (session) {
