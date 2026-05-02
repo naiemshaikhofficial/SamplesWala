@@ -18,6 +18,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.sampleswala.com',
+          },
+        ],
+        destination: 'https://sampleswala.com/:path*',
+        permanent: true,
+      },
+      {
         source: '/genres/:genre',
         destination: '/sounds/genres/:genre',
         permanent: true,
