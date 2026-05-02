@@ -14,7 +14,7 @@ import { useAuth } from '@/components/providers/AuthProvider'
 export function Header() {
   const pathname = usePathname()
   const isAdmin = pathname?.includes('/admin')
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
   const { isOpen } = useSidebar()
   const { isPlaying, activeId, activeMetadata, currentTime, pause } = useAudio()
   
