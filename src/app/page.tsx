@@ -14,6 +14,7 @@ import { getHomePageData } from '@/lib/home-actions';
 import { generateAudioSignal, getDriveFileId } from "@/lib/audio/signal";
 import { FAQSection } from "@/components/seo/FAQSection";
 import { SubscriptionFeature } from "@/components/home/SubscriptionFeature";
+import { ChoiceMatrix } from "@/components/home/ChoiceMatrix";
 import { Suspense } from 'react'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
@@ -132,6 +133,7 @@ export default async function Home() {
             </div>
         </section>
 
+
         {/* 📡 LIVE CHANNEL RACK: FRESH SOUNDS */}
         <section id="fresh-sounds" className="relative z-20 py-20 md:py-32 bg-black border-b-4 border-white/5">
             <div className="max-w-7xl mx-auto">
@@ -142,6 +144,9 @@ export default async function Home() {
                 </SectionErrorBoundary>
             </div>
         </section>
+
+        {/* 🕹️ CHOICE_MATRIX: THE POWER OF CHOICE */}
+        <ChoiceMatrix />
 
         {/* 💳 MEMBERSHIP_UPGRADE_SIGNAL */}
         <SubscriptionFeature />
