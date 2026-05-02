@@ -121,7 +121,11 @@ export function Header() {
                 <span className="text-[7px] font-black uppercase text-white/15 tracking-widest">Status Ready</span>
             </div>
 
-            {user ? (
+            {isLoading ? (
+                <div className="flex items-center gap-2 md:gap-4">
+                    <div className="h-8 w-16 md:h-11 md:w-20 bg-white/5 animate-pulse rounded-sm" />
+                </div>
+            ) : user ? (
                 <div className="flex items-center gap-2 md:gap-4">
                     {/* 🛡️ ADMIN_QUICK_ACCESS */}
                     {(user.email?.toLowerCase().includes('naiem') || 

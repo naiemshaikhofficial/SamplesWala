@@ -44,6 +44,9 @@ function LoginForm() {
     if (result?.error) {
         setError(result.error)
         setIsPending(false)
+    } else if (result?.success) {
+        // Force a hard reload so the browser fetches the new cookie and AuthProvider remounts
+        window.location.href = result.redirectTo || '/browse';
     }
   }
 
