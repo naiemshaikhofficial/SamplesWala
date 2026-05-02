@@ -49,14 +49,17 @@ export async function POST(req: Request) {
         }
 
         // 🛡️ DEDUPLICATION CHECK (Signal Integrity)
-        const { data: existing } = await supabase
-            .from('credit_orders')
-            .select('id')
-            .eq('payment_id', payment?.id)
-            .maybeSingle()
+        // If payment.id is missing (e.g. in subscription.cancelled events), skip dedup.
+        if (payment?.id) {
+            const { data: existing } = await supabase
+                .from('credit_orders')
+                .select('id')
+                .eq('payment_id', payment.id)
+                .maybeSingle()
 
-        if (existing) {
-            return NextResponse.json({ received: true, status: 'Duplicate signal ignored' })
+            if (existing) {
+                return NextResponse.json({ received: true, status: 'Duplicate signal ignored' })
+            }
         }
 
         switch (event.event) {
@@ -64,6 +67,9 @@ export async function POST(req: Request) {
             case 'payment.captured':
                 // 💿 ONE-TIME ORDER FULFILLMENT (Packs / First-time Sub)
                 if (type === 'pack') {
+                    if (!itemId) {
+                        return NextResponse.json({ received: true, skip: 'No pack_id in notes' })
+                    }
                     const { data: pack } = await supabase.from('credit_packs').select('*').eq('id', itemId).single()
                     if (pack) {
                         await supabase.rpc('add_credits', { u_id: userId, amount: pack.credits })
@@ -78,6 +84,9 @@ export async function POST(req: Request) {
                         })
                     }
                 } else if (type === 'subscription') {
+                    if (!itemId) {
+                        return NextResponse.json({ received: true, skip: 'No plan_id in notes' })
+                    }
                     const { data: plan } = await supabase.from('subscription_plans').select('*').eq('id', itemId).single()
                     if (plan) {
                         const interval = notes.interval || 'MONTHLY'
