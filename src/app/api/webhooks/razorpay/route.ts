@@ -1,7 +1,14 @@
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
+
+/**
+ * 📡 WEBHOOK_HEALTH_CHECK (GET)
+ * Prevents 405 errors and confirms route visibility.
+ */
+export async function GET() {
+    return new Response('RAZORPAY_WEBHOOK_ACTIVE: Send POST signals here.', { status: 200 })
+}
 
 /**
  * 🛰️ UNIVERSAL_COMMERCE_WEBHOOK (RAZORPAY)
@@ -13,6 +20,7 @@ export async function POST(req: Request) {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET
 
     if (!secret || !signature) {
+        console.error('[RAZORPAY_WEBHOOK] 🛑 AUTH_FAILURE: Missing secret or signature.')
         return NextResponse.json({ error: 'Auth Failure' }, { status: 400 })
     }
 
@@ -49,7 +57,6 @@ export async function POST(req: Request) {
         }
 
         // 🛡️ DEDUPLICATION CHECK (Signal Integrity)
-        // If payment.id is missing (e.g. in subscription.cancelled events), skip dedup.
         if (payment?.id) {
             const { data: existing } = await supabase
                 .from('credit_orders')
@@ -58,6 +65,7 @@ export async function POST(req: Request) {
                 .maybeSingle()
 
             if (existing) {
+                console.log(`[RAZORPAY_WEBHOOK] 🛡️ DUP_SKIPPED: ${payment.id}`)
                 return NextResponse.json({ received: true, status: 'Duplicate signal ignored' })
             }
         }
@@ -75,9 +83,9 @@ export async function POST(req: Request) {
                         await supabase.rpc('add_credits', { u_id: userId, amount: pack.credits })
                         await supabase.from('credit_orders').insert({
                             user_id: userId,
-                            order_id: payment.order_id,
-                            payment_id: payment.id,
-                            amount_inr: payment.amount / 100,
+                            order_id: payment?.order_id,
+                            payment_id: payment?.id,
+                            amount_inr: (payment?.amount || 0) / 100,
                             credits_awarded: pack.credits,
                             status: 'paid',
                             raw_response: event
@@ -114,9 +122,9 @@ export async function POST(req: Request) {
                         await supabase.rpc('add_credits', { u_id: userId, amount: creditsToAward })
                         await supabase.from('credit_orders').insert({
                             user_id: userId,
-                            order_id: payment.order_id || payment.subscription_id,
-                            payment_id: payment.id,
-                            amount_inr: payment.amount / 100,
+                            order_id: payment?.order_id || payment?.subscription_id || notes.subscription_id,
+                            payment_id: payment?.id,
+                            amount_inr: (payment?.amount || 0) / 100,
                             credits_awarded: creditsToAward,
                             status: 'paid',
                             raw_response: event
@@ -154,8 +162,8 @@ export async function POST(req: Request) {
                     await supabase.from('credit_orders').insert({
                         user_id: account.user_id,
                         order_id: subEntity.id,
-                        payment_id: payment.id,
-                        amount_inr: payment.amount / 100,
+                        payment_id: payment?.id || subEntity.id,
+                        amount_inr: (payment?.amount || subEntity.amount) / 100,
                         credits_awarded: creditsToAward,
                         status: 'paid',
                         raw_response: event
@@ -165,6 +173,8 @@ export async function POST(req: Request) {
                         next_billing: nextBillingDate.toISOString(),
                         updated_at: new Date().toISOString() 
                     }).eq('razorpay_subscription_id', subEntity.id)
+                } else {
+                    console.warn(`[RAZORPAY_WEBHOOK] ⚠️ CHARGE_SIGNAL_LOST: No local account for sub ${subEntity.id}`)
                 }
                 break;
 
@@ -172,25 +182,23 @@ export async function POST(req: Request) {
             case 'subscription.activated':
                 // 📡 MANDATE SYNC: Ensure the subscription link is persistent
                 const activeSub = event.payload.subscription.entity
-                const subNotes = activeSub.notes || {}
-                const isTrial = subNotes.is_trial === 'true'
+                const activeSubNotes = activeSub.notes || {}
+                const isTrial = activeSubNotes.is_trial === 'true'
                 
-                if (subNotes.user_id) {
-                    // 🛡️ EXTRACT_FINGERPRINT_FOR_FRAUD_SHIELD
-                    // Note: In some scenarios, we might need a separate GET request to fetch payment details if not in payload
+                if (activeSubNotes.user_id) {
                     const fingerprint = payment?.card_id || payment?.vpa || null;
 
                     await supabase.from('user_accounts').update({ 
                         razorpay_subscription_id: activeSub.id,
-                        plan_id: subNotes.plan_id,
+                        plan_id: activeSubNotes.plan_id,
                         subscription_status: 'ACTIVE', // 📡 Explicit Status Sync
-                        is_trial_used: isTrial ? true : undefined, // Mark trial consumption
-                        is_trial_active: isTrial, // 🔥 Trigger restricted access mode
-                        trial_downloads_count: isTrial ? 0 : undefined, // Reset counters for new trial
-                        payment_fingerprint: fingerprint, // 🛡️ Permanent Payment Link
-                        device_fingerprint: subNotes.device_fingerprint, // 🧬 Physical Device Link
+                        is_trial_used: isTrial ? true : undefined,
+                        is_trial_active: isTrial,
+                        trial_downloads_count: isTrial ? 0 : undefined,
+                        payment_fingerprint: fingerprint,
+                        device_fingerprint: activeSubNotes.device_fingerprint,
                         updated_at: new Date().toISOString()
-                    }).eq('user_id', subNotes.user_id)
+                    }).eq('user_id', activeSubNotes.user_id)
                 }
                 break;
 
@@ -208,10 +216,21 @@ export async function POST(req: Request) {
         revalidatePath('/', 'layout')
         revalidatePath('/profile')
         console.log(`[RAZORPAY_WEBHOOK] ✅ PROCESSED_EVENT: ${event.event}`)
+        
+        // 🛡️ ALWAYS RETURN 200 TO RAZORPAY AT THE END OF SUCCESSFUL FLOW
         return NextResponse.json({ received: true })
 
     } catch (err: any) {
+        // 🛑 LOG CRITICAL ERRORS BUT RETURN 200 IF POSSIBLE TO PREVENT DISABLE
+        // (Only return 500 if the error is retry-able and we want Razorpay to try again)
         console.error('[RAZORPAY_WEBHOOK] 🛑 CRITICAL_FAILURE:', err.message)
-        return NextResponse.json({ error: 'Internal Signal Error', details: err.message }, { status: 500 })
+        
+        // We return 200 here to stop Razorpay from disabling the webhook due to retries
+        // But we log the error for our own debugging.
+        return NextResponse.json({ 
+            received: true, 
+            status: 'Internal Signal Error', 
+            details: err.message 
+        }, { status: 200 })
     }
 }
