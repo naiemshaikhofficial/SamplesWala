@@ -19,7 +19,7 @@ export function CreditCounter() {
       // 📀 FETCH INTEGRATED STATE (Credits + Active Subscription from User Node)
       const { data: account, error } = await supabase
           .from('user_accounts')
-          .select('credits, subscription_plans(name)')
+          .select('credits, subscription_status, subscription_plans(name)')
           .eq('user_id', user.id)
           .maybeSingle()
 
@@ -27,10 +27,18 @@ export function CreditCounter() {
 
       const credits = account?.credits ?? 0
       const planName = (account?.subscription_plans as any)?.name || 'FREE'
+      const status = account?.subscription_status || 'INACTIVE'
+      
+      const isAdmin = user?.email?.toLowerCase().includes('sampleswala') || 
+                      user?.email?.toLowerCase().includes('naiem') || 
+                      user?.email?.toLowerCase() === 'naiemshaikh@gmail.com';
+
+      // 🛡️ Determine final display plan based on status and admin privilege
+      const finalPlan = (isAdmin || status !== 'INACTIVE') ? planName.toUpperCase() : 'FREE'
 
       setData({ 
           credits: credits, 
-          plan: planName.toUpperCase() 
+          plan: finalPlan
       });
       
     } catch (err) {

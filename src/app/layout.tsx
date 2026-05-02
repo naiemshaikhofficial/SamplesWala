@@ -15,6 +15,7 @@ import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 import JsonLdSchema from '@/components/seo/JsonLdSchema'
 import Script from 'next/script'
 import { getAllCategories } from './browse/actions'
+import { createClient } from '@/lib/supabase/server'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -40,6 +41,8 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const categories = await getAllCategories()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
@@ -121,7 +124,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
-        <ClientProviders>
+        <ClientProviders initialUser={user}>
           <MasterLight />
           <ScanlineOverlay />
           <SignalScan />

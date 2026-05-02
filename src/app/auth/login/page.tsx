@@ -4,7 +4,7 @@ import React, { useState, Suspense, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, Info, Eye, EyeOff } from 'lucide-react'
 import { login } from '../actions'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
   return (
@@ -19,6 +19,7 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const redirectPath = searchParams.get('redirect') || '/browse'
   
@@ -45,8 +46,9 @@ function LoginForm() {
         setError(result.error)
         setIsPending(false)
     } else if (result?.success) {
-        // Force a hard reload so the browser fetches the new cookie and AuthProvider remounts
-        window.location.href = result.redirectTo || '/browse';
+        // Use router for smoother transition, then refresh to pick up session in layout
+        router.push(result.redirectTo || '/browse');
+        router.refresh();
     }
   }
 

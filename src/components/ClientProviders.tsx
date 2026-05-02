@@ -9,10 +9,17 @@ import { CacheProvider } from '@/components/providers/CacheProvider'
 
 import { VaultProvider } from '@/components/VaultProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { User } from '@supabase/supabase-js'
 
-export function ClientProviders({ children }: { children: React.ReactNode }) {
+export function ClientProviders({ 
+  children,
+  initialUser = undefined
+}: { 
+  children: React.ReactNode,
+  initialUser?: User | null
+}) {
   return (
-    <AuthProvider>
+    <AuthProvider initialUser={initialUser}>
       <CacheProvider>
         <NotificationProvider>
           <CurrencyProvider>

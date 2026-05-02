@@ -29,12 +29,22 @@ export async function generateDownloadToken(sampleId: string) {
 
 import { grantDrivePermission } from '@/lib/drive/automation'
 
+import { getCachedUserSubscription } from '@/app/browse/actions'
+
 /** 💳 THE NEW HYPER-SPEED UNLOCK SYSTEM (V13 Atomic Protocol) **/
 export async function unlockSample(sampleId: string) {
     const supabase = await createClient()
     const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
+
+    // 🛡️ SUBSCRIPTION_GATE
+    const isAdmin = user.email?.toLowerCase().includes('sampleswala') || 
+                    user.email?.toLowerCase().includes('naiem') || 
+                    user.email?.toLowerCase() === 'naiemshaikh@gmail.com';
+                    
+    const isSubscribed = isAdmin || await getCachedUserSubscription(user.id)
+    if (!isSubscribed) throw new Error('Active Studio Subscription Required To Unlock Sounds')
 
     // 1. Get Sample Details (Still needed for the name/cost for the vault entry)
     const { data: sample } = await adminClient.from('samples').select('name, credit_cost').eq('id', sampleId).single()
@@ -96,6 +106,14 @@ export async function unlockFullPack(packId: string) {
     const adminClient = getAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
+
+    // 🛡️ SUBSCRIPTION_GATE
+    const isAdmin = user.email?.toLowerCase().includes('sampleswala') || 
+                    user.email?.toLowerCase().includes('naiem') || 
+                    user.email?.toLowerCase() === 'naiemshaikh@gmail.com';
+                    
+    const isSubscribed = isAdmin || await getCachedUserSubscription(user.id)
+    if (!isSubscribed) throw new Error('Active Studio Subscription Required To Unlock Sounds')
 
     const { data: pack } = await adminClient.from('sample_packs').select('name, bundle_credit_cost, slug').eq('id', packId).single()
     if (!pack) throw new Error('Pack not found')

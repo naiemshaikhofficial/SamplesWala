@@ -119,17 +119,21 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   }, [supabase, globalMutate, getCacheKey, user])
 
   // 🧬 SWR_VAULT_FETCH: Use an array key including userId for stability and separation
-  const { data: vaultData, isLoading } = useSWR(sessionUser ? ['user_vault', sessionUser] : null, async ([_, userId]) => {
+  const { data: vaultData, isLoading } = useSWR(sessionUser ? ['user_vault', sessionUser, user?.email] : null, async ([_, userId, email]) => {
     // 🛡️ BATCH_LOGIC: Fetching both vault items and account status in parallel
     const [vaultRes, accountRes] = await Promise.all([
         supabase.from('user_vault').select('item_id').eq('user_id', userId),
-        supabase.from('user_accounts').select('plan_id, subscription_status, subscription_plans(name)').eq('user_id', userId).single()
+        supabase.from('user_accounts').select('plan_id, subscription_status, subscription_plans(name)').eq('user_id', userId).maybeSingle()
     ]);
 
     if (vaultRes.error) throw vaultRes.error;
 
-    // 🛡️ A user is considered subscribed if they have a plan AND status is not 'INACTIVE'
-    const isSubscribed = accountRes.data?.plan_id ? (accountRes.data.subscription_status !== 'INACTIVE') : false;
+    // 🛡️ ADMIN_BYPASS + SUBSCRIPTION_VERIFICATION
+    const isAdmin = email?.toLowerCase().includes('sampleswala') || 
+                    email?.toLowerCase().includes('naiem') || 
+                    email?.toLowerCase() === 'naiemshaikh@gmail.com';
+
+    const isSubscribed = isAdmin || (accountRes.data?.plan_id ? (accountRes.data.subscription_status !== 'INACTIVE') : false);
 
     const ids = new Set<string>()
     if (vaultRes.data) {
@@ -139,7 +143,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     return { 
         ids, 
         isSubscribed, 
-        subscriptionPlan: (accountRes.data?.subscription_plans as any)?.name || null 
+        subscriptionPlan: (accountRes.data?.subscription_plans as any)?.name || (isAdmin ? 'ADMIN' : null)
     }
   }, {
     revalidateOnFocus: false, // 🛑 Disable re-fetch on window focus to save DB requests

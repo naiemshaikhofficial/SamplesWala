@@ -14,48 +14,63 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true
 })
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function AuthProvider({ 
+  children,
+  initialUser = undefined
+}: { 
+  children: React.ReactNode,
+  initialUser?: User | null
+}) {
+  const [user, setUser] = useState<User | null>(initialUser ?? null)
+  const [isLoading, setIsLoading] = useState(initialUser === undefined)
   const supabase = createClient()
 
   useEffect(() => {
     let isMounted = true
 
-    const initAuth = async () => {
-      try {
-        // 🛡️ Verified user check (Secure but optimized to run once)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (isMounted) {
-          setUser(user)
-          setIsLoading(false)
-        }
-      } catch (err) {
-        console.error('[AUTH_INIT_ERROR]', err)
-        if (isMounted) setIsLoading(false)
-      }
+    // If we have an initial user, we've already done the work on the server
+    if (initialUser) {
+      setIsLoading(false)
     }
 
-    initAuth()
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return
 
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
-      } else if (event === 'SIGNED_OUT') {
+      if (session) {
+        setUser(session.user)
+      } else {
         setUser(null)
+      }
+
+      if (event === 'SIGNED_OUT') {
         window.location.reload()
       }
+      
       setIsLoading(false)
     })
+
+    // Fallback/Verification check if initialUser wasn't provided or to ensure sync
+    if (!initialUser) {
+      const initAuth = async () => {
+        try {
+          const { data: { user: verifiedUser } } = await supabase.auth.getUser()
+          if (isMounted) {
+            setUser(verifiedUser)
+            setIsLoading(false)
+          }
+        } catch (err) {
+          console.error('[AUTH_INIT_ERROR]', err)
+          if (isMounted) setIsLoading(false)
+        }
+      }
+      initAuth()
+    }
 
     return () => {
       isMounted = false
       authListener.subscription.unsubscribe()
     }
-  }, [supabase])
+  }, [supabase, initialUser])
 
   return (
     <AuthContext.Provider value={{ user, isLoading }}>

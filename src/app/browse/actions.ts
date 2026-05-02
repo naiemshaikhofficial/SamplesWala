@@ -234,6 +234,14 @@ export async function unlockSampleBatch(sampleIds: string[]) {
   if (sError || !samples) return { success: false, error: 'Could not fetch sample metadata' }
   const totalCost = samples.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0)
 
+  // 🛡️ SUBSCRIPTION_GATE
+  const isAdmin = user.email?.toLowerCase().includes('sampleswala@gmail.com') || 
+                  user.email?.toLowerCase().includes('naiem') || 
+                  user.email?.toLowerCase() === 'naiemshaikhofficial@gmail.com';
+                  
+  const isSubscribed = isAdmin || await getCachedUserSubscription(user.id)
+  if (!isSubscribed) return { success: false, error: 'Active Studio Subscription Required To Unlock Sounds' }
+
   // 2. Fetch User Account State
   const { data: account } = await adminClient
       .from('user_accounts')
@@ -293,16 +301,17 @@ const getUnifiedBrowseData = unstable_cache(
 )
 
 // 🛡️ USER_STATUS_CACHE: Cache subscription/vault status for 1 hour
-// revalidateTag('user-' + userId) should be called on purchase
-const getCachedUserSubscription = unstable_cache(
+export const getCachedUserSubscription = unstable_cache(
     async (userId: string) => {
         const adminClient = getAdminClient()
         const { data: account } = await adminClient
             .from('user_accounts')
-            .select('subscription_status')
+            .select('subscription_status, plan_id')
             .eq('user_id', userId)
             .maybeSingle()
-        return account?.subscription_status === 'ACTIVE'
+        
+        // A user is subscribed if they have a plan AND it's not explicitly INACTIVE
+        return !!(account?.plan_id && account.subscription_status !== 'INACTIVE')
     },
     ['user-subscription-status'],
     { revalidate: 3600 }
@@ -344,13 +353,22 @@ export async function getBrowseData(filters: {
     
     let isSubscribed = false
     if (user) {
-        // 🛡️ Use cached user status to avoid repeated DB hits
-        isSubscribed = await getCachedUserSubscription(user.id)
+        // 🛡️ ADMIN_BYPASS PROTOCOL
+        const isAdmin = user.email?.toLowerCase().includes('sampleswala') || 
+                        user.email?.toLowerCase().includes('naiem') || 
+                        user.email?.toLowerCase() === 'naiemshaikh@gmail.com';
 
-        // 🧪 PACK_OWNERSHIP_BYPASS: If not subscribed, check if user owns the specific pack (Cached)
-        if (!isSubscribed && filters.packId) {
-            const hasPack = await getCachedPackOwnership(user.id, filters.packId)
-            if (hasPack) isSubscribed = true
+        if (isAdmin) {
+            isSubscribed = true
+        } else {
+            // 🛡️ Use cached user status to avoid repeated DB hits
+            isSubscribed = await getCachedUserSubscription(user.id)
+
+            // 🧪 PACK_OWNERSHIP_BYPASS: If not subscribed, check if user owns the specific pack (Cached)
+            if (!isSubscribed && filters.packId) {
+                const hasPack = await getCachedPackOwnership(user.id, filters.packId)
+                if (hasPack) isSubscribed = true
+            }
         }
     }
 
