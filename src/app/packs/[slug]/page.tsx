@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database, Video } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database, Video, Music2, Volume2 } from 'lucide-react'
 import Link from 'next/link'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
@@ -14,7 +14,7 @@ import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
 import { PackActionCenter } from '@/components/audio/PackActionCenter'
-import { ExpandableDescription } from '@/components/audio/ExpandableDescription'
+import { CompactHeroDescription } from '@/components/audio/CompactHeroDescription'
 import { getRelatedPacks, getFilteredSamples, getBrowseData } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
@@ -72,10 +72,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // 🚀 SEO_REFINEMENT: Punchy, Keyword-Rich Titles
   const title = `${pack.name} | ${displayGenre} Sample Pack & Drum Kit | Samples Wala`
   
-  // Use actual pack description if available, otherwise fallback
+  // 🚀 NUCLEAR_SEO: Punchy, Keyword-Rich Description for Google
+  const totalSounds = melodies + loops + oneShots
   const seoDescription = pack.description 
-    ? (pack.description.length > 160 ? `${pack.description.substring(0, 157)}...` : pack.description)
-    : `Download ${pack.name} by Samples Wala. Professional ${displayGenre} Sample Pack featuring authentic Bollywood loops, Indian percussion, and melodic phrases. 100% Royalty-Free 24-bit WAV files.`
+    ? `${pack.name} by Samples Wala: Professional ${displayGenre} Sample Pack featuring ${totalSounds} high-quality sounds. ${pack.description.substring(0, 120)}... 100% Royalty-Free 24-bit WAV.`
+    : `Download ${pack.name} Drum Kit & Sample Pack. Features ${totalSounds} authentic ${displayGenre} sounds, including Bollywood loops, Indian percussion, and melodic phrases. High-quality 24-bit WAV, 100% Royalty-Free for commercial use.`
   
   const keywords = [
     pack.name, 
@@ -240,73 +241,89 @@ export default async function PackPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       
-      <Breadcrumbs 
-        items={[
-          { label: 'BROWSE', href: '/browse' },
-          { label: enrichedPack.categories?.name || 'PACKS', href: `/browse?category=${enrichedPack.categories?.id}` },
-          { label: enrichedPack.name, href: `/packs/${slug}`, active: true }
-        ]} 
-      />
-
-      <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon mb-8 md:mb-12 group transition-all">
-        <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
-        Back to Store
-      </Link>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <Breadcrumbs 
+            items={[
+            { label: 'BROWSE', href: '/browse' },
+            { label: enrichedPack.categories?.name || 'PACKS', href: `/browse?category=${enrichedPack.categories?.id}` },
+            { label: enrichedPack.name, href: `/packs/${slug}`, active: true }
+            ]} 
+        />
+        <Link href="/browse" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-studio-neon group transition-all">
+            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-2" />
+            Back to Store
+        </Link>
+      </div>
       
-      {/* 🎹 DAW_STYLE_DETAIL_RACK */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
+      {/* 🚀 PREMIUM_HERO_HEADER */}
+      <div className="relative mb-16 p-8 lg:p-12 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 rounded-2xl overflow-hidden">
+        {/* Ambient Glow */}
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-studio-neon/10 blur-[120px] rounded-full" />
         
-        {/* ⬅️ SIDEBAR: PRODUCT_METADATA */}
-        <div className="lg:col-span-4 space-y-6 sticky top-24">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
-            {/* 1. MAIN_CONTROL_MODULE */}
-            <div className="studio-panel bg-[#0a0a0a] border-2 border-white/10 shadow-2xl overflow-hidden group">
-                {/* Module Header */}
-                <div className="absolute top-0 inset-x-0 bg-studio-grey px-3 py-2 flex items-center justify-between border-b border-white/10 z-20">
-                    <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${enrichedPack.is_featured ? 'bg-studio-neon' : 'bg-white/20'} animate-pulse`} />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-white/50">PACK HUB</span>
-                    </div>
-                    {enrichedPack.is_featured && <span className="text-[9px] font-black text-studio-neon uppercase tracking-tighter">Featured Collection</span>}
-                </div>
-
-                {/* Poster / Cover */}
-                <div className="aspect-square relative mt-8 grayscale hover:grayscale-0 transition-all duration-700 cursor-zoom-in">
+            {/* 1. COVER_IMAGE (3-Cols) */}
+            <div className="lg:col-span-3">
+                <div className="aspect-square relative rounded-xl overflow-hidden shadow-2xl border border-white/10 group bg-studio-grey">
                     {pack.cover_url ? (
                         <Image 
                             src={pack.cover_url} 
                             alt={pack.name} 
                             fill 
                             priority
-                            sizes="(max-width: 1024px) 100vw, 33vw"
-                            className="object-cover" 
+                            sizes="(max-width: 1024px) 100vw, 300px"
+                            className="object-cover group-hover:scale-105 transition-transform duration-1000" 
                         />
                     ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-studio-grey">
-                            <Monitor className="h-16 w-16 text-white/5" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Monitor className="h-20 w-20 text-white/5" />
                         </div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
+            </div>
 
-                {/* 🛒 IMMEDIATE_ACTION_ZONE */}
-                <div className="p-6 space-y-6 bg-black/40 border-t border-white/10">
-                    <div className="space-y-1">
-                        <div className="flex items-start justify-between">
-                            <h1 className="text-3xl font-black uppercase tracking-tighter text-white leading-none">
-                                {enrichedPack.name}
-                            </h1>
-                            {enrichedPack.price_usd && (
-                                <span className="text-[10px] font-black text-white/20">
-                                    ${enrichedPack.price_usd} USD
-                                </span>
-                            )}
-                        </div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-studio-yellow">
-                            {enrichedPack.categories?.name || 'Professional'} Sample Pack
-                        </p>
+            {/* 2. PRODUCT_CONTENT (9-Cols) */}
+            <div className="lg:col-span-9 flex flex-col h-full">
+                {/* Header Info */}
+                <div className="space-y-4 mb-8">
+                    <div className="flex items-center gap-3">
+                        <span className="px-2 py-0.5 bg-studio-neon/10 text-studio-neon text-[9px] font-black uppercase tracking-[0.2em] rounded">
+                            {enrichedPack.categories?.name || 'Exclusive'}
+                        </span>
+                        <div className="h-[1px] w-8 bg-white/10" />
+                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
+                            {melodies + loops + oneShots} Sounds
+                        </span>
                     </div>
 
-                    <div className="py-2">
+                    <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white leading-tight max-w-4xl">
+                        {enrichedPack.name}
+                    </h1>
+
+                    <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-white/5 mt-6">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                            <Layers size={14} className="text-studio-neon" />
+                            <span>{melodies} Melodies</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                            <Zap size={14} className="text-studio-yellow" />
+                            <span>{loops} Loops</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                            <Music2 size={14} className="text-studio-neon" />
+                            <span>{oneShots} One-shots</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                            <Disc size={14} className="text-white/20" />
+                            <span>24-Bit Wav</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-auto space-y-8">
+                    <div className="flex flex-wrap items-center gap-4">
                         <PackActionCenter 
                             packId={enrichedPack.id} 
                             bundleCost={enrichedPack.bundle_credit_cost || 50} 
@@ -315,131 +332,75 @@ export default async function PackPage({
                         />
                     </div>
 
-                    {/* Compact Stats Grid */}
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-                        <div className="flex flex-col">
-                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">FILES</span>
-                            <span className="text-[10px] font-black text-studio-neon">{melodies + loops + oneShots} WAVS</span>
-                        </div>
-                        <div className="flex flex-col text-right border-l border-white/5 pl-4">
-                            <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">CREDITS</span>
-                            <span className="text-[10px] font-black text-white/60">{enrichedPack.bundle_credit_cost || 50} PTS</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* 2. DESCRIPTION_MODULE (Desktop Only) */}
-            <div className="hidden lg:block">
-                <ExpandableDescription 
-                    description={enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
-                    summary={enrichedPack.total_contents_summary}
-                />
-            </div>
-
-            {/* 3. ARTIFACT_BREAKDOWN */}
-            <div className="p-4 bg-white/2 border border-white/5 space-y-3">
-                <span className="text-[8px] font-black uppercase tracking-widest text-white/20 block mb-2">SOUND CONTENTS</span>
-                {melodies > 0 && <div className="flex items-center justify-between text-[10px] font-black text-studio-neon"><span>MELODIES</span><span className="text-white/40">[{melodies}]</span></div>}
-                {loops > 0 && <div className="flex items-center justify-between text-[10px] font-black text-white/80"><span>LOOPS</span><span className="text-white/40">[{loops}]</span></div>}
-                {oneShots > 0 && <div className="flex items-center justify-between text-[10px] font-black text-white/60"><span>ONE SHOTS</span><span className="text-white/40">[{oneShots}]</span></div>}
-                {presets > 0 && <div className="flex items-center justify-between text-[10px] font-black text-studio-yellow"><span>PRESETS</span><span className="text-white/40">[{presets}]</span></div>}
-            </div>
-
-            {/* 🎥 YOUTUBE_DEMO_EMBED */}
-            {videoId && (
-                <div className="mt-8 space-y-4">
-                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-studio-neon">
-                        <Video size={14} /> VIDEO PREVIEW
-                    </div>
-                    <div className="relative aspect-video w-full border-2 border-white/5 bg-black overflow-hidden group">
-                        <iframe 
-                            width="100%" 
-                            height="100%" 
-                            src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
-                            title="YouTube video player" 
-                            frameBorder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowFullScreen
-                            className="grayscale-[0.5] group-hover:grayscale-0 transition-all duration-700"
-                        />
-                        <div className="absolute inset-0 pointer-events-none border border-white/10" />
-                    </div>
-                </div>
-            )}
-        </div>
-
-        {/* ➡️ MAINBOARD: PREVIEW_ENGINE */}
-        <div className="lg:col-span-8 space-y-8">
-            <div className="hidden lg:flex items-center justify-between border-b-2 border-white/5 pb-4">
-                <div className="flex items-center gap-4">
-                    <Layers className="h-5 w-5 text-studio-neon" />
-                    <h2 className="text-xl font-black uppercase italic tracking-tighter text-white/60">
-                         {pack.name} Collection
-                    </h2>
-                </div>
-                <div className="flex gap-1 h-4">
-                    {[...Array(8)].map((_, i) => (
-                        <div key={i} className="w-1 bg-studio-neon/20 animate-peak" style={{ animationDelay: `${i*0.15}s` }} />
-                    ))}
-                </div>
-            </div>
-
-            <div className="relative min-h-[400px]">
-                {isRestricted && (
-                    <div className="absolute inset-0 z-[100] flex items-start justify-center p-4 md:p-12 md:pt-24 bg-black/40 backdrop-blur-sm">
-                        <PremiumPaywall totalSamples={count} />
-                    </div>
-                )}
-                
-                <div className={isRestricted ? "blur-xl grayscale pointer-events-none select-none opacity-50 transition-all duration-1000" : ""}>
-                    <Suspense fallback={<div className="h-screen w-full bg-black/20 animate-pulse" />}>
-                        <SampleList 
-                            samples={samples || []} 
-                            packName={pack.name} 
-                            coverUrl={pack.cover_url} 
-                            packId={pack.id} 
-                            totalCount={count || 0}
-                            loopsCount={loops + melodies}
-                            oneShotsCount={oneShots}
-                            presetsCount={presets}
-                            isSubscribed={isSubscribed}
-                        />
-                    </Suspense>
-
-                    {/* 🎯 SPLICE_STYLE_INLINE_WALL: Show at bottom of Page 1 if more results exist */}
-                    {!isSubscribed && pageVal === 1 && (count ?? 0) > pageSize && (
-                        <div className="mt-12 py-12 border-t border-white/5 flex flex-col items-center">
-                            <PremiumPaywall totalSamples={(count ?? 0) - pageSize} />
-                        </div>
-                    )}
-                    
-                    {samples && samples.length > 0 && (isSubscribed || pageVal > 1) && (
-                        <div className="mt-12">
-                            <Pagination 
-                                currentPage={pageVal} 
-                                totalCount={count ?? 0} 
-                                pageSize={pageSize} 
-                                baseUrl={`/packs/${slug}`}
-                                searchParams={sParams}
-                            />
-                        </div>
-                    )}
-
-                    {/* 📝 DESCRIPTION_MODULE (Mobile Only: Below Samples) */}
-                    <div className="mt-12 lg:hidden">
-                        <ExpandableDescription 
-                            description={enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
-                            summary={enrichedPack.total_contents_summary}
-                        />
+                    {/* Compact Description */}
+                    <div className="max-w-3xl">
+                        <CompactHeroDescription description={enrichedPack.description || ""} />
                     </div>
                 </div>
             </div>
         </div>
       </div>
 
-      {/* 🧬 COLLATERAL MODULES */}
-      <div className="border-t-4 border-black pt-24">
+      {/* ➡️ SOUNDS_LIST_SECTION */}
+      <div className="mb-24">
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+              <div className="flex items-center gap-4">
+                  <div className="h-8 w-1 bg-studio-neon" />
+                  <h2 className="text-xl font-black uppercase tracking-tighter text-white flex items-center gap-3">
+                    <Volume2 className="h-5 w-5 text-studio-neon" /> Sounds In Pack
+                  </h2>
+              </div>
+              <div className="hidden md:flex items-center gap-4 text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                  Total {count} Samples Available
+              </div>
+          </div>
+
+          <div className="relative min-h-[500px] studio-panel bg-studio-grey/10 border border-white/5 rounded-xl overflow-hidden p-1">
+              {isRestricted && (
+                  <div className="absolute inset-0 z-[100] flex items-start justify-center p-4 md:pt-16 bg-black/60 backdrop-blur-md">
+                      <PremiumPaywall totalSamples={count} />
+                  </div>
+              )}
+              
+              <div className={isRestricted ? "blur-2xl grayscale pointer-events-none select-none opacity-40 transition-all duration-1000" : ""}>
+                  <Suspense fallback={<div className="h-screen w-full bg-studio-grey/20 animate-pulse" />}>
+                      <SampleList 
+                          samples={samples || []} 
+                          packName={pack.name} 
+                          coverUrl={pack.cover_url} 
+                          packId={pack.id} 
+                          totalCount={count || 0}
+                          loopsCount={loops + melodies}
+                          oneShotsCount={oneShots}
+                          presetsCount={presets}
+                          isSubscribed={isSubscribed}
+                      />
+                  </Suspense>
+
+                  {/* 🎯 PAGE_1_INLINE_WALL */}
+                  {!isSubscribed && pageVal === 1 && (count ?? 0) > pageSize && (
+                      <div className="mt-16 py-16 border-t border-white/5 flex flex-col items-center bg-gradient-to-t from-black/40 to-transparent">
+                          <PremiumPaywall totalSamples={(count ?? 0) - pageSize} />
+                      </div>
+                  )}
+
+                  {samples && samples.length > 0 && (isSubscribed || pageVal > 1 || (count ?? 0) > pageSize) && (
+                      <div className="p-8 border-t border-white/5">
+                          <Pagination 
+                              currentPage={pageVal} 
+                              totalCount={count ?? 0} 
+                              pageSize={pageSize} 
+                              baseUrl={`/packs/${slug}`}
+                              searchParams={sParams}
+                          />
+                      </div>
+                  )}
+              </div>
+          </div>
+      </div>
+
+      {/* 🧬 RELATED_PACKS_SECTION */}
+      <div className="mt-24 border-t border-white/5 pt-24 mb-24">
         <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-16 flex items-center gap-6 text-white/20">
            <Disc className="h-10 w-10 animate-reverse-spin" /> 
            More Related Packs
