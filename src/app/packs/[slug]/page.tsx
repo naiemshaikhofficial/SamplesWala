@@ -57,7 +57,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!pack || error) return { title: 'Pack Not Found | Samples Wala' }
 
-  // Extract metadata samples for keywords
+  const melodies = pack.samples?.filter((s: any) => s.type === 'melody' || s.type === 'loop').length || 0
+  const loops = pack.samples?.filter((s: any) => s.type === 'drum_loop' || s.type === 'percussion_loop').length || 0
+  const oneShots = pack.samples?.filter((s: any) => s.type === 'one_shot' || s.type === 'drum_one_shot').length || 0
   const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
   const keyList = pack.samples?.map((s: any) => s.key).filter(Boolean)
   const genre = pack.categories?.name || 'Music'
