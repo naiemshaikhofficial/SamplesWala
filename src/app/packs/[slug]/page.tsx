@@ -29,7 +29,7 @@ const getCachedPack = cache(async (slug: string) => {
   const adminClient = getAdminClient()
   const { data, error } = await adminClient
     .from('sample_packs')
-    .select('*, categories(name), samples(bpm, key)')
+    .select('*, categories(name), samples(bpm, key, type)')
     .eq('slug', slug)
     .single()
   return { data, error }
@@ -295,7 +295,7 @@ export default async function PackPage({
                         </span>
                         <div className="h-[1px] w-8 bg-white/10" />
                         <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
-                            {melodies + loops + oneShots} Sounds
+                            {count} Sounds Available
                         </span>
                     </div>
 
@@ -304,18 +304,24 @@ export default async function PackPage({
                     </h1>
 
                     <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-white/5 mt-6">
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                            <Layers size={14} className="text-studio-neon" />
-                            <span>{melodies} Melodies</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                            <Zap size={14} className="text-studio-yellow" />
-                            <span>{loops} Loops</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
-                            <Music2 size={14} className="text-studio-neon" />
-                            <span>{oneShots} One-shots</span>
-                        </div>
+                        {melodies > 0 && (
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                <Layers size={14} className="text-studio-neon" />
+                                <span>{melodies} Melodies</span>
+                            </div>
+                        )}
+                        {loops > 0 && (
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                <Zap size={14} className="text-studio-yellow" />
+                                <span>{loops} Loops</span>
+                            </div>
+                        )}
+                        {oneShots > 0 && (
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                <Music2 size={14} className="text-studio-neon" />
+                                <span>{oneShots} One-shots</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest">
                             <Disc size={14} className="text-white/20" />
                             <span>24-Bit Wav</span>
