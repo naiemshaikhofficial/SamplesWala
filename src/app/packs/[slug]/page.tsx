@@ -176,7 +176,12 @@ export default async function PackPage({
   const videoId = getYouTubeId(enrichedPack.video_url);
 
   const samples = rawSamples.map((s: any) => ({
-      ...s,
+      id: s.id,
+      name: s.name,
+      type: s.type,
+      bpm: s.bpm,
+      key: s.key,
+      audio_url: s.audio_url,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 

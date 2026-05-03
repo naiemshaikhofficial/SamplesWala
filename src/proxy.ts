@@ -9,6 +9,14 @@ const rateLimitStore = new Map<string, { count: number; reset: number }>();
 
 const SENSITIVE_PATHS = ['/api/auth', '/api/payment', '/admin'];
 
+// 🛡️ BATTLE_HARDENED_BOT_BLOCKER: Block known bandwidth-heavy crawlers
+const BLOCKED_BOTS = [
+  'ahrefsbot', 'semrushbot', 'dotbot', 'rogerbot', 'exabot', 'mj12bot', 
+  'backlinkchecker', 'megaindex', 'grapeshot', 'seznam', 'mail.ru', 
+  'yandexbot', 'baiduspider', 'petalbot', 'sogou'
+];
+
+
 // 🧬 PRE-COMPUTED CSP: Built once at cold start, reused for every request
 let _cachedCSP: string | null = null;
 function getStaticCSP(): string {
@@ -96,6 +104,12 @@ export async function proxy(request: NextRequest) {
     return new NextResponse("Automated access restricted.", { status: 403 });
   }
 
+  // 🛡️ AGGRESSIVE_BOT_SHIELD: Kill known aggressive crawlers everywhere
+  if (BLOCKED_BOTS.some(bot => ua.toLowerCase().includes(bot))) {
+    return new NextResponse('Crawler Blocked', { status: 403 });
+  }
+
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -159,7 +173,13 @@ export async function proxy(request: NextRequest) {
   // Content Security Policy (Pre-computed at cold start)
   response.headers.set("Content-Security-Policy", getStaticCSP());
 
+  // 🧬 EDGE_CACHE_HINTS: Optimize media delivery
+  if (pathname.startsWith('/api/audio')) {
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+  }
+
   return response;
+
 }
 
 export default proxy;

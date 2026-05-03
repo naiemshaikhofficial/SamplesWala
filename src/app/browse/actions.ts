@@ -273,8 +273,8 @@ export async function unlockSampleBatch(sampleIds: string[]) {
       .update({ credits: account.credits - totalCost })
       .eq('user_id', user.id)
 
-  // 🧬 CACHE_INVALIDATION: Clear user status cache so the UI updates immediately
-  revalidateTag('browse', 'default')
+  // 🧬 CACHE_INVALIDATION: Removed global revalidation to prevent Vercel bandwidth spikes.
+  // Instead of revalidating everything, we rely on client-side state updates.
   
   return { 
       success: true, 
@@ -313,7 +313,7 @@ export const getCachedUserSubscription = unstable_cache(
         return !!(account?.plan_id && account.subscription_status !== 'INACTIVE')
     },
     ['user-subscription-status'],
-    { revalidate: 3600 }
+    { revalidate: 3600, tags: ['user-subscription-status'] }
 )
 
 const getCachedPackOwnership = unstable_cache(
@@ -329,7 +329,7 @@ const getCachedPackOwnership = unstable_cache(
         return !!vaultPack
     },
     ['user-pack-ownership'],
-    { revalidate: 3600 }
+    { revalidate: 3600, tags: ['user-pack-ownership'] }
 )
 
 export async function getBrowseData(filters: {
@@ -424,9 +424,20 @@ export async function getBrowseData(filters: {
         data = liveData
     }
 
+    // 🧬 LIGHTWEIGHT_MAPPING: Filter out heavy context data before sending to client
+    const sanitizedPacks = (data.context_packs || []).map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        cover_url: p.cover_url,
+        price_inr: p.price_inr,
+        price_usd: p.price_usd
+    }));
+
     return {
         ...data,
-        packs: data.context_packs,
+        packs: sanitizedPacks,
+        context_packs: undefined, // Kill the original heavy copy
         isSubscribed,
         isRestricted: !isSubscribed && isPremiumAttempt
     }
