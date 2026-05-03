@@ -18,10 +18,11 @@ function getStaticCSP(): string {
     "'self'", supabaseUrl, "https://*.supabase.co", "wss://*.supabase.co",
     "https://*.workers.dev", "https://drive.google.com",
     "https://*.trustpilot.com", "https://*.razorpay.com",
-    "https://www.paypal.com", "https://*.paypal.com"
+    "https://www.paypal.com", "https://*.paypal.com",
+    "https://challenges.cloudflare.com"
   ].filter(Boolean).join(' ');
-  const scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' https://*.razorpay.com https://*.trustpilot.com https://widget.trustpilot.com https://www.paypal.com https://*.paypalobjects.com";
-  const frameSrc = "'self' https://*.razorpay.com https://*.trustpilot.com https://api-m.sandbox.paypal.com https://www.paypal.com https://*.paypal.com";
+  const scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' https://*.razorpay.com https://*.trustpilot.com https://widget.trustpilot.com https://www.paypal.com https://*.paypalobjects.com https://challenges.cloudflare.com";
+  const frameSrc = "'self' https://*.razorpay.com https://*.trustpilot.com https://api-m.sandbox.paypal.com https://www.paypal.com https://*.paypal.com https://challenges.cloudflare.com";
   _cachedCSP = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
