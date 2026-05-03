@@ -129,9 +129,8 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     if (vaultRes.error) throw vaultRes.error;
 
     // 🛡️ ADMIN_BYPASS + SUBSCRIPTION_VERIFICATION
-    const isAdmin = email?.toLowerCase().includes('sampleswala') || 
-                    email?.toLowerCase().includes('naiem') || 
-                    email?.toLowerCase() === 'naiemshaikh@gmail.com';
+    const { isUserAdmin } = await import('@/lib/utils/admin');
+    const isAdmin = isUserAdmin(user as any);
 
     const isSubscribed = isAdmin || (accountRes.data?.plan_id ? (accountRes.data.subscription_status !== 'INACTIVE') : false);
 

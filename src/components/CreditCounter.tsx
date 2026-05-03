@@ -29,9 +29,8 @@ export function CreditCounter() {
       const planName = (account?.subscription_plans as any)?.name || 'FREE'
       const status = account?.subscription_status || 'INACTIVE'
       
-      const isAdmin = user?.email?.toLowerCase().includes('sampleswala') || 
-                      user?.email?.toLowerCase().includes('naiem') || 
-                      user?.email?.toLowerCase() === 'naiemshaikh@gmail.com';
+      const { isUserAdmin } = await import('@/lib/utils/admin');
+      const isAdmin = isUserAdmin(user as any);
 
       // 🛡️ Determine final display plan based on status and admin privilege
       const finalPlan = (isAdmin || status !== 'INACTIVE') ? planName.toUpperCase() : 'FREE'

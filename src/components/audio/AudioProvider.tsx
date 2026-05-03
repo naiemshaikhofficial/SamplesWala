@@ -322,50 +322,61 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     if (metadata) setActiveMetadata(metadata);
 
     try {
-        const cachedBlob = await getCachedAudio(id);
-        let blob: Blob;
-
         const isAdminSignal = id.endsWith('_lq') || id.endsWith('_hq');
-
+        const cleanId = id.replace('_lq', '').replace('_hq', '');
+        
+        // 1. 🛡️ CACHE_CHECK: Try to get from local IndexedDB first
+        const cachedBlob = await getCachedAudio(id);
+        
         if (cachedBlob && !isAdminSignal) {
-            blob = cachedBlob;
-        } else {
-            const cleanId = id.replace('_lq', '').replace('_hq', '');
-            const token = await generatePreviewToken(cleanId);
+            const objectUrl = URL.createObjectURL(cachedBlob);
             
-            // 🛰️ SIGNAL_OPTIMIZATION_GATE :: Use registry fallback if metadata signal is missing
-            const activeSignal = metadata?.signal || signalRegistryRef.current[id] || signalRegistryRef.current[id.replace('_lq', '').replace('_hq', '')];
+            // Race condition check
+            if (loadingTargetIdRef.current !== id) {
+                URL.revokeObjectURL(objectUrl);
+                return;
+            }
+
+            if (currentObjectUrlRef.current) URL.revokeObjectURL(currentObjectUrlRef.current);
+            currentObjectUrlRef.current = objectUrl;
+            
+            audioRef.current.src = objectUrl;
+            console.log(`[AUDIO_VAULT] 📦 CACHE_HIT: ${id}`);
+        } else {
+            // 2. 🛰️ DIRECT_STREAMING_NODE (Optimized for Vercel/Cloudflare)
+            // Instead of fetch().blob(), we set src directly to use browser streaming + range requests
+            const token = await generatePreviewToken(cleanId);
+            const activeSignal = metadata?.signal || signalRegistryRef.current[id] || signalRegistryRef.current[cleanId];
             const signalParam = activeSignal ? `&signal=${encodeURIComponent(activeSignal)}` : '';
             const finalUrl = `/api/audio?id=${id}&token=${token}${signalParam}`;
             
-            const response = await fetch(finalUrl);
-            if (!response.ok) throw new Error(`Proxy Fetch Failed: ${response.status}`);
-            blob = await response.blob();
+            // Race condition check before setting src
+            if (loadingTargetIdRef.current !== id) return;
 
+            if (currentObjectUrlRef.current) {
+                URL.revokeObjectURL(currentObjectUrlRef.current);
+                currentObjectUrlRef.current = null;
+            }
+
+            audioRef.current.src = finalUrl;
+            console.log(`[AUDIO_VAULT] 📡 STREAMING_ACTIVE: ${id}`);
+
+            // Optional: We can still fetch in background to cache for next time if it's a loop
             if (!metadata?.isUnlocked && !isAdminSignal) {
-                await cacheAudio(id, blob);
+                // Background fetch to populate cache for next time (non-blocking)
+                fetch(finalUrl).then(res => res.blob()).then(blob => cacheAudio(id, blob)).catch(() => {});
             }
         }
 
-        const objectUrl = URL.createObjectURL(blob);
-        
-        // 🏁 RACE_CONDITION_CHECK :: Ensure we still want to play this specific ID
-        if (loadingTargetIdRef.current !== id) {
-            URL.revokeObjectURL(objectUrl);
-            return;
-        }
-
-        // Revoke previous URL if any
-        if (currentObjectUrlRef.current) {
-            URL.revokeObjectURL(currentObjectUrlRef.current);
-        }
-        currentObjectUrlRef.current = objectUrl;
-
-        audioRef.current.src = objectUrl;
         audioRef.current.volume = userVolumeRef.current;
         audioRef.current.load();
         
-        audioRef.current.play().catch(() => {});
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                if (e.name !== 'AbortError') console.error("Playback interrupted:", e);
+            });
+        }
         setIsLoading(false);
     } catch (e) {
         console.error("Playback failed:", e);

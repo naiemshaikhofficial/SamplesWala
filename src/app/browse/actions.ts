@@ -235,9 +235,8 @@ export async function unlockSampleBatch(sampleIds: string[]) {
   const totalCost = samples.reduce((sum: number, s: any) => sum + (s.credit_cost || 1), 0)
 
   // 🛡️ SUBSCRIPTION_GATE
-  const isAdmin = user.email?.toLowerCase().includes('sampleswala@gmail.com') || 
-                  user.email?.toLowerCase().includes('naiem') || 
-                  user.email?.toLowerCase() === 'naiemshaikhofficial@gmail.com';
+  const { isUserAdmin } = await import('@/lib/utils/admin');
+  const isAdmin = isUserAdmin(user);
                   
   const isSubscribed = isAdmin || await getCachedUserSubscription(user.id)
   if (!isSubscribed) return { success: false, error: 'Active Studio Subscription Required To Unlock Sounds' }
@@ -354,9 +353,8 @@ export async function getBrowseData(filters: {
     let isSubscribed = false
     if (user) {
         // 🛡️ ADMIN_BYPASS PROTOCOL
-        const isAdmin = user.email?.toLowerCase().includes('sampleswala') || 
-                        user.email?.toLowerCase().includes('naiem') || 
-                        user.email?.toLowerCase() === 'naiemshaikh@gmail.com';
+        const { isUserAdmin } = await import('@/lib/utils/admin');
+        const isAdmin = isUserAdmin(user);
 
         if (isAdmin) {
             isSubscribed = true

@@ -215,6 +215,16 @@ export async function POST(req: Request) {
 
         revalidatePath('/', 'layout')
         revalidatePath('/profile')
+        revalidatePath('/browse')
+        
+        // 🧬 CACHE_INVALIDATION: Force update of unstable_cache tags
+        try {
+            const { revalidateTag } = await import('next/cache')
+            revalidateTag('browse')
+            revalidateTag('user-subscription-status')
+        } catch (e) {
+            console.error('[WEBHOOK_CACHE_ERROR]', e)
+        }
         console.log(`[RAZORPAY_WEBHOOK] ✅ PROCESSED_EVENT: ${event.event}`)
         
         // 🛡️ ALWAYS RETURN 200 TO RAZORPAY AT THE END OF SUCCESSFUL FLOW
