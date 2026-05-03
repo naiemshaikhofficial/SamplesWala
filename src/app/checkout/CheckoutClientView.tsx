@@ -8,6 +8,8 @@ import RazorpayCheckout from '../../components/payment/RazorpayCheckout'
 import PayPalCheckout from '../../components/payment/PayPalCheckout'
 import { createClient } from '@/lib/supabase/client'
 import { validateDiscountCoupon } from '@/app/actions/coupons'
+import { signup, login } from '@/app/auth/actions'
+import Turnstile from '@/components/auth/Turnstile'
 import { Tag, Ticket } from 'lucide-react'
 import Script from 'next/script'
 
@@ -39,6 +41,7 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
     const [authMode, setAuthMode] = useState<'LOGIN' | 'SIGNUP'>('SIGNUP')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
     
     // 🧬 TRIAL_LOGIC: Match with actions.ts Starter plan logic + Filter by Interval + Browser Lock
     const [browserTrialUsed, setBrowserTrialUsed] = useState(false)
@@ -126,15 +129,20 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        const supabase = createClient()
-        let res;
-        if (authMode === 'SIGNUP') res = await supabase.auth.signUp({ email, password })
-        else res = await supabase.auth.signInWithPassword({ email, password })
+        
+        const submissionData = new FormData()
+        submissionData.append('email', email)
+        submissionData.append('password', password)
+        submissionData.append('name', formData.full_name || email.split('@')[0])
+        submissionData.append('cf-turnstile-response', turnstileToken || '')
+        submissionData.append('redirect', '/checkout')
+
+        const res = authMode === 'SIGNUP' ? await signup(submissionData) : await login(submissionData)
 
         setLoading(false)
-        if (res.error) showToast(res.error.message, 'error')
+        if (res?.error) showToast(res.error, 'error')
         else {
-            showToast(authMode === 'SIGNUP' ? 'Account Created.' : 'Welcome Back.', 'success')
+            showToast(authMode === 'SIGNUP' ? 'Account Created. Please check your email.' : 'Welcome Back.', 'success')
             router.refresh()
             setStep(2)
         }
@@ -226,6 +234,8 @@ export default function CheckoutClientView({ item, mode, user, profile }: Checko
                                         <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-xl text-sm focus:border-studio-neon outline-none text-white transition-all focus:bg-white/[0.05]" required />
                                         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/[0.03] border border-white/10 p-4 rounded-xl text-sm focus:border-studio-neon outline-none text-white transition-all focus:bg-white/[0.05]" required />
                                     </div>
+
+                                    <Turnstile onVerify={setTurnstileToken} />
 
                                     <button disabled={loading} className="w-full bg-studio-neon text-black py-4 rounded-xl font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_#a6e22e33]">
                                         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight size={16} />}

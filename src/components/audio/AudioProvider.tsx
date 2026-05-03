@@ -360,12 +360,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
 
             audioRef.current.src = finalUrl;
             console.log(`[AUDIO_VAULT] 📡 STREAMING_ACTIVE: ${id}`);
-
-            // Optional: We can still fetch in background to cache for next time if it's a loop
-            if (!metadata?.isUnlocked && !isAdminSignal) {
-                // Background fetch to populate cache for next time (non-blocking)
-                fetch(finalUrl).then(res => res.blob()).then(blob => cacheAudio(id, blob)).catch(() => {});
-            }
         }
 
         audioRef.current.volume = userVolumeRef.current;

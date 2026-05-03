@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Sparkles, LogIn, Mail, Lock, Loader2, AlertCircle, Cpu, Zap, Disc, Key, ShieldCheck, Info, Eye, EyeOff } from 'lucide-react'
 import { login } from '../actions'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Turnstile from '@/components/auth/Turnstile'
 
 export default function LoginPage() {
   return (
@@ -27,6 +28,7 @@ function LoginForm() {
   const [isPending, setIsPending] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [systemTime, setSystemTime] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -178,6 +180,8 @@ function LoginForm() {
                             New here? Sign Up <Sparkles className="h-3 w-3" />
                         </Link>
                     </div>
+                    
+                    <Turnstile onVerify={setTurnstileToken} />
 
                     <button 
                         disabled={isPending}

@@ -12,6 +12,7 @@ import { signup } from '../actions'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { containsProfanity } from '@/lib/profanity'
+import Turnstile from '@/components/auth/Turnstile'
 
 export default function SignupPage() {
     return (
@@ -33,6 +34,7 @@ function SignupForm() {
   const [isPending, setIsPending] = useState(false)
   const [systemTime, setSystemTime] = useState('')
   const [vizHeights, setVizHeights] = useState<number[]>([])
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   
   // Form State
   const [showPassword, setShowPassword] = useState(false)
@@ -405,6 +407,8 @@ function SignupForm() {
                             <Link href="/auth/login" className="text-white hover:text-studio-neon transition-colors underline underline-offset-8 decoration-white/20 hover:decoration-studio-neon font-black">LOGIN</Link>
                         </p>
                     </div>
+
+                    <Turnstile onVerify={setTurnstileToken} />
 
                     <div className="pt-8 border-t border-white/5 space-y-6">
                         <button 

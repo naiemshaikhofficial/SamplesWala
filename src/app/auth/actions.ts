@@ -5,12 +5,40 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 
+async function verifyTurnstile(token: string | null) {
+  if (!token) return false;
+  
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  // Bypass if secret is not set yet (for local development/initial setup)
+  if (!secret || secret === 'your_secret_key_here') return true;
+
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `secret=${secret}&response=${token}`,
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('[TURNSTILE_VERIFICATION_FAILED]', error);
+    return false;
+  }
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const turnstileToken = formData.get('cf-turnstile-response') as string
   const redirectTo = (formData.get('redirect') as string) || '/browse'
+
+  // 🛡️ BOT_SHIELD
+  const isHuman = await verifyTurnstile(turnstileToken)
+  if (!isHuman) {
+    return { error: 'Bot detection failed. Please refresh and try again.' }
+  }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
@@ -28,7 +56,14 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const name = formData.get('name') as string
+  const turnstileToken = formData.get('cf-turnstile-response') as string
   const redirectTo = (formData.get('redirect') as string) || '/browse'
+
+  // 🛡️ BOT_SHIELD
+  const isHuman = await verifyTurnstile(turnstileToken)
+  if (!isHuman) {
+    return { error: 'Security challenge failed. Please verify you are human.' }
+  }
 
   // 🛡️ PROFANITY FILTER
   const { containsProfanity } = await import('@/lib/profanity')
