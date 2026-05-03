@@ -14,6 +14,7 @@ import { SecureDownloadButton } from '@/components/audio/SecureDownloadButton'
 import { Waveform } from '@/components/audio/Waveform'
 import { SampleList } from '@/components/audio/SampleList'
 import { PackActionCenter } from '@/components/audio/PackActionCenter'
+import { ExpandableDescription } from '@/components/audio/ExpandableDescription'
 import { getRelatedPacks, getFilteredSamples, getBrowseData } from '@/app/browse/actions'
 import { Metadata } from 'next'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs'
@@ -328,21 +329,12 @@ export default async function PackPage({
                 </div>
             </div>
 
-            {/* 2. DESCRIPTION_MODULE */}
-            <div className="p-5 bg-studio-grey/30 border border-white/5">
-                 <div className="flex items-center gap-2 mb-3">
-                    <Disc className="h-3 w-3 text-white/20 animate-spin-slow" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/20">Product Details</span>
-                 </div>
-                 <p className="text-[11px] text-white/40 leading-relaxed font-bold italic mb-4 whitespace-pre-wrap">
-                    {enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
-                 </p>
-                 {enrichedPack.total_contents_summary && (
-                    <div className="pt-3 border-t border-white/5">
-                        <span className="text-[8px] font-black text-studio-neon uppercase tracking-widest block mb-1">BUNDLE CONTENTS</span>
-                        <p className="text-[9px] font-black text-white/60 uppercase">{enrichedPack.total_contents_summary}</p>
-                    </div>
-                 )}
+            {/* 2. DESCRIPTION_MODULE (Desktop Only) */}
+            <div className="hidden lg:block">
+                <ExpandableDescription 
+                    description={enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
+                    summary={enrichedPack.total_contents_summary}
+                />
             </div>
 
             {/* 3. ARTIFACT_BREAKDOWN */}
@@ -379,14 +371,14 @@ export default async function PackPage({
 
         {/* ➡️ MAINBOARD: PREVIEW_ENGINE */}
         <div className="lg:col-span-8 space-y-8">
-            <div className="flex items-center justify-between border-b-2 border-white/5 pb-4">
+            <div className="hidden lg:flex items-center justify-between border-b-2 border-white/5 pb-4">
                 <div className="flex items-center gap-4">
                     <Layers className="h-5 w-5 text-studio-neon" />
                     <h2 className="text-xl font-black uppercase italic tracking-tighter text-white/60">
                          {pack.name} Collection
                     </h2>
                 </div>
-                <div className="hidden sm:flex gap-1 h-4">
+                <div className="flex gap-1 h-4">
                     {[...Array(8)].map((_, i) => (
                         <div key={i} className="w-1 bg-studio-neon/20 animate-peak" style={{ animationDelay: `${i*0.15}s` }} />
                     ))}
@@ -433,6 +425,14 @@ export default async function PackPage({
                             />
                         </div>
                     )}
+
+                    {/* 📝 DESCRIPTION_MODULE (Mobile Only: Below Samples) */}
+                    <div className="mt-12 lg:hidden">
+                        <ExpandableDescription 
+                            description={enrichedPack.description || "Experimental textures and precision-engineered loops for modern production workflow."}
+                            summary={enrichedPack.total_contents_summary}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
