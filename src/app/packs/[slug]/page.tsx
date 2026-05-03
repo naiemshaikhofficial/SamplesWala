@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database, Video, Music2, Volume2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Clock, Music4, Zap, ShieldCheck, Sparkles, Disc, Monitor, Layers, Database, Video, Music2, Volume2, Info } from 'lucide-react'
 import Link from 'next/link'
 import { PlayButton } from '@/components/audio/PlayButton'
 import { DownloadButton } from '@/components/audio/DownloadButton'
@@ -258,9 +258,20 @@ export default async function PackPage({
       </div>
       
       {/* 🚀 PREMIUM_HERO_HEADER */}
-      <div className="relative mb-16 p-8 lg:p-12 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 rounded-2xl overflow-hidden">
+      <div className="relative mb-16 p-8 lg:p-12 bg-gradient-to-br from-white/[0.03] to-transparent border border-white/5 rounded-2xl overflow-hidden group/hero">
         {/* Ambient Glow */}
         <div className="absolute -top-24 -left-24 w-64 h-64 bg-studio-neon/10 blur-[120px] rounded-full" />
+        
+        {/* ℹ️ INFO_BUTTON (Top-Right) */}
+        <div className="absolute top-6 right-6 z-20">
+            <Link 
+                href="#about" 
+                className="p-2.5 rounded-full bg-white/5 border border-white/5 text-white/20 hover:text-studio-neon hover:bg-studio-neon/10 hover:border-studio-neon/20 transition-all block backdrop-blur-md"
+                title="About this Pack"
+            >
+                <Info size={18} />
+            </Link>
+        </div>
         
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             
@@ -341,7 +352,7 @@ export default async function PackPage({
                     </div>
 
                     {/* Compact Description */}
-                    <div className="max-w-3xl">
+                    <div id="about" className="max-w-3xl border-t border-white/5 pt-4">
                         <CompactHeroDescription description={enrichedPack.description || ""} />
                     </div>
                 </div>

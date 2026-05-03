@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { User, Activity, Play, Pause, Disc, Settings as SettingsIcon, HelpCircle } from 'lucide-react'
+import { User, Activity, Play, Pause, Disc, Settings as SettingsIcon, HelpCircle, Info } from 'lucide-react'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
 import { Suspense } from 'react'
@@ -56,6 +56,9 @@ export function Header() {
             ))}
         </div>
         <div className="flex items-center gap-6 text-[9px] font-black uppercase text-white/20">
+            <Link href="/about" className="hover:text-studio-neon transition-colors" title="About">
+                <Info size={14} />
+            </Link>
             <Link href="/faq" className="hover:text-studio-neon transition-colors" title="Help">
                 <HelpCircle size={14} />
             </Link>
