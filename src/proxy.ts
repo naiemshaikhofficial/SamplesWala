@@ -13,7 +13,8 @@ const SENSITIVE_PATHS = ['/api/auth', '/api/payment', '/admin'];
 const BLOCKED_BOTS = [
   'ahrefsbot', 'semrushbot', 'dotbot', 'rogerbot', 'exabot', 'mj12bot', 
   'backlinkchecker', 'megaindex', 'grapeshot', 'seznam', 'mail.ru', 
-  'yandexbot', 'baiduspider', 'petalbot', 'sogou'
+  'yandexbot', 'baiduspider', 'petalbot', 'sogou', 'petalbot', 'aspiegelbot',
+  'amazonbot', 'claudebot', 'gptbot', 'bytespider', 'ccbot', 'diffbot'
 ];
 
 

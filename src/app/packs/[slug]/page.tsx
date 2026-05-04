@@ -181,6 +181,7 @@ export default async function PackPage({
       type: s.type,
       bpm: s.bpm,
       key: s.key,
+      credit_cost: s.credit_cost,
       audio_url: s.audio_url,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))

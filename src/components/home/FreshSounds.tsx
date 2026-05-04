@@ -159,7 +159,7 @@ export function FreshSounds({ samples = [] }: FreshSoundsProps) {
                             <div className="shrink-0 flex items-center gap-4 justify-end">
                                 <DownloadButton 
                                     sampleId={sample.id}
-                                    creditCost={sample.credit_cost || 1}
+                                    creditCost={sample.credit_cost ?? 1}
                                 />
                             </div>
                             

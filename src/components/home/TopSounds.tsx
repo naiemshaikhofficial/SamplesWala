@@ -40,7 +40,7 @@ export function TopSounds({
   }, [query, initialSamples])
 
   const handleCardClick = (sample: any) => {
-    const cost = sample.credit_cost || 1
+    const cost = sample.credit_cost ?? 1
     const metadata = {
         id: sample.id,
         url: sample.audio_url,
@@ -83,7 +83,7 @@ export function TopSounds({
             <div className="flex flex-col gap-2 md:gap-3 w-full max-w-5xl mx-auto">
                 {filteredSounds.slice(0, 20).map((sound, index) => {
                     const isUnlocked = unlockedIds.has(sound.id)
-                    const cost = sound.credit_cost || 1
+                    const cost = sound.credit_cost ?? 1
                     const isPlayingThis = activeId === sound.id && isPlaying
                     const shouldSlideUp = isPlayingThis || (activeMobileId === sound.id && activeId === sound.id)
                     

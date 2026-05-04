@@ -41,8 +41,6 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const categories = await getAllCategories()
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
@@ -124,7 +122,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
-        <ClientProviders initialUser={user}>
+        <ClientProviders initialUser={null}>
           <MasterLight />
           <ScanlineOverlay />
           <SignalScan />
