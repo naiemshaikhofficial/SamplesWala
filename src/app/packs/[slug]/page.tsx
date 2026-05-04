@@ -162,6 +162,7 @@ export default async function PackPage({
   const browseData = await getBrowseData({
       packId: pack.id,
       query: search,
+      type: sParams.type as string,
       page: pageVal,
       limit: pageSize,
       sort: sParams.sort as string
@@ -186,10 +187,12 @@ export default async function PackPage({
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 
+  // 🧬 STABLE_COUNTS: Use database metadata for consistent filter counts
   const melodies = pack.melody_count || 0
   const loops = pack.loop_count || 0
   const oneShots = pack.one_shot_count || 0
   const presets = pack.preset_count || 0
+  const totalPackSamples = melodies + loops + oneShots + presets
   
   // 💹 Master Credit Summation Engine
   const totalIndividualCredits = pack.total_credits || 0
@@ -389,17 +392,18 @@ export default async function PackPage({
               
               <div className={isRestricted ? "blur-2xl grayscale pointer-events-none select-none opacity-40 transition-all duration-1000" : ""}>
                   <Suspense fallback={<div className="h-screen w-full bg-studio-grey/20 animate-pulse" />}>
-                      <SampleList 
-                          samples={samples || []} 
-                          packName={pack.name} 
-                          coverUrl={pack.cover_url} 
-                          packId={pack.id} 
-                          totalCount={count || 0}
-                          loopsCount={loops + melodies}
-                          oneShotsCount={oneShots}
-                          presetsCount={presets}
-                          isSubscribed={isSubscribed}
-                      />
+                       <SampleList 
+                           samples={samples || []} 
+                           packName={pack.name} 
+                           coverUrl={pack.cover_url} 
+                           packId={pack.id} 
+                           totalCount={totalPackSamples}
+                           melodiesCount={melodies}
+                           loopsCount={loops}
+                           oneShotsCount={oneShots}
+                           presetsCount={presets}
+                           isSubscribed={isSubscribed}
+                       />
                   </Suspense>
 
                   {/* 🎯 PAGE_1_INLINE_WALL */}

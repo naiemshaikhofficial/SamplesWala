@@ -138,8 +138,10 @@ export async function getFilteredSamples(filters: {
 
   if (filters.type) {
     const typeLabel = filters.type.toLowerCase()
-    if (typeLabel === 'loops') {
-        queryBuilder = queryBuilder.gt('bpm', 0).not('bpm', 'is', null);
+    if (typeLabel === 'melodies') {
+        queryBuilder = queryBuilder.gt('bpm', 0).not('bpm', 'is', null).not('key', 'is', null).neq('key', '');
+    } else if (typeLabel === 'loops') {
+        queryBuilder = queryBuilder.gt('bpm', 0).not('bpm', 'is', null).or('key.is.null,key.eq.""');
     } else if (typeLabel === 'oneshots') {
         queryBuilder = queryBuilder.or('bpm.eq.0,bpm.is.null');
     } else if (typeLabel === 'presets') {
@@ -399,7 +401,7 @@ export async function getBrowseData(filters: {
     const rpcParams = {
         p_query: finalFilters.query || null,
         p_category_id: resolvedCategoryId,
-        p_type: finalFilters.type || null,
+        p_type: null, // We handle types via p_filter for better accuracy with Melodies/Loops
         p_bpm_min: finalFilters.bpm_min || null,
         p_bpm_max: finalFilters.bpm_max || null,
         p_key: finalFilters.key || null,
@@ -410,7 +412,7 @@ export async function getBrowseData(filters: {
         p_pack_id: finalFilters.packId || null,
         p_genre: finalFilters.genre || null,
         p_tag: finalFilters.tag || null,
-        p_filter: (finalFilters.filter && finalFilters.filter !== 'all') ? finalFilters.filter : null
+        p_filter: (finalFilters.type && finalFilters.type !== 'all') ? finalFilters.type : (finalFilters.filter || null)
     }
 
     let data;

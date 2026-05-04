@@ -28,19 +28,32 @@ type SampleListProps = {
     packId?: string
     totalCount?: number
     loopsCount?: number
+    melodiesCount?: number
     oneShotsCount?: number
     presetsCount?: number
     isSubscribed?: boolean
 }
 
-export function SampleList({ samples, packName, coverUrl, packId, totalCount, loopsCount, oneShotsCount, presetsCount, isSubscribed = false }: SampleListProps) {
+export function SampleList({ 
+    samples, 
+    packName, 
+    coverUrl, 
+    packId, 
+    totalCount, 
+    loopsCount, 
+    melodiesCount,
+    oneShotsCount, 
+    presetsCount, 
+    isSubscribed = false 
+}: SampleListProps) {
     const { unlockedIds } = useVault()
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const [isPending, startTransition] = useTransition()
     
-    const [filter, setFilter] = useState<'all' | 'loops' | 'oneshots' | 'presets'>('all')
+    const initialType = (searchParams.get('type') as any) || 'all'
+    const [filter, setFilter] = useState<'all' | 'melodies' | 'loops' | 'oneshots' | 'presets'>(initialType)
     const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
     const [sortBy, setSortBy] = useState<any>(searchParams.get('sort') || 'newest')
     const { setPlaylist, activeId } = useAudio()
@@ -49,9 +62,10 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
     useEffect(() => {
         const currentSearch = searchParams.get('search') || ''
         const currentSort = searchParams.get('sort') || 'newest'
+        const currentType = searchParams.get('type') || 'all'
 
         // 🛑 GUARD: Only sync if state actually differs from URL
-        if (searchQuery === currentSearch && sortBy === currentSort) return
+        if (searchQuery === currentSearch && sortBy === currentSort && filter === currentType) return
 
         const timer = setTimeout(() => {
             const params = new URLSearchParams(searchParams.toString())
@@ -64,22 +78,21 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
             if (sortBy && sortBy !== 'newest') params.set('sort', sortBy)
             else params.delete('sort')
 
+            if (filter && filter !== 'all') {
+                params.set('type', filter)
+                params.set('page', '1')
+            } else params.delete('type')
+
             startTransition(() => {
                 router.push(`${pathname}?${params.toString()}`, { scroll: false })
             })
         }, searchQuery ? 500 : 0)
 
         return () => clearTimeout(timer)
-    }, [searchQuery, sortBy, pathname, router, searchParams])
+    }, [searchQuery, sortBy, filter, pathname, router, searchParams])
 
-    // 🧬 LOCAL_TYPE_FILTERING: Still instant for current result set
-    const processedSamples = useMemo(() => {
-        let result = [...samples]
-        if (filter === 'loops') result = result.filter(s => s.bpm)
-        else if (filter === 'oneshots') result = result.filter(s => !s.bpm && s.type !== 'preset')
-        else if (filter === 'presets') result = result.filter(s => s.type === 'preset')
-        return result
-    }, [samples, filter])
+    // 🧬 PROCESSED_SAMPLES: Now driven by server-side fetch for accuracy
+    const processedSamples = samples;
 
     // 🧬 PLAYLIST_SYNC
     const playlistData = useMemo(() => {
@@ -145,7 +158,7 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
 
                 <div className="flex flex-col md:flex-row gap-4 items-stretch">
                     {/* 🧬 TYPE FILTERS */}
-                    <div className="relative flex bg-black/40 border border-white/5 rounded-sm p-1 min-w-[300px]">
+                    <div className="relative flex bg-black/40 border border-white/5 rounded-sm p-1 md:min-w-[550px] overflow-x-auto no-scrollbar">
                         {!isSubscribed ? (
                             <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-50 flex items-center justify-center cursor-not-allowed">
                                 <div className="flex items-center gap-2">
@@ -156,15 +169,16 @@ export function SampleList({ samples, packName, coverUrl, packId, totalCount, lo
                         ) : null}
                         {[
                             { id: 'all', label: 'All', count: totalCount },
+                            { id: 'melodies', label: 'Melodies', count: melodiesCount },
                             { id: 'loops', label: 'Loops', count: loopsCount },
-                            { id: 'oneshots', label: '1-shots', count: oneShotsCount },
+                            { id: 'oneshots', label: 'One-shots', count: oneShotsCount },
                             { id: 'presets', label: 'Presets', count: presetsCount }
                         ].map((t) => (
                             <button
                                 key={t.id}
                                 onClick={() => isSubscribed && setFilter(t.id as any)}
                                 disabled={!isSubscribed}
-                                className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'} disabled:opacity-20`}
+                                className={`flex-1 py-2 px-2 text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === t.id ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'} disabled:opacity-20`}
                             >
                                 {t.label} <span className="text-[7px] opacity-40 ml-1">({t.count || 0})</span>
                             </button>
