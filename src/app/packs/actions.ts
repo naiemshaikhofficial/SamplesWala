@@ -3,9 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { getAdminClient } from '@/lib/supabase/admin'
 
+import { getServerAuth } from '@/lib/supabase/auth'
+
 export async function getSecureDownloadUrl(targetId: string, isIndividualSample: boolean = false) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user } = await getServerAuth()
   const headerList = await headers()
   const clientIp = headerList.get("x-forwarded-for")?.split(',')[0] || "unknown"
 

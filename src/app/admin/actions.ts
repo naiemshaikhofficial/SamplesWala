@@ -4,11 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { AIStudioAnalyser } from '@/lib/ai/analyser'
+import { getServerAuth } from '@/lib/supabase/auth'
 
 // 🛡️ Admin Security Check
 async function ensureAdmin() {
+    const { user } = await getServerAuth()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) throw new Error('NOT_LOGGED_IN')
 

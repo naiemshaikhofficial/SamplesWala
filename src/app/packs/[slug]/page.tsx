@@ -57,11 +57,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   if (!pack || error) return { title: 'Pack Not Found | Samples Wala' }
 
-  const melodies = pack.samples?.filter((s: any) => s.type === 'melody' || s.type === 'loop').length || 0
-  const loops = pack.samples?.filter((s: any) => s.type === 'drum_loop' || s.type === 'percussion_loop').length || 0
-  const oneShots = pack.samples?.filter((s: any) => s.type === 'one_shot' || s.type === 'drum_one_shot').length || 0
-  const bpmList = pack.samples?.map((s: any) => s.bpm).filter(Boolean)
-  const keyList = pack.samples?.map((s: any) => s.key).filter(Boolean)
+  const samples = pack.samples || []
+  // 🧬 MATCHING_ENGINE: Align counting logic exactly with getFilteredSamples in browse/actions.ts
+  const melodiesCount = samples.filter((s: any) => (s.bpm || 0) > 0 && s.key && s.key !== '').length
+  const loopsCount = samples.filter((s: any) => (s.bpm || 0) > 0 && (!s.key || s.key === '')).length
+  const oneShotsCount = samples.filter((s: any) => (!s.bpm || s.bpm === 0) && s.type !== 'preset').length
+  const presetsCount = samples.filter((s: any) => s.type === 'preset').length
+  
+  const bpmList = samples.map((s: any) => s.bpm).filter(Boolean)
+  const keyList = samples.map((s: any) => s.key).filter(Boolean)
   const genre = pack.categories?.name || 'Music'
   
   const bpmStr = [...new Set(bpmList)].slice(0, 4).join(', ')
@@ -75,7 +79,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${pack.name} | ${displayGenre} Sample Pack & Drum Kit | Samples Wala`
   
   // 🚀 NUCLEAR_SEO: Punchy, Keyword-Rich Description for Google
-  const totalSounds = melodies + loops + oneShots
+  const totalSounds = melodiesCount + loopsCount + oneShotsCount + presetsCount
   const seoDescription = pack.description 
     ? `${pack.name} by Samples Wala: Professional ${displayGenre} Sample Pack featuring ${totalSounds} high-quality sounds. ${pack.description.substring(0, 120)}... 100% Royalty-Free 24-bit WAV.`
     : `Download ${pack.name} Drum Kit & Sample Pack. Features ${totalSounds} authentic ${displayGenre} sounds, including Bollywood loops, Indian percussion, and melodic phrases. High-quality 24-bit WAV, 100% Royalty-Free for commercial use.`
@@ -187,11 +191,12 @@ export default async function PackPage({
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 
-  // 🧬 STABLE_COUNTS: Use database metadata for consistent filter counts
-  const melodies = pack.melody_count || 0
-  const loops = pack.loop_count || 0
-  const oneShots = pack.one_shot_count || 0
-  const presets = pack.preset_count || 0
+  // 🧬 STABLE_COUNTS: Dynamic counting from actual sample manifests (Aligns with getFilteredSamples)
+  const packSamples = pack.samples || []
+  const melodies = packSamples.filter((s: any) => (s.bpm || 0) > 0 && s.key && s.key !== '').length
+  const loops = packSamples.filter((s: any) => (s.bpm || 0) > 0 && (!s.key || s.key === '')).length
+  const oneShots = packSamples.filter((s: any) => (!s.bpm || s.bpm === 0) && s.type !== 'preset').length
+  const presets = packSamples.filter((s: any) => s.type === 'preset').length
   const totalPackSamples = melodies + loops + oneShots + presets
   
   // 💹 Master Credit Summation Engine
@@ -397,11 +402,11 @@ export default async function PackPage({
                            packName={pack.name} 
                            coverUrl={pack.cover_url} 
                            packId={pack.id} 
-                           totalCount={totalPackSamples}
-                           melodiesCount={melodies}
-                           loopsCount={loops}
-                           oneShotsCount={oneShots}
-                           presetsCount={presets}
+                        totalCount={count || totalPackSamples}
+                        melodiesCount={melodies}
+                        loopsCount={loops}
+                        oneShotsCount={oneShots}
+                        presetsCount={presets}
                            isSubscribed={isSubscribed}
                        />
                   </Suspense>

@@ -28,22 +28,14 @@ export async function generateDownloadToken(sampleId: string) {
 }
 
 import { grantDrivePermission } from '@/lib/drive/automation'
-
-import { getCachedUserSubscription } from '@/app/browse/actions'
+import { getServerAuth } from '@/lib/supabase/auth'
 
 /** 💳 THE NEW HYPER-SPEED UNLOCK SYSTEM (V13 Atomic Protocol) **/
 export async function unlockSample(sampleId: string) {
-    const supabase = await createClient()
+    const { user, isSubscribed } = await getServerAuth()
     const adminClient = getAdminClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    // 🛡️ SUBSCRIPTION_GATE
-    const isAdmin = user.email?.toLowerCase().includes('sampleswala') || 
-                    user.email?.toLowerCase().includes('naiem') || 
-                    user.email?.toLowerCase() === 'naiemshaikh@gmail.com';
-                    
-    const isSubscribed = isAdmin || await getCachedUserSubscription(user.id)
     if (!isSubscribed) throw new Error('Active Studio Subscription Required To Unlock Sounds')
 
     // 1. Get Sample Details (Still needed for the name/cost for the vault entry)
@@ -51,6 +43,7 @@ export async function unlockSample(sampleId: string) {
     if (!sample) throw new Error('Sound not found')
 
     // 2. ATOMIC_TRANSACTION (Hardened V3 Protocol - Context enforced by DB)
+    const supabase = await createClient()
     const { error } = await supabase.rpc('atomic_unlock_asset', {
         a_id: sampleId
     })
@@ -68,9 +61,8 @@ export async function unlockSample(sampleId: string) {
 
 /** 📥 DOWNLOAD FLOW (Checking the Vault) **/
 export async function getDownloadUrl(sampleId: string) {
-    const supabase = await createClient()
+    const { user } = await getServerAuth()
     const adminClient = getAdminClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
     // 1. Get sample info with Admin Signal
@@ -102,17 +94,10 @@ export async function getDownloadUrl(sampleId: string) {
 
 /** 🎰 BULK UNLOCK (V13 Hyper-Speed Protocol) **/
 export async function unlockFullPack(packId: string) {
-    const supabase = await createClient()
+    const { user, isSubscribed } = await getServerAuth()
     const adminClient = getAdminClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
-    // 🛡️ SUBSCRIPTION_GATE
-    const isAdmin = user.email?.toLowerCase().includes('sampleswala') || 
-                    user.email?.toLowerCase().includes('naiem') || 
-                    user.email?.toLowerCase() === 'naiemshaikh@gmail.com';
-                    
-    const isSubscribed = isAdmin || await getCachedUserSubscription(user.id)
     if (!isSubscribed) throw new Error('Active Studio Subscription Required To Unlock Sounds')
 
     const { data: pack } = await adminClient.from('sample_packs').select('name, bundle_credit_cost, slug').eq('id', packId).single()

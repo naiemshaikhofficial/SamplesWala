@@ -4,9 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
+import { getServerAuth } from '@/lib/supabase/auth'
+
 export async function updateBillingAction(formData: any) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { user } = await getServerAuth()
     if (!user) throw new Error('UNAUTHENTICATED')
 
     // 🛡️ Use Admin Client to bypass RLS and ensure high-fidelity persistence

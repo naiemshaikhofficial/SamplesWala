@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getServerAuth } from '@/lib/supabase/auth'
 import { redirect } from 'next/navigation'
 import CheckoutClientView from '@/app/checkout/CheckoutClientView'
 
@@ -6,8 +6,9 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
     const params = await searchParams
     const { planId, packId, mode } = params
     
+    const { user } = await getServerAuth()
+    const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
     let itemDetails = null
 

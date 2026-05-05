@@ -11,6 +11,7 @@ import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { createClient } from '@/lib/supabase/server'
 import { Suspense } from 'react'
+import { getServerAuth } from '@/lib/supabase/auth'
 
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 
@@ -49,18 +50,8 @@ export default async function FreeSamplesPage({
   let isSubscribed = false
 
   if (pageVal > 1) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-      const { data: account } = await supabase
-          .from('user_accounts')
-          .select('subscription_status')
-          .eq('user_id', user.id)
-          .maybeSingle()
-      
-      isSubscribed = account?.subscription_status === 'ACTIVE'
-    }
+    const { user, isSubscribed: subStatus } = await getServerAuth()
+    isSubscribed = subStatus
   }
 
   const isRestricted = pageVal > 1 && !isSubscribed;

@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
+import { getServerAuth } from '@/lib/supabase/auth'
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID!,
@@ -14,8 +14,9 @@ const razorpay = new Razorpay({
  * 🎫 Redeem Promotional Coupon Protocol
  */
 export async function redeemCoupon(code: string) {
+    const { user } = await getServerAuth()
+    const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
     // 🔬 Secure RPC Redemption
@@ -39,8 +40,9 @@ export async function redeemCoupon(code: string) {
  * 💳 Create Razorpay Order Protocol
  */
 export async function createTopUpOrder(amountCredits: number) {
+    const { user } = await getServerAuth()
+    const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Authentication required')
 
     // 1 Credit = 1 INR

@@ -9,6 +9,7 @@ import crypto from 'crypto'
 import { generateInvoicePDF } from '@/lib/pdfGenerator'
 import { sendPurchaseEmail } from '@/lib/email'
 import { v4 as uuidv4 } from 'uuid'
+import { getServerAuth } from '@/lib/supabase/auth'
 
 // 💳 INITIALIZE PAYPAL (Build-safe)
 const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
@@ -44,8 +45,8 @@ const razorpay = (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
  * 🛒 Razorpay Subscription Action (Monthly UPI Mandate Flow)
  */
 export async function createSubscription(planId: string, interval: 'MONTHLY' | 'ANNUAL' = 'MONTHLY', deviceFingerprint?: string) {
+  const { user } = await getServerAuth()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/auth/login?redirect=/pricing')
   if (!razorpay) throw new Error('Razorpay is not configured on the server')
@@ -147,8 +148,8 @@ export async function createSubscription(planId: string, interval: 'MONTHLY' | '
  * ⚡ Razorpay Order Action (Top-up Pack)
  */
 export async function purchaseCreditPack(packId: string) {
+  const { user } = await getServerAuth()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/auth/login?redirect=/pricing')
   if (!razorpay) throw new Error('Razorpay is not configured on the server')
@@ -184,8 +185,8 @@ export async function purchaseCreditPack(packId: string) {
  * 💿 Razorpay Order Action (Full Sample Pack)
  */
 export async function purchaseSamplePack(packId: string) {
+    const { user } = await getServerAuth()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
   
     if (!user) redirect('/auth/login?redirect=/packs/' + packId)
     if (!razorpay) throw new Error('Razorpay is not configured on the server')
@@ -221,8 +222,8 @@ export async function purchaseSamplePack(packId: string) {
  * 🦾 Razorpay Order Action (Software Checkout)
  */
 export async function purchaseSoftware(softwareId: string) {
+    const { user } = await getServerAuth()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
   
     if (!user) redirect('/auth/login?redirect=/software')
     if (!razorpay) throw new Error('Razorpay is not configured on the server')
@@ -258,8 +259,7 @@ export async function purchaseSoftware(softwareId: string) {
  * ✅ Razorpay Payment Verification (High-Fidelity Handshake)
  */
 export async function verifyPayment(paymentRes: any, targetId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software', itemId: string, interval: 'MONTHLY' | 'ANNUAL' = 'MONTHLY') {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { user } = await getServerAuth()
     if (!user) throw new Error('Unauthorized')
 
     // 🔐 1. SIGNATURE_VERIFICATION_ROUTING
@@ -440,8 +440,8 @@ export async function verifyPayment(paymentRes: any, targetId: string, itemType:
  * ⛔ Cancel Subscription (Secure High-Fidelity Termination)
  */
 export async function cancelSubscription() {
+    const { user } = await getServerAuth()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('UNAUTHENTICATED')
 
     // 🛡️ 1. Fetch the active subscription signal
@@ -492,8 +492,8 @@ export async function cancelSubscription() {
  * 🌐 PayPal Order Action (International Checkout)
  */
 export async function createPayPalOrder(itemId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software') {
+    const { user } = await getServerAuth()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/auth/login')
 
     // 1. Fetch Item Details & Price in USD
@@ -558,8 +558,7 @@ export async function createPayPalOrder(itemId: string, itemType: 'subscription'
  * 🎯 PayPal Capture Action (Fulfillment)
  */
 export async function capturePayPalOrder(orderId: string, itemId: string, itemType: 'subscription' | 'pack' | 'sample_pack' | 'software') {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { user } = await getServerAuth()
     if (!user) throw new Error('Unauthorized');
 
     // 1. Capture the Payment

@@ -1,11 +1,9 @@
 'use server'
-import { createClient } from '@/lib/supabase/server'
 import { getAdminClient } from '@/lib/supabase/admin'
-
 import { unstable_cache, revalidateTag } from 'next/cache'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
-
 import { cache } from 'react'
+import { getServerAuth, getCachedUserSubscription } from '@/lib/supabase/auth'
 
 export const getAllCategories = cache(unstable_cache(
   async () => {
@@ -221,6 +219,7 @@ export async function getRelatedPacks(currentPackId: string, categoryId: string)
 }
 
 export async function unlockSampleBatch(sampleIds: string[]) {
+  const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
   const adminClient = getAdminClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -275,9 +274,6 @@ export async function unlockSampleBatch(sampleIds: string[]) {
       .update({ credits: account.credits - totalCost })
       .eq('user_id', user.id)
 
-  // 🧬 CACHE_INVALIDATION: Removed global revalidation to prevent Vercel bandwidth spikes.
-  // Instead of revalidating everything, we rely on client-side state updates.
-  
   return { 
       success: true, 
       count: sampleIds.length, 
@@ -286,7 +282,6 @@ export async function unlockSampleBatch(sampleIds: string[]) {
 }
 
 // 🚀 UNIFIED_BROWSE_CACHE: Cache ALL browsing results (Guest & Auth) for 24 hours
-// Distinguishes between Subscribed and Guest users via the p_is_subscribed param
 const getUnifiedBrowseData = unstable_cache(
     async (rpcParams: any) => {
         const adminClient = getAdminClient()
@@ -297,27 +292,11 @@ const getUnifiedBrowseData = unstable_cache(
         }
         return data
     },
-    ['unified-browse-data-v2'],
+    ['unified-browse-data-v4'],
     { revalidate: 86400, tags: ['browse'] }
 )
 
-// 🛡️ USER_STATUS_CACHE: Cache subscription/vault status for 1 hour
-export const getCachedUserSubscription = unstable_cache(
-    async (userId: string) => {
-        const adminClient = getAdminClient()
-        const { data: account } = await adminClient
-            .from('user_accounts')
-            .select('subscription_status, plan_id')
-            .eq('user_id', userId)
-            .maybeSingle()
-        
-        // A user is subscribed if they have a plan AND it's not explicitly INACTIVE
-        return !!(account?.plan_id && account.subscription_status !== 'INACTIVE')
-    },
-    ['user-subscription-status'],
-    { revalidate: 3600, tags: ['user-subscription-status'] }
-)
-
+// 🧬 CACHED_PACK_OWNERSHIP: Separate cache for specific pack access
 const getCachedPackOwnership = unstable_cache(
     async (userId: string, packId: string) => {
         const adminClient = getAdminClient()
@@ -349,27 +328,13 @@ export async function getBrowseData(filters: {
     tag?: string;
     filter?: string;
 }) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // 🧬 Use the deduplicated server auth helper
+    const { user, isSubscribed: baseSubscribed } = await getServerAuth()
+    let isSubscribed = baseSubscribed
     
-    let isSubscribed = false
-    if (user) {
-        // 🛡️ ADMIN_BYPASS PROTOCOL
-        const { isUserAdmin } = await import('@/lib/utils/admin');
-        const isAdmin = isUserAdmin(user);
-
-        if (isAdmin) {
-            isSubscribed = true
-        } else {
-            // 🛡️ Use cached user status to avoid repeated DB hits
-            isSubscribed = await getCachedUserSubscription(user.id)
-
-            // 🧪 PACK_OWNERSHIP_BYPASS: If not subscribed, check if user owns the specific pack (Cached)
-            if (!isSubscribed && filters.packId) {
-                const hasPack = await getCachedPackOwnership(user.id, filters.packId)
-                if (hasPack) isSubscribed = true
-            }
-        }
+    if (user && !isSubscribed && filters.packId) {
+        const hasPack = await getCachedPackOwnership(user.id, filters.packId)
+        if (hasPack) isSubscribed = true
     }
 
     // 🛡️ SECURITY LAYER: Validate Parameters Server-Side
@@ -401,7 +366,7 @@ export async function getBrowseData(filters: {
     const rpcParams = {
         p_query: finalFilters.query || null,
         p_category_id: resolvedCategoryId,
-        p_type: null, // We handle types via p_filter for better accuracy with Melodies/Loops
+        p_type: null, 
         p_bpm_min: finalFilters.bpm_min || null,
         p_bpm_max: finalFilters.bpm_max || null,
         p_key: finalFilters.key || null,
@@ -416,9 +381,7 @@ export async function getBrowseData(filters: {
     }
 
     let data;
-    // 🧬 CACHED_FETCH: Unified cache layer for all users
     try {
-        // We use JSON.stringify(rpcParams) as part of the key to ensure uniqueness
         data = await getUnifiedBrowseData(rpcParams)
     } catch (error) {
         const adminClient = getAdminClient()
@@ -426,7 +389,6 @@ export async function getBrowseData(filters: {
         data = liveData
     }
 
-    // 🧬 LIGHTWEIGHT_MAPPING: Filter out heavy context data before sending to client
     const sanitizedPacks = (data.context_packs || []).map((p: any) => ({
         id: p.id,
         name: p.name,
@@ -439,7 +401,7 @@ export async function getBrowseData(filters: {
     return {
         ...data,
         packs: sanitizedPacks,
-        context_packs: undefined, // Kill the original heavy copy
+        context_packs: undefined, 
         isSubscribed,
         isRestricted: !isSubscribed && isPremiumAttempt
     }

@@ -9,10 +9,11 @@ import {
 import { BillingSettings } from '@/components/profile/BillingSettings'
 import { CancelSubscriptionButton } from '@/components/CancelSubscriptionButton'
 import { SignalMeter, DAWVisualizer } from '@/components/ui/DAWVisualizer'
+import { getServerAuth } from '@/lib/supabase/auth'
 
 export default async function ProfilePage() {
+    const { user } = await getServerAuth()
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) redirect('/auth/login')
 
