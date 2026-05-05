@@ -106,6 +106,7 @@ export async function unlockFullPack(packId: string) {
     const cost = pack.bundle_credit_cost || 50
 
     // 1. ATOMIC_TRANSACTION
+    const supabase = await createClient()
     const { error } = await supabase.rpc('atomic_unlock_asset', {
         a_id: packId
     })

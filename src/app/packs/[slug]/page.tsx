@@ -22,18 +22,22 @@ import { Pagination } from '@/components/layout/Pagination'
 import { PremiumPaywall } from '@/components/subscription/PremiumPaywall'
 import { generateAudioSignal, getDriveFileId } from '@/lib/audio/signal'
 
-import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 
 // 🧬 DEDUPLICATION_ENGINE: Prevents redundant Supabase hits across generateMetadata and Page
-const getCachedPack = cache(async (slug: string) => {
-  const adminClient = getAdminClient()
-  const { data, error } = await adminClient
-    .from('sample_packs')
-    .select('*, categories(name), samples(bpm, key, type)')
-    .eq('slug', slug)
-    .single()
-  return { data, error }
-})
+const getCachedPack = (slug: string) => unstable_cache(
+  async (slug: string) => {
+    const adminClient = getAdminClient()
+    const { data, error } = await adminClient
+      .from('sample_packs')
+      .select('*, categories(name), samples(bpm, key, type)')
+      .eq('slug', slug)
+      .single()
+    return { data, error }
+  },
+  [`pack-v2-${slug}`],
+  { revalidate: 86400, tags: ['packs', `pack-${slug}`] }
+)(slug)
 
 export const revalidate = 86400; // Cache for 24 hours (Aggressive Vercel Optimization)
 

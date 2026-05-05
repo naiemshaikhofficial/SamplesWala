@@ -41,10 +41,6 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const categories = await getAllCategories()
-  
-  // 🧬 SHARED_AUTH_SIGNAL: Fetch once at layout level and propagate
-  const { getServerAuth } = await import('@/lib/supabase/auth')
-  const { user } = await getServerAuth()
 
   return (
     <html lang="en" className="dark scroll-smooth" data-scroll-behavior="smooth">
@@ -126,7 +122,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black overflow-x-hidden bg-studio-charcoal custom-scrollbar`}>
-        <ClientProviders initialUser={user}>
+        <ClientProviders>
           <MasterLight />
           <ScanlineOverlay />
           <SignalScan />

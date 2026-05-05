@@ -13,9 +13,10 @@ import { createClient } from '@/lib/supabase/server'
 import { Suspense } from 'react'
 import { getServerAuth } from '@/lib/supabase/auth'
 
-import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
+import { getCachedFreeSamples } from './actions'
 
 export const metadata: Metadata = generateMetadata(pagesMeta.free);
+export const runtime = 'edge'; // 🚀 ULTRA_FAST_EDGE_RUNTIME
 
 export default async function FreeSamplesPage({
     searchParams
@@ -29,21 +30,8 @@ export default async function FreeSamplesPage({
   const from = (pageVal - 1) * pageSize
   const to = from + pageSize - 1
   
-  const adminClient = getAdminClient()
-  
-  // Fetch samples with 0 credit cost
-  const { data: rawSamples, count } = await adminClient
-    .from('samples')
-    .select('*, sample_packs(name, cover_url)', { count: 'exact' })
-    .eq('credit_cost', 0)
-    .order('created_at', { ascending: false })
-    .range(from, to)
-
-  // 🧬 SIGNAL_INJECTION
-  const freeSamples = rawSamples?.map((s: { id: string, audio_url: string, name: string }) => ({
-      ...s,
-      signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
-  }))
+  // 🧬 CACHED_DATA_BRIDGE: Fetches from Next.js Data Cache (Pre-calculated Signals)
+  const { samples: freeSamples, count } = await getCachedFreeSamples(from, to)
 
   // 🛡️ AUTH_SIGNAL: Only check subscription for deep browsing (Page > 1)
   // Page 1 is always public — skipping auth saves a Supabase call for 90%+ of visitors

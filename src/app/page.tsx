@@ -20,7 +20,7 @@ import { generateMetadata, pagesMeta } from '@/lib/seo-metadata';
 import { SectionErrorBoundary } from '@/components/ui/SectionErrorBoundary';
 
 
-export const revalidate = 604800; // ⚡ NUCLEAR_STABILITY: 1 Week cache (Admin can clear manually via Vercel)
+export const revalidate = 86400; // ⚡ SYNCED_24H_CACHE: Matches Audio Signal Lifecycle
 
 export const metadata = generateMetadata(pagesMeta.home);
 
