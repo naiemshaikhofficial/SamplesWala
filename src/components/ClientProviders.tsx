@@ -11,6 +11,8 @@ import { VaultProvider } from '@/components/VaultProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { User } from '@supabase/supabase-js'
 
+import { CartProvider } from '@/components/CartProvider'
+
 export function ClientProviders({ 
   children,
   initialUser = undefined
@@ -23,13 +25,15 @@ export function ClientProviders({
       <CacheProvider>
         <NotificationProvider>
           <CurrencyProvider>
-            <SidebarProvider>
-              <VaultProvider>
-                <AudioProvider>
-                  {children}
-                </AudioProvider>
-              </VaultProvider>
-            </SidebarProvider>
+            <CartProvider>
+              <SidebarProvider>
+                <VaultProvider>
+                  <AudioProvider>
+                    {children}
+                  </AudioProvider>
+                </VaultProvider>
+              </SidebarProvider>
+            </CartProvider>
           </CurrencyProvider>
         </NotificationProvider>
       </CacheProvider>

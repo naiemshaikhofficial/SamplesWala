@@ -621,3 +621,112 @@ export async function capturePayPalOrder(orderId: string, itemId: string, itemTy
     revalidateTag('browse', 'default')
     return { success: true };
 }
+
+/**
+ * 🛒 Razorpay Cart Order Action (Multi-Pack Checkout)
+ */
+export async function purchaseCart(itemIds: string[]) {
+    const { user } = await getServerAuth()
+    const supabase = await createClient()
+  
+    if (!user) redirect('/auth/login?redirect=/checkout')
+    if (!razorpay) throw new Error('Razorpay is not configured on the server')
+    if (!itemIds || itemIds.length === 0) throw new Error('Cart is empty')
+  
+    // 1. Fetch all items to calculate final sum
+    const { data: packs, error: packError } = await supabase
+        .from('sample_packs')
+        .select('id, price_inr, name')
+        .in('id', itemIds)
+
+    if (packError || !packs) throw new Error('Failed to verify cart artifacts')
+
+    const totalInr = packs.reduce((sum: number, p: any) => sum + (p.price_inr || 0), 0)
+  
+    // 2. CREATE RAZORPAY ORDER
+    try {
+      const order = await razorpay.orders.create({
+        amount: totalInr * 100,
+        currency: 'INR',
+        receipt: `cart_${Date.now()}`,
+        notes: { 
+            user_id: user.id, 
+            item_ids: itemIds.join(','), 
+            type: 'cart',
+            item_count: itemIds.length.toString()
+        }
+      })
+  
+      return { 
+          success: true, 
+          orderId: order.id, 
+          amount: order.amount, 
+          key: process.env.RAZORPAY_KEY_ID,
+          user: { email: user.email, name: user.user_metadata?.full_name || 'Producer' }
+      }
+    } catch (err: any) {
+      console.error("Razorpay Cart Error:", err)
+      return { success: false, error: `CART_FORGE_FAILED: ${err.message}` }
+    }
+}
+
+/**
+ * ✅ Verify Cart Payment (Bulk Fulfillment)
+ */
+export async function verifyCartPayment(paymentRes: any, orderId: string, itemIds: string[]) {
+    const { user } = await getServerAuth()
+    if (!user) throw new Error('Unauthorized')
+
+    // 1. Signature Verification
+    const signature = paymentRes.razorpay_signature
+    const paymentId = paymentRes.razorpay_payment_id
+    const body = `${orderId}|${paymentId}`
+
+    const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
+        .update(body)
+        .digest('hex')
+
+    if (expectedSignature !== signature) {
+        throw new Error('Signal Forge Detected: Cart payment verification failed.')
+    }
+
+    const adminSupabase = getAdminClient()
+
+    // 2. Bulk Fulfillment
+    const { data: packs } = await adminSupabase.from('sample_packs').select('id, name, price_inr').in('id', itemIds)
+    if (!packs) throw new Error('Artifacts lost in transit')
+
+    const totalInr = packs.reduce((sum: number, p: any) => sum + (p.price_inr || 0), 0)
+
+    // Insert into user_vault for each pack
+    for (const pack of packs) {
+        await adminSupabase.from('user_vault').upsert({
+            user_id: user.id,
+            item_id: pack.id,
+            item_type: 'pack',
+            item_name: `Full Pack: ${pack.name}`,
+            amount: 0
+        }, { onConflict: 'user_id,item_id' })
+    }
+
+    // Log the transaction
+    await adminSupabase.from('credit_orders').insert({
+        user_id: user.id,
+        order_id: orderId,
+        payment_id: paymentId,
+        amount_inr: totalInr,
+        credits_awarded: 0,
+        status: 'paid',
+        raw_response: paymentRes
+    })
+
+    // 📧 Send Confirmation Email (Simplified for cart)
+    const links = packs.map((p: any) => ({ label: `Download ${p.name}`, url: `https://sampleswala.com/packs/${p.id}` }));
+    await sendPurchaseEmail(user.id, user.email!, user.user_metadata?.full_name, `${packs.length} Artifacts`, 'Multi-Pack Checkout', totalInr, orderId, links);
+
+    revalidatePath('/')
+    revalidatePath('/library')
+    
+    return { success: true }
+}

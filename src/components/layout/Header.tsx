@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { User, Activity, Play, Pause, Disc, Settings as SettingsIcon, HelpCircle, Info } from 'lucide-react'
+import { User, Activity, Play, Pause, Disc, Settings as SettingsIcon, HelpCircle, Info, ShoppingCart } from 'lucide-react'
+import { useCart } from '@/components/CartProvider'
 import { CreditCounter } from '@/components/CreditCounter'
 import { MobileMenu } from './MobileMenu'
 import { Suspense } from 'react'
@@ -16,6 +17,7 @@ export function Header() {
   const isAdmin = pathname?.includes('/admin')
   const { user, isLoading } = useAuth()
   const { isOpen } = useSidebar()
+  const { totalItems, setCartOpen } = useCart()
   const { isPlaying, activeId, activeMetadata, currentTime, pause } = useAudio()
   
   if (isAdmin) return null;
@@ -120,6 +122,27 @@ export function Header() {
 
         {/* 🧬 AUTH & RACK STATS */}
         <div className="flex items-center gap-3 md:gap-6">
+            {/* 🛒 CART_ACCESS */}
+            <button 
+                onClick={() => setCartOpen(true)}
+                className="relative h-9 px-3 md:h-12 md:px-4 flex items-center gap-3 bg-[#111] border border-white/5 hover:border-studio-neon/50 transition-all group overflow-hidden shadow-inner"
+            >
+                <div className="flex flex-col items-start hidden md:flex">
+                    <span className="text-[7px] font-black text-white/20 uppercase tracking-widest leading-none mb-1">Items</span>
+                    <span className={`text-[9px] font-mono uppercase tracking-widest leading-none ${totalItems > 0 ? 'text-studio-neon' : 'text-white/40'}`}>
+                        {totalItems > 0 ? 'In Cart' : 'Empty'}
+                    </span>
+                </div>
+                <div className="relative">
+                    <ShoppingCart className={`h-4 w-4 transition-colors ${totalItems > 0 ? 'text-studio-neon' : 'text-white/20 group-hover:text-white/60'}`} />
+                    {totalItems > 0 && (
+                        <div className="absolute -top-2.5 -right-2.5 h-4 w-4 bg-studio-neon text-black text-[8px] font-black flex items-center justify-center rounded shadow-[0_0_10px_rgba(166,226,46,0.5)] animate-pulse">
+                            {totalItems}
+                        </div>
+                    )}
+                </div>
+            </button>
+
             <div className="hidden xxl:flex items-center gap-5 px-5 py-1.5 bg-black/40 border-l border-white/10 scale-90">
                 <span className="text-[7px] font-black uppercase text-white/15 tracking-widest">Status Ready</span>
             </div>

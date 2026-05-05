@@ -263,7 +263,7 @@ export async function getUserVaultAction(userId: string) {
         ...v,
         item_id: v.item_id,
         item_type: v.item_type,
-        added_at: v.added_at,
+        created_at: v.created_at,
         name: v.item_type === 'sample' 
             ? samples?.find((s: any) => s.id === v.item_id)?.name || 'Unknown Sample'
             : packs?.find((p: any) => p.id === v.item_id)?.name || 'Unknown Pack'

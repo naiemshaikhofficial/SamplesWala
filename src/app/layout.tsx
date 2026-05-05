@@ -13,6 +13,7 @@ import { Suspense } from 'react'
 import { MainLayoutWrapper } from '@/components/layout/MainLayoutWrapper'
 import { generateMetadata, pagesMeta } from '@/lib/seo-metadata'
 import JsonLdSchema from '@/components/seo/JsonLdSchema'
+import { CartDrawer } from '@/components/audio/CartDrawer'
 import Script from 'next/script'
 import { getAllCategories } from './browse/actions'
 import { createClient } from '@/lib/supabase/server'
@@ -126,6 +127,7 @@ export default async function RootLayout({
           <MasterLight />
           <ScanlineOverlay />
           <SignalScan />
+          <CartDrawer />
           <div className="flex min-h-screen relative overflow-x-hidden">
             <Suspense fallback={null}>
                 <Sidebar initialCategories={categories} />

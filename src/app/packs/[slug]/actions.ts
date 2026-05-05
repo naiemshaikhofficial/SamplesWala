@@ -94,11 +94,9 @@ export async function getDownloadUrl(sampleId: string) {
 
 /** 🎰 BULK UNLOCK (V13 Hyper-Speed Protocol) **/
 export async function unlockFullPack(packId: string) {
-    const { user, isSubscribed } = await getServerAuth()
+    const { user } = await getServerAuth()
     const adminClient = getAdminClient()
     if (!user) throw new Error('Authentication required')
-
-    if (!isSubscribed) throw new Error('Active Studio Subscription Required To Unlock Sounds')
 
     const { data: pack } = await adminClient.from('sample_packs').select('name, bundle_credit_cost, slug').eq('id', packId).single()
     if (!pack) throw new Error('Pack not found')

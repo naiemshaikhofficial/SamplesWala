@@ -15,7 +15,7 @@ interface VaultItem {
   user_id: string
   item_id: string
   item_type: 'sample' | 'pack'
-  added_at: string
+  created_at: string
 }
 
 interface Sample {
@@ -51,7 +51,7 @@ export default function LibraryPage() {
                 .from('user_vault')
                 .select('*')
                 .eq('user_id', user.id)
-                .order('added_at', { ascending: false })
+                .order('created_at', { ascending: false })
 
             if (error || !items) {
                 setLoading(false)
@@ -158,7 +158,7 @@ export default function LibraryPage() {
                                             {item.display_name}
                                         </h3>
                                         <span className="text-[9px] font-bold uppercase tracking-widest text-white/10 italic">
-                                            {item.item_type.toUpperCase()} // UNLOCKED: {new Date(item.added_at).toLocaleDateString()}
+                                            {item.item_type.toUpperCase()} // UNLOCKED: {new Date(item.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
                                 </div>

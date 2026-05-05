@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, ChevronDown, ListFilter, X, Loader2, Lock } from 'lucide-react'
+import { Search, ChevronDown, ListFilter, X, Loader2, Lock, Sparkles } from 'lucide-react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTransition } from 'react'
 import { PlayButton } from './PlayButton'

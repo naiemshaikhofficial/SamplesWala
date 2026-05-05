@@ -183,7 +183,7 @@ export default function PricingClientView({ plans, packs, activeSub, user }: Pri
             </div>
 
             {/* ⚡ 2. CREDIT PACKS (ONE-TIME) SECTION */}
-            {currentPlanName !== 'Free' && (
+            {(true) && (
                 <div>
                     <div className="flex items-center gap-4 mb-16 text-white/10 group px-2">
                         <Database className="h-5 w-5 md:h-6 md:w-6 group-hover:text-studio-yellow transition-colors" />

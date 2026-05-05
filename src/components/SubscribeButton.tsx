@@ -53,14 +53,8 @@ export function SubscribeButton({
         return
     }
 
-    // ⛔ ENFORCE: No Credits without Active Subscription
-    if (mode === 'pack' && !hasActiveSubscription) {
-        showToast('Active Subscription Required for Credit Packs.', 'error')
-        // Option: Smooth scroll to subscription section
-        const subSection = document.getElementById('subscription-plans')
-        if (subSection) subSection.scrollIntoView({ behavior: 'smooth' })
-        return
-    }
+    // ⛔ ENFORCE: No restriction for direct purchases (Sample Packs, Software, Credit Packs)
+    // removed subscription requirement for mode === 'pack' per user request
 
     const params = new URLSearchParams()
     if (mode === 'subscription') params.set('planId', planId)

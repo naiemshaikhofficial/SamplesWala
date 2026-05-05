@@ -2,14 +2,15 @@
 
 import React, { useState } from 'react'
 import Script from 'next/script'
-import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment } from '@/app/subscription/actions'
+import { createSubscription, purchaseCreditPack, purchaseSamplePack, purchaseSoftware, verifyPayment, purchaseCart, verifyCartPayment } from '@/app/subscription/actions'
 import { useNotify } from '@/components/ui/NotificationProvider'
+import { useCart } from '@/components/CartProvider'
 import { triggerTrustpilotInvitation } from '@/lib/trustpilot'
 import { Loader2, Zap } from 'lucide-react'
 
 interface RazorpayCheckoutProps {
-    itemId: string
-    mode: 'subscription' | 'pack' | 'sample_pack' | 'software'
+    itemId: string | string[]
+    mode: 'subscription' | 'pack' | 'sample_pack' | 'software' | 'cart'
     planName: string
     priceInr: number
     interval?: 'MONTHLY' | 'ANNUAL'
@@ -19,20 +20,22 @@ interface RazorpayCheckoutProps {
 export default function RazorpayCheckout({ itemId, mode, planName, priceInr, interval = 'MONTHLY', onSuccess }: RazorpayCheckoutProps) {
     const [loading, setLoading] = useState(false)
     const { showToast } = useNotify()
+    const { clearCart } = useCart()
 
     const handlePayment = async () => {
         setLoading(true)
         try {
             let action;
-            if (mode === 'subscription') action = createSubscription;
-            else if (mode === 'pack') action = purchaseCreditPack;
-            else if (mode === 'sample_pack') action = purchaseSamplePack;
-            else action = purchaseSoftware;
+            if (mode === 'subscription') action = () => createSubscription(itemId as string, interval);
+            else if (mode === 'pack') action = () => purchaseCreditPack(itemId as string);
+            else if (mode === 'sample_pack') action = () => purchaseSamplePack(itemId as string);
+            else if (mode === 'cart') action = () => purchaseCart(itemId as string[]);
+            else action = () => purchaseSoftware(itemId as string);
 
             const { getDeviceFingerprint } = await import('@/lib/fingerprint')
             const deviceFingerprint = await getDeviceFingerprint()
 
-            const orderData: any = await action(itemId, interval, deviceFingerprint)
+            const orderData: any = await action()
             if (!orderData.success) {
                 showToast(orderData.error || 'Identity Synchronization Failed', 'error')
                 return
@@ -43,11 +46,18 @@ export default function RazorpayCheckout({ itemId, mode, planName, priceInr, int
                 name: 'Samples Wala',
                 description: orderData.isTrialLink 
                     ? `Free Trial · ₹5 refundable auth · Renews at ₹${orderData.planPrice}/mo` 
-                    : `Membership Activation: ${planName}`,
+                    : `Order Confirmation: ${planName}`,
                 handler: async function (response: any) {
-                    const verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, itemId)
+                    let verified;
+                    if (mode === 'cart') {
+                        verified = await verifyCartPayment(response, orderData.orderId, itemId as string[])
+                        if (verified.success) clearCart()
+                    } else {
+                        verified = await verifyPayment(response, orderData.subscriptionId || orderData.orderId, mode, itemId as string, interval)
+                    }
+
                     if (verified.success) {
-                        showToast(`SUCCESS: ${planName} LINKED TO YOUR NODE.`, 'success')
+                        showToast(`SUCCESS: ACCESS GRANTED TO ${planName}.`, 'success')
                         
                         // 🛡️ BROWSER_DEVICE_LOCK
                         if (orderData.isTrialLink) {

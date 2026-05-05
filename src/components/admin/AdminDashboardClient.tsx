@@ -1314,7 +1314,7 @@ export default function AdminDashboardClient({
                                                 </div>
                                             </div>
                                             <div className="col-span-2 text-center text-[8px] font-black uppercase text-white/40">{item.item_type}</div>
-                                            <div className="col-span-2 text-right text-[10px] font-black uppercase text-white/20 italic">{new Date(item.added_at).toLocaleDateString()}</div>
+                                            <div className="col-span-2 text-right text-[10px] font-black uppercase text-white/20 italic">{new Date(item.created_at).toLocaleDateString()}</div>
                                         </div>
                                     )) : <div className="p-32 text-center text-[11px] font-black uppercase tracking-widest text-white/10 italic">VAULT_EMPTY :: NO_SIGNALS_DETECTED</div>}
                                 </div>

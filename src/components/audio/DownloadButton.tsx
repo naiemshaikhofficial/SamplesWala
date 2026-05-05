@@ -131,22 +131,25 @@ export function DownloadButton({ sampleId, creditCost = 1, packId, variant = 'de
                 active:scale-95
                 disabled:opacity-80 disabled:cursor-wait font-black uppercase italic
             `}
-            title={isUnlocked ? 'Download Sample' : `Unlock for ${creditCost} Credits`}
+            title={isUnlocked ? 'Export Signal Path' : `Deduct ${creditCost} Credits to Unlock`}
         >
             <div className="relative z-10 flex items-center justify-center">
                 {(isProcessing && !isUnlocked) ? (
                     <div className="flex items-center gap-2 px-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        <span className="text-[8px] font-black uppercase tracking-widest italic animate-pulse">
-                            Processing...
+                        <span className="text-[7px] font-mono uppercase tracking-[0.2em] italic animate-pulse">
+                            Processing_Buffer...
                         </span>
                     </div>
                 ) : (isUnlocked || creditCost === 0) ? (
-                    <Download className={`${variant === 'neon' ? 'h-5 w-5' : 'h-4 w-4'} ${isPlaying ? 'animate-bounce' : ''} text-white group-hover:text-black transition-colors`} />
+                    <div className="flex items-center gap-2">
+                        <Download className={`${variant === 'neon' ? 'h-5 w-5' : 'h-4 w-4'} ${isPlaying ? 'animate-bounce' : ''} text-white group-hover:text-black transition-colors`} />
+                        <span className="text-[8px] font-black group-hover:text-black transition-colors hidden md:block">EXPORT</span>
+                    </div>
                 ) : needsConfirm ? (
                     <div className="flex items-center gap-2 px-2">
-                         <span className="text-[9px] font-black uppercase tracking-widest">CONFIRM?</span>
-                         <ArrowRight className="h-3 w-3" />
+                         <span className="text-[9px] font-black uppercase tracking-widest text-studio-neon">CONFIRM_LINK?</span>
+                         <ArrowRight className="h-3 w-3 text-studio-neon" />
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 px-1">
