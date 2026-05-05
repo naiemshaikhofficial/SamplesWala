@@ -282,19 +282,20 @@ export async function unlockSampleBatch(sampleIds: string[]) {
 }
 
 // 🚀 UNIFIED_BROWSE_CACHE: Cache ALL browsing results (Guest & Auth) for 24 hours
-const getUnifiedBrowseData = unstable_cache(
-    async (rpcParams: any) => {
+// 🚀 UNIFIED_BROWSE_CACHE: Cache ALL browsing results (Guest & Auth) for 24 hours
+const getUnifiedBrowseData = (rpcParams: any) => unstable_cache(
+    async (params: any) => {
         const adminClient = getAdminClient()
-        const { data, error } = await adminClient.rpc('get_studio_browse_data', rpcParams)
+        const { data, error } = await adminClient.rpc('get_studio_browse_data', params)
         if (error) {
             console.error('[BROWSE_RPC_ERROR]', error)
             throw error
         }
-        return data
+        return data || { samples: [], count: 0, categories: [], context_packs: [] }
     },
-    ['unified-browse-data-v4'],
+    ['unified-browse-data-v6', JSON.stringify(rpcParams)],
     { revalidate: 86400, tags: ['browse'] }
-)
+)(rpcParams)
 
 // 🧬 CACHED_PACK_OWNERSHIP: Separate cache for specific pack access
 const getCachedPackOwnership = unstable_cache(
@@ -380,16 +381,18 @@ export async function getBrowseData(filters: {
         p_filter: (finalFilters.type && finalFilters.type !== 'all') ? finalFilters.type : (finalFilters.filter || null)
     }
 
-    let data;
+    let data: any = { samples: [], count: 0, categories: [], context_packs: [] };
     try {
-        data = await getUnifiedBrowseData(rpcParams)
+        const result = await getUnifiedBrowseData(rpcParams)
+        if (result) data = result
     } catch (error) {
+        console.error('[BROWSE_CACHE_FALLBACK]', error)
         const adminClient = getAdminClient()
         const { data: liveData } = await adminClient.rpc('get_studio_browse_data', rpcParams)
-        data = liveData
+        if (liveData) data = liveData
     }
 
-    const sanitizedPacks = (data.context_packs || []).map((p: any) => ({
+    const sanitizedPacks = (data?.context_packs || []).map((p: any) => ({
         id: p.id,
         name: p.name,
         slug: p.slug,
@@ -399,9 +402,10 @@ export async function getBrowseData(filters: {
     }));
 
     return {
-        ...data,
+        samples: data?.samples || [],
+        count: data?.count || 0,
+        categories: data?.categories || [],
         packs: sanitizedPacks,
-        context_packs: undefined, 
         isSubscribed,
         isRestricted: !isSubscribed && isPremiumAttempt
     }

@@ -224,7 +224,7 @@ export function SampleList({
                     <div className="col-span-1 text-right">Download</div>
                 </div>
 
-                <div className="divide-y divide-black">
+                <div className="divide-y divide-white/5">
                     {processedSamples.map((sample, idx) => {
                         const isUnlocked = unlockedIds.has(sample.id) || (packId ? unlockedIds.has(packId) : false)
                         const isActive = activeId === sample.id
@@ -232,7 +232,7 @@ export function SampleList({
                         return (
                             <div 
                                 key={sample.id} 
-                                className={`group flex items-center justify-between gap-3 px-4 md:px-10 py-4 transition-all border-b border-white/5 md:border-none ${isActive ? 'bg-studio-neon/5' : 'hover:bg-white/[0.03]'}`}
+                                className={`group flex items-center justify-between gap-3 px-4 md:px-10 py-4 transition-all border-b border-white/5 md:border-none ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}
                             >
                                 {/* LEFT: PLAY + INFO */}
                                 <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -358,8 +358,13 @@ export function SampleList({
                 </div>
 
                 {processedSamples.length === 0 && (
-                    <div className="p-32 text-center text-[11px] font-black uppercase tracking-[0.5em] text-white/10 italic">
-                        No sounds found.
+                    <div className="p-40 text-center flex flex-col items-center justify-center gap-4">
+                        <div className="h-12 w-12 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center animate-pulse">
+                            <Sparkles className="h-6 w-6 text-white/10" />
+                        </div>
+                        <div className="text-[11px] font-black uppercase tracking-[0.5em] text-white/20 italic">
+                            No sounds found in this category.
+                        </div>
                     </div>
                 )}
             </div>

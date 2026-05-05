@@ -4,6 +4,7 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
 import { getServerAuth } from '@/lib/supabase/auth'
+import { createClient } from '@/lib/supabase/server'
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID!,
@@ -15,7 +16,6 @@ const razorpay = new Razorpay({
  */
 export async function redeemCoupon(code: string) {
     const { user } = await getServerAuth()
-    const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
     if (!user) throw new Error('Authentication required')
 
@@ -41,7 +41,6 @@ export async function redeemCoupon(code: string) {
  */
 export async function createTopUpOrder(amountCredits: number) {
     const { user } = await getServerAuth()
-    const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
     if (!user) throw new Error('Authentication required')
 

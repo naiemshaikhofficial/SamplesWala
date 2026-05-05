@@ -176,22 +176,31 @@ export default async function PackPage({
       sort: sParams.sort as string
   })
 
-  const { samples: rawSamples, count, packs: relatedPacks, isSubscribed, isRestricted, categories } = browseData;
-  const categoryData = categories.find((c: any) => c.id === pack.category_id);
+  const categoryData = browseData?.categories?.find((c: any) => c.id === pack.category_id);
   
   const enrichedPack = { ...pack, categories: categoryData };
   const genreBase = categoryData?.name || 'Indian'
   const displayGenre = genreBase.toLowerCase().includes('indian') ? genreBase : `${genreBase} Indian`
   const videoId = getYouTubeId(enrichedPack.video_url);
 
+  // 🧪 DATA_VALIDATION: Ensure we have arrays to map over
+  const rawSamples = browseData?.samples || []
+  const count = browseData?.count || 0
+  const relatedPacks = browseData?.packs || []
+  const isSubscribed = browseData?.isSubscribed || false
+  const isRestricted = browseData?.isRestricted || false
+  const categories = browseData?.categories || []
+
+  // 🚀 SAMPLE_ENRICHMENT: Map signals and metadata
   const samples = rawSamples.map((s: any) => ({
+      ...s,
       id: s.id,
       name: s.name,
-      type: s.type,
       bpm: s.bpm,
       key: s.key,
-      credit_cost: s.credit_cost,
+      type: s.type,
       audio_url: s.audio_url,
+      credit_cost: s.credit_cost || 1,
       signal: generateAudioSignal(getDriveFileId(s.audio_url), s.name)
   }))
 
@@ -199,7 +208,7 @@ export default async function PackPage({
   const packSamples = pack.samples || []
   const melodies = packSamples.filter((s: any) => (s.bpm || 0) > 0 && s.key && s.key !== '').length
   const loops = packSamples.filter((s: any) => (s.bpm || 0) > 0 && (!s.key || s.key === '')).length
-  const oneShots = packSamples.filter((s: any) => (!s.bpm || s.bpm === 0) && s.type !== 'preset').length
+  const oneShots = packSamples.filter((s: any) => !s.bpm || s.bpm === 0).length
   const presets = packSamples.filter((s: any) => s.type === 'preset').length
   const totalPackSamples = melodies + loops + oneShots + presets
   
@@ -437,27 +446,81 @@ export default async function PackPage({
           </div>
       </div>
 
-      {/* 🧬 RELATED_PACKS_SECTION */}
-      <div className="mt-24 border-t border-white/5 pt-24 mb-24">
-        <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-16 flex items-center gap-6 text-white/20">
-           <Disc className="h-10 w-10 animate-reverse-spin" /> 
-           More Related Packs
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            {relatedPacks?.map((rp: any) => (
-                <Link key={rp.id} href={`/packs/${rp.slug}`} className="group studio-panel bg-studio-grey border-2 border-white/5 hover:border-studio-neon transition-all overflow-hidden">
-                    <div className="aspect-square relative overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
-                        {rp.cover_url && (
-                          <Image src={rp.cover_url} alt={rp.name} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover group-hover:scale-105 transition-transform" />
-                        )}
-                        <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors p-6 flex flex-col justify-end">
-                            <h3 className="text-xl font-black uppercase tracking-tighter italic leading-none">{rp.name}</h3>
-                        </div>
-                    </div>
-                </Link>
-            ))}
-        </div>
-      </div>
+      {/* 🧬 RELATED_PACKS_SECTION: DAW Module Grid */}
+      {relatedPacks.length > 0 && (
+          <div className="mt-32 pt-24 border-t border-white/5 mb-32">
+              <div className="flex items-center justify-between mb-12 px-2">
+                  <div className="flex items-center gap-4">
+                      <div className="h-8 w-1 bg-studio-neon shadow-[0_0_15px_#a6e22e]" />
+                      <h2 className="text-2xl font-black uppercase tracking-[0.2em] text-white">
+                          More Related Packs
+                      </h2>
+                  </div>
+                  <Link href="/browse" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-studio-neon transition-colors flex items-center gap-2">
+                      <Monitor className="h-3 w-3" />
+                      Browse All Modules
+                  </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                  {relatedPacks.map((rp: any) => (
+                      <Link 
+                          key={rp.id} 
+                          href={`/packs/${rp.slug}`}
+                          className="group relative flex flex-col bg-[#0A0A0A] border border-white/5 hover:border-studio-neon/40 transition-all duration-300 overflow-hidden"
+                      >
+                          {/* 📡 DAW_UI_ACCENTS: Tech lines and corners */}
+                          <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20 group-hover:border-studio-neon/60 transition-colors" />
+                          <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/20 group-hover:border-studio-neon/60 transition-colors" />
+                          
+                          {/* 🖼️ MODULE_PREVIEW: High contrast display */}
+                          <div className="relative aspect-square overflow-hidden bg-black">
+                              {rp.cover_url && (
+                                  <Image 
+                                      src={rp.cover_url} 
+                                      alt={rp.name}
+                                      fill
+                                      sizes="(max-width: 768px) 100vw, 25vw"
+                                      className="object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 scale-[1.01] group-hover:scale-110"
+                                  />
+                              )}
+                              {/* 📐 GRID_OVERLAY: DAW feel */}
+                              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                              
+                              {/* 💳 PRICE_TAG: Technical Data Overlay */}
+                              <div className="absolute bottom-4 left-4 font-mono text-[10px] font-bold text-studio-neon bg-black/60 backdrop-blur-md px-2 py-1 border border-studio-neon/20">
+                                  PRICE: ₹{rp.price_inr}
+                              </div>
+                          </div>
+
+                          {/* 🎚️ MODULE_DATA: Monospace and clean typography */}
+                          <div className="p-5 flex flex-col gap-3 bg-studio-grey/10 border-t border-white/5">
+                              <div className="flex flex-col">
+                                  <span className="text-[9px] font-mono text-studio-neon/50 uppercase tracking-widest mb-1">
+                                      {rp.id.slice(0, 8)} // ARTIFACT
+                                  </span>
+                                  <h3 className="text-sm font-black uppercase tracking-wider text-white group-hover:text-studio-neon transition-colors truncate">
+                                      {rp.name}
+                                  </h3>
+                              </div>
+                              
+                              <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                                  <div className="flex gap-1">
+                                      <div className="h-1 w-4 bg-studio-neon/20 group-hover:bg-studio-neon transition-all" />
+                                      <div className="h-1 w-2 bg-studio-neon/10 group-hover:bg-studio-neon/40 transition-all" />
+                                      <div className="h-1 w-1 bg-studio-neon/5 group-hover:bg-studio-neon/20 transition-all" />
+                                  </div>
+                                  <span className="text-[9px] font-mono text-white/20 uppercase">
+                                      Status: Ready
+                                  </span>
+                              </div>
+                          </div>
+                      </Link>
+                  ))}
+              </div>
+          </div>
+      )}
       {/* 🧬 NUCLEAR_SEO: Schema Injection for Search Supremacy */}
       <script
         type="application/ld+json"
